@@ -1,0 +1,482 @@
+<template>
+    <el-container>
+        <el-header style="height:50px; padding: 0">
+            <headerPage></headerPage>
+        </el-header>
+        <el-container>
+            <el-aside width="100px">
+                <section style="min-width:100px;">
+                    <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+                </section>
+            </el-aside>
+            <el-container>
+                <div class="content-new-fex">
+                    <div class="content-eighty">
+                        <div class="content-center">
+                            <el-row :gutter="10">
+                                <el-col :span="8">
+                                    <el-button icon="el-icon-plus" size="small" type="primary" @click="handleNew" plain>创建活动</el-button>
+                                </el-col>
+                                <el-col :span="10" class="text-right">
+                                    <el-radio-group size="small" v-model='radioStatus' @change='curRadioStatus()'>
+                                        <el-radio-button v-for='(item,index) in choseList' :key='index' :label='item.id'>{{item.name}}</el-radio-button>
+                                    </el-radio-group>
+                                </el-col>
+                                <el-col :span="6" style="text-align:right">
+                                    <el-input size='small' style='width:260px' v-model="Filter" prefix-icon="el-icon-search" @input="curRadioStatus()" placeholder="请输入活动名称" clearable></el-input>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </div>
+
+                    <div class="content-table4">
+                        <div class="content-table-center">
+                            <el-table :data="tableData" size='small' v-loading='loading' element-loading-text='数据加载中...' border header-row-class-name="bg-f1f2f3" style="width: 100%;">
+                                <el-table-column prop="NAME" align="center" label="活动名称"></el-table-column>
+                                <el-table-column prop="date" align="center" label="活动时间">
+                                    <template slot-scope="scope">
+                                        {{new Date(scope.row.BEGINDATE) | time }} 至 {{new Date(scope.row.ENDDATE) | time}}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column align="center" label="活动店铺">
+                                    <template slot-scope="scope">
+                                        {{scope.row.SHOPLIST.split(',').length}} 家
+                                    </template>
+                                </el-table-column>
+                                <el-table-column align="center" label="活动状态">
+                                    <template slot-scope="scope">
+                                        {{scope.row.VALIDTYPE == 0 ? '已结束' : scope.row.VALIDTYPE == 1 ? '进行中' : '未开始'}}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作">
+                                    <template slot-scope="scope">
+                                        <el-button size='small' type="text" @click='viewCurItem(scope.row)'>详情</el-button>
+                                        <el-button size='small' type="text" @click='delCurListItem(scope.row)'>删除</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+
+                        </div>
+                    </div>
+                </div>
+
+                <el-dialog title='新增限时特价' :visible.sync="showNewForm" append-to-body width="60%">
+                    <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="90px">
+                        <el-form-item label="活动名称" prop='Name'>
+                            <el-input size='small' v-model="ruleForm.Name" style='width:60%' placeholder="请输入活动名称"></el-input>
+                        </el-form-item>
+                        <el-form-item label="活动时间" prop='dateBE'>
+                            <el-date-picker size="small"
+                                v-model="ruleForm.dateBE"
+                                type="daterange"
+                                value-format="timestamp"
+                                range-separator="至"
+                                start-placeholder="开始日期"
+                                end-placeholder="结束日期"
+                                style='width:60%'
+                            ></el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="活动店铺">
+                            <el-select
+                                v-model="ShopNameList"
+                                multiple
+                                size="small"
+                                style='width:60%'
+                                clearable
+                                :multiple-limit="3"
+                                placeholder="请选择活动店铺"
+                                class="full-width"
+                                >
+                                <el-option size='small' v-for="(item,i) in shopList" :key="i" :label="item.NAME" :value="item.NAME"></el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label='会员折上折'>
+                            <el-tooltip effect="dark" content="启用之后，商品 会在优惠价的基础上继续执行会员折扣" placement="top-start">
+                                <el-button type="text" style='color:#999' icon='el-icon-question'></el-button>
+                            </el-tooltip>
+                            <el-switch v-model="ruleForm.IsVipDiscount" active-color="#409eff" inactive-color="#cccccc"></el-switch>
+                        </el-form-item>
+                        <el-form-item label="是否启用">
+                            <span style='width:20px; height:10px; float:left'> </span>
+                            <el-switch v-model="ruleForm.IsStart" active-color="#409eff" inactive-color="#cccccc"></el-switch>
+                        </el-form-item>
+                        <el-form-item label="价格设置">
+                            <el-button size='small' type="primary" plain icon="el-icon-plus" @click='showAddserversgoods = true'>选择商品</el-button>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-table 
+                                border size='small'
+                                v-if="ruleForm.GoodsList.length>0"
+                                :data="ruleForm.GoodsList"
+                                :highlight-current-row='true' 
+                                header-row-class-name="bg-f1f2f3"
+                                style="width: 100%;"
+                            >
+                                <el-table-column prop="GoodsName" label="商品"></el-table-column>
+                                <el-table-column label="原价">
+                                    <template slot-scope='scope'>
+                                        {{`￥${scope.row.GoodsPrice}`}}
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="Discount" label="折扣">
+                                    <template slot-scope="scope">
+                                        <el-input-number size='mini' style="width:100px" controls-position='right' :min='0' :max="1" v-model.trim='scope.row.Discount' @keyup.enter.native="changePr(scope.row)" @change="changePr(scope.row)"></el-input-number>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="DisPrice" label="优惠价">
+                                    <template slot-scope="scope">
+                                        <el-input-number size="mini" style="width:110px" controls-position="right" :min='0' v-model.trim='scope.row.DisPrice' @keyup.enter.native='changeDP(scope.row)' @change='changeDP(scope.row)'></el-input-number>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作" width="100" fixed="right">
+                                    <template slot-scope="scope">
+                                        <el-button size='small' type="text" @click='delCurRow(scope.$index , scope.row)'>删除</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" @click='saveAddSpecials' >保存</el-button>
+                            <el-button @click='showNewForm = false'>取消</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-dialog>
+
+                <el-dialog title="选择商品" width="70%" :visible.sync="showAddserversgoods" append-to-body>
+                    <add-servers-goods
+                        @closeModal="showAddserversgoods=false"
+                        @resetList="showAddserversgoods=false"
+                        :curListData='ruleForm.GoodsList'
+                        @handlerClickadd="handlerclickadd"
+                    ></add-servers-goods>
+                </el-dialog>
+            </el-container>
+        </el-container>
+    </el-container>
+</template>
+
+<script>
+import { mapState, mapGetters } from "vuex";
+import { getHomeData, getUserInfo } from "@/api/index";
+import MIXINS_MARKETING from "@/mixins/marketing.js";
+let _ = require("lodash");
+
+export default {
+    mixins: [MIXINS_MARKETING.MARKETING_MENU],
+    data(){
+        return{
+            ShopNameList:[],
+            showShopDialog:false,
+            showAddserversgoods: false,
+            choseList:[ { id:0, name:'全 部' },{ id:1, name:'未开始' },{ id:2, name:'进行中' },{ id:3, name:'已结束' } ],
+            radioStatus:0,
+            tableData:[],
+            showNewForm: false,
+            loading:false,
+            ruleForm:{
+                Name:'',
+                dateBE:[],
+                IsVipDiscount:false,
+                GoodsList:[],
+                ShopNameList:'',
+                ShopIdList:'',
+                BillId:'',
+                IsStart: false,
+            },
+            rules:{
+                Name: [{ required: true, message: '请输入活动名称', trigger: 'blur' ,}],
+                dateBE: [{ required: true, message: '请选择时间', trigger: 'change' }]                
+            },
+            PN: 1,
+            Filter: '',
+            pagination: {
+                TotalNumber: 0,
+                PageNumber: 0,
+                PageSize: 20,
+                PN: 1
+            },
+            DelArr:[]
+        }
+    },
+    computed: {
+        ...mapGetters({
+            shopList: "shopList",
+            specialsDataState:'specialsDataState',
+            delSpecialsState:'delSpecialsState',
+            specialsItemState:'specialsItemState',
+            saveSpecialsState:'saveSpecialsState'
+        })
+    },
+    watch:{
+        saveSpecialsState(data){
+            this.ShopNameList = []
+            if(data.success){
+                this.curRadioStatus()
+            }
+            this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+        },
+        specialsItemState(data){
+            let obj = data.data.Obj
+            if(data.success){
+                let arr = data.data.GoodsObj, newArr = []
+                if(arr.length != 0){
+                    for(var i in arr){
+                        newArr.push({
+                            Id: arr[i].ID,
+                            GoodsId: arr[i].GOODSID,
+                            GoodsName: arr[i].GOODSNAME,
+                            Discount: arr[i].DISCOUNT == undefined ? 1 : arr[i].DISCOUNT,
+                            GoodsPrice: arr[i].GOODSPRICE,
+                            DisPrice: arr[i].DISPRICE,
+                            IsCancel: arr[i].ISCANCEL == false ? 0 : 1
+                        })
+                    }
+                    this.ruleForm.GoodsList = newArr
+                }
+                this.ruleForm.Name = obj.NAME
+                this.ruleForm.ShopIdList = obj.SHOPLIST
+                this.ruleForm.ShopNameList = obj.SHOPNAMELIST
+                this.ruleForm.dateBE = [obj.BEGINDATE, obj.ENDDATE]
+                this.ruleForm.IsVipDiscount = obj.ISVIPDISCOUNT
+                this.ruleForm.IsStart = obj.ISSTART
+                this.ruleForm.BillId = obj.BILLID
+                this.ShopNameList = this.ruleForm.ShopNameList.split(',')
+            }
+        },
+        delSpecialsState(data){
+            if(data.success){
+                this.curRadioStatus()
+            }
+            this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+        },
+        specialsDataState(data){
+            this.loading = false
+            this.tableData = data.DataArr
+            this.pagination = {
+                TotalNumber: data.TotalNumber,
+                PageNumber: data.PageNumber,
+                PageSize: data.PageSize,
+                PN: data.PN
+            }
+            this.PN = data.PN
+        }
+    },
+    methods:{
+        curChoseShop(){
+            let arrS = this.shopList, arr1 = this.ShopNameList, new1 = [], new2 = []
+            for(var i in arrS){
+                for(var j in arr1){
+                    if(arrS[i].NAME == arr1[j]){
+                        new1.push(arrS[i].NAME)
+                        new2.push(arrS[i].ID)
+                    }
+                }
+            }
+
+            let str = '', id = ''
+            for(let i in new1){
+                str += new1[i] + ','
+            }
+            if(str.length>0){  //去掉最后一个逗号
+                str=str.substring(0,str.length-1)
+            }
+            this.ruleForm.ShopNameList = str
+
+            for(let i in new2){
+                id += new2[i] + ','
+            }
+            if(id.length>0){  //去掉最后一个逗号s
+                id=id.substring(0,id.length-1);
+            }
+            this.ruleForm.ShopIdList = id
+            this.showShopDialog = false
+        },
+        saveAddSpecials(){
+            this.$refs.ruleForm.validate(valid => {
+                if (valid) {
+                    this.curChoseShop()
+                    if(this.ShopNameList.length == 0){
+                        this.$message.warning('请选择活动店铺 !')
+                        return
+                    }
+                    let arr = this.ruleForm.GoodsList, newArr = []
+                    if(arr.length == 0){
+                        this.$message.warning('请选择商品!')
+                        return
+                    }
+                    for(var i in arr){
+                        arr[i].IsCancel == true ? 1 : 0
+                        newArr.push(arr[i])
+                    }
+                    newArr = newArr.concat(this.DelArr)
+                    let sendData = {
+                        Name: this.ruleForm.Name,
+                        BeginDate: this.ruleForm.dateBE[0],
+                        EndDate: this.ruleForm.dateBE[1],
+                        IsStart: this.ruleForm.IsStart == false ? 0 : 1,
+                        IsVipDiscount: this.ruleForm.IsVipDiscount == false ? 0 : 1,
+                        Remark: '',
+                        GoodsList: JSON.stringify(newArr),
+                        ShopIdList: this.ruleForm.ShopIdList,
+                        ShopNameList: this.ruleForm.ShopNameList,
+                        BillId: this.ruleForm.BillId
+                    }
+                    this.$store.dispatch('saveSpecials', sendData).then(()=>{
+                        this.showNewForm = false
+                    })
+                }
+            })
+        },
+        delCurListItem(row){
+            this.$confirm( '确认删除该活动', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning' 
+            }).then(() => {
+                this.$store.dispatch('delSpecials', { BillId: row.BILLID })
+            }).catch(()=>{})
+        },
+        delCurRow(idx,row){
+            row.IsCancel = 1
+            this.DelArr.push(row)
+            this.ruleForm.GoodsList.splice(idx, 1)
+        },
+        changePr(row){
+            row.DisPrice = row.Discount * row.GoodsPrice
+        },
+        changeDP(row){
+            row.Discount = row.DisPrice / row.GoodsPrice
+        },
+        handlerclickadd(data) {
+            this.ruleForm.GoodsList = [];
+            for (let i = 0; i < data.length; i++) {
+                this.ruleForm.GoodsList.push({
+                    Id: "",
+                    GoodsId: data[i].ID,
+                    GoodsName: data[i].NAME,
+                    Discount: 1,
+                    GoodsPrice: data[i].PRICE,
+                    DisPrice: data[i].PRICE,
+                    IsCancel: 0
+                })
+            }
+        },
+        curRadioStatus(){
+            let IsValid = ''
+            if(this.radioStatus == 0){
+                IsValid = -1
+            }else if(this.radioStatus == 1){
+                IsValid = 2
+            }else if(this.radioStatus == 2){
+                IsValid = 1
+            }else{
+                IsValid = 0
+            }
+            this.$store.dispatch('getSpecialsList', { PN: 1, Filter: this.Filter, IsValid: IsValid } ).then(()=>{
+                this.loading = true
+            })
+        },
+        viewCurItem(item){
+            this.$store.dispatch('getSpecialsItem', { BillId: item.BILLID }).then(()=>{
+                this.showNewForm = true
+            })
+        },
+        handleNew(){
+            this.showNewForm = true
+            this.ruleForm = {
+                Name:'',
+                dateBE:[],
+                IsVipDiscount:false,
+                GoodsList:[],
+                ShopNameList:'',
+                ShopIdList:'',
+                BillId:'',
+                IsStart: true
+            }
+            this.ShopNameList = []
+        }
+    },
+    mounted(){
+        if (this.shopList.length == 0) {
+            this.$store.dispatch("getShopList", {})
+        }
+        this.$store.dispatch('getSpecialsList', { PN: 1, Filter: '', IsValid: -1 }).then(()=>{
+            this.loading = true
+        })
+    },
+    components: {
+        addServersGoods: () => import("@/components/goods/addserversgoods"),
+        headerPage: () => import("@/components/header")
+    },
+}
+</script>
+
+<style scoped>
+.header-top{
+    width: 100%;
+    margin-bottom:10px;
+    background: #F7F8FA;
+}
+.main-top{
+    height: 50px;
+    line-height: 50px;
+    widows: 100%;
+    background: #fff;
+}
+.member-header{
+    display: flex;
+    align-items: center;
+    height: 50px;
+}
+.center-title{
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    border: solid 1px #d7d7d7;
+}
+.center-cont{
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+}
+.el-header{
+    padding: 0 !important;
+}
+.shop{
+    display: flex;
+    align-items: center;
+    height: 50px;
+    position: relative;
+}
+.shop .name{
+    position: absolute;
+    right: 50px;
+    height: 50px;
+    line-height: 50px;
+    width: 150px;
+    text-align: center;
+    top: 0;
+}
+.el-header, .el-footer {
+    background-color: #fff;
+    color: #333;
+}
+
+.el-aside {
+    background-color: #D3DCE6;
+    color: #333;
+    text-align: center;
+    line-height: 200px;
+}
+
+.content-eightys{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 80px;
+    background: #fff;
+}
+</style>
+

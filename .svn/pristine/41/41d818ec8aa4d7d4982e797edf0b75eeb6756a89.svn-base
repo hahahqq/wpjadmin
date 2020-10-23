@@ -1,0 +1,441 @@
+<template>
+    <div class='setSize'>
+        <div class="setSize_top">
+            <el-button type="default" icon="el-icon-plus" @click="showAddSizeGroup()">新增尺码组</el-button>
+            <el-button type="default" icon="el-icon-edit" @click="showEditSize()">编辑尺码</el-button>
+            <span class="pull-right">
+                <i class='el-icon-star-on' style='color:#3976f1; font-size:16pt'></i>
+                <span style='color:#999'>只可选择同一尺码组内的尺码</span>
+            </span>
+        </div>
+        <div class="setSize_content">
+            <div class='sizeGroup_List'>
+                <span v-for='(item,i) in sizeGroupList' :key='i'>
+                    <el-radio class='radioStyle' v-model='chooseGroupType' :label='i' @change='choseSizeType(item,i)'>{{item.NAME}}</el-radio>
+                    <span v-for='(itemSize, idx) in item.SIZELIST' :key='idx'>
+                        <el-checkbox-group v-model='chooseCurGroup' style='float:left;'>
+                            <el-checkbox style='margin:2px' border size="small"
+                                v-for='(itemSizeName, idx1) in itemSize.arr'
+                                :key='idx1'
+                                :disabled="curIndex != i"
+                                :label='itemSizeName'
+                                @change='curChoose(item)'
+                            >
+                                {{itemSizeName.name}}
+                            </el-checkbox>
+                            <el-button class='el-icon-plus addSize' size="small" @click="showInput(item)"></el-button>
+                        </el-checkbox-group>
+                    </span>
+                </span>
+            </div>
+            <div class="foote r_b text-center" style='margin-top:20px'>
+                <el-button plain @click='closeModal'>取消</el-button>
+                <el-button type="primary" @click="submitForm" :loading="loading">保存</el-button>
+            </div>
+        </div>
+
+        <el-dialog title='尺码管理' :visible.sync="dialogEditSize" width="600px" append-to-body :before-close='closeUpdata'>
+            <el-row :span='24'>
+                <el-col :span="6">
+                    <div class="leftconent">
+                        <ul>
+                            <li @click='handleTabsEdit("", -1)' style='padding:0 12px' :class="{active:curtab == -1}">全部</li>
+                            <li v-for="(item,i) in sizeGroupList" :key='i' @click="handleTabsEdit(item, i)" :class="{active:curtab==i}">
+                                <span style='float:left'>{{item.NAME}}</span>
+                                <span style='float:right'>
+                                    <el-button type='text' style='color:#333' size='small' icon='el-icon-edit' @click='editSizeGroup(item, i)'></el-button>
+                                    <el-button type='text' style='color:#333' size='small' icon='el-icon-delete' @click='delSizeGroup(item, i)'></el-button>
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </el-col>
+                <el-col :span="18">
+                    <el-table :data='curGroupSizeItem' height="300px" size='small' class="full-width">
+                        <el-table-column label="尺码名称" prop='NAME' align="center"></el-table-column>
+                        <el-table-column label="分组" prop='GROUPNAME' align="center"></el-table-column>
+                        <el-table-column label="操作" align="center">
+                            <template slot-scope="scope">
+                                <el-button type="text" size="small" @click="handleEdit(scope.$index, scope.row)" icon="el-icon-edit">编辑</el-button>
+                                <el-button type="text" size='small' @click='handleDel(scope.$index, scope.row)' icon="el-icon-delete">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-col>
+            </el-row>
+        </el-dialog>
+    </div>
+</template>
+
+<script>
+import { mapState, mapGetters } from "vuex";
+import { getUserInfo, getHomeData} from '@/api/index'
+export default {
+    props:{
+        sizeData:Array
+    },
+    data() {
+        return {
+            showSizeSet: false,
+            chooseGroupType:-1,
+            sizeGroupList:[],
+            inputVisible:false,
+            loading:false,
+            inputValue:'',
+            defaultData:[],
+            searchText:'',
+            chooseCurGroup:[],
+            dialogEditSize: false,
+            isAddSize: false,
+            curIndex:0,
+            delIndex:0,
+            curItem:{},
+            curtab:-1,
+            curGroupId: 0,
+            curGroupIdx:0,
+            updataAfterItem:{},
+            curGroupSizeItem:[],
+            curGroupSizeType:'',
+            curGroupName:'',
+            SizeGroupId:''
+        }
+    },
+    computed:{
+        ...mapGetters({
+            sizeGroupState:'sizeGroupState',
+            dataSizeGroupList:'sizeGroupList',
+            addSizeGroupState:'addSizeGroupState',
+            addSizeState:'addSizeState',
+            sizeState:'sizeState',
+            editSizeState:'editSizeState',
+            delSizeState:'delSizeState',
+            delSizeGroupState:'delSizeGroupState'
+        })
+    },
+    watch:{
+        delSizeGroupState(data){  //尺码组删除
+            if(data.success){
+                this.$message.success('删除成功')
+                this.curtab = -1
+                this.$store.dispatch('getsizeGroupList',{}).then(()=>{
+                    this.$store.dispatch('getsizeState', { GroupId: ''})
+                })
+            }else{
+                this.$message.error(data.message)
+            }
+        },
+        delSizeState(data){  //尺码删除
+            if(data.success){
+                this.$message.success('删除成功')
+                this.curGroupSizeItem.splice(this.delIndex,1)
+            }else{
+                this.$message.error(data.message)
+            }
+        },
+        addSizeGroupState(data){
+            if(data.success){
+                if(this.curGroupSizeType == 'add'){
+                    this.$store.dispatch('getsizeGroupList',{})
+                }else{
+                    this.curtab = -1
+                    this.$store.dispatch('getsizeGroupList',{}).then(()=>{
+                        this.$store.dispatch('getsizeState', { GroupId: ''})
+                    })
+                }
+            }
+            this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+        },
+        sizeState(data){
+            if(data.success){
+                this.curGroupSizeItem = [...data.data.List]
+            }
+        },
+        editSizeState(data){
+            if(data.success){
+                this.$store.dispatch('getsizeState', { GroupId: this.curGroupId})
+            }
+            this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+        },
+        addSizeState(data){
+            if(data.success){
+                this.defaultSize()
+            }
+            this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+        },
+        sizeGroupState(data){
+            if(data.success){
+                this.defaultData = [...data.data.List]
+                let param = [...data.data.List], newParam = []
+                for(let i=0; i<= param.length; i++){
+                    if(!param[i].SIZEIDS) param[i].SIZEIDS = ''
+                    if(!param[i].SIZENAMES) param[i].SIZENAMES = ''
+                    if(!param[i].SIZEBARCODENOS) param[i].SIZEBARCODENOS = ''
+                    param[i].SIZELIST = new Array({
+                        id : param[i].SIZEIDS.split(','),
+                        name: param[i].SIZENAMES.split(','),
+                        SIZEBARCODENO: param[i].SIZEBARCODENOS.split(',')
+                    })
+                    newParam.push(param[i])
+                    this.getNewData(newParam)
+                }
+
+                let sizeData = this.sizeData, newSizeData = []
+                for(let j in sizeData){
+                    newSizeData.push({
+                        id : sizeData[j].SIZEID, name : sizeData[j].SIZENAME, SIZEBARCODENO: sizeData[j].SIZEBARCODENO
+                    })
+                }
+                this.chooseCurGroup = newSizeData
+            }else{
+                this.$message.error(data.message)
+            }
+        }
+    },
+    methods:{
+        editSizeGroup(item, i){
+            this.$prompt('','修改尺码组', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPlaceholder:'输入尺码组名称',
+                inputValue: item.NAME
+            }).then(({ value }) => {
+                let sendData = { Name: value, Id: item.GROUPID }
+                this.$store.dispatch('addSizeGroup', sendData).then(()=>{
+                    this.curGroupSizeType = 'edit'
+                })
+            }).catch(()=>{})
+        },
+        delSizeGroup(item,i){
+            this.$confirm('确认删除尺码组 【' + item.NAME +'】?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$store.dispatch('delSizeGroupList',{ID: item.GROUPID})
+            }).catch(() => {});
+        },
+        closeUpdata(){
+            this.curtab = -1
+            this.dialogEditSize = false
+            this.defaultSize()
+        },
+        showEditSize(){
+            if(localStorage.getItem("isExperience") == 'true' ){
+                const h = this.$createElement;
+                this.$msgbox({
+                    title: '提示',
+                    message: h('p', null, [
+                        h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ '),
+                        h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+                    ]),
+                    showCancelButton: false,
+                    confirmButtonText: '我知道了',
+                    confirmButtonClass: 'btnFalses'
+                })
+                return
+            }
+
+            this.dialogEditSize = true
+            this.$store.dispatch('getsizeState', { GroupId: ''})
+        },
+        handleEdit(idx, item){
+            this.$prompt('','修改尺码', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPlaceholder:'输入尺码名称',
+                inputValue: item.NAME
+            }).then(({ value }) => {
+                let sendData = {
+                    GroupId: item.GROUPID,
+                    Id: item.ID,
+                    Name: value,
+                    Code: item.CODE,
+                    type: 'edit'
+                }
+                this.$store.dispatch('getsizeEditState', sendData).then(()=>{
+                    this.curGroupId = item.GROUPID
+                })
+            }).catch(()=>{
+                console.log('cancel')
+            })
+        },
+        handleDel(idx, item){
+            this.$confirm('确认删除尺码 【' + item.NAME +'】?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$store.dispatch("getDelsizeState", {ID : item.ID}).then(() => {
+                    this.delIndex = idx
+                });
+            }).catch(() => {});
+        },
+        showAddSizeGroup(){
+            if(localStorage.getItem("isExperience") == 'true' ){
+                const h = this.$createElement;
+                this.$msgbox({
+                    title: '提示',
+                    message: h('p', null, [
+                        h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ '),
+                        h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+                    ]),
+                    showCancelButton: false,
+                    confirmButtonText: '我知道了',
+                    confirmButtonClass: 'btnFalses'
+                })
+                return
+            }
+
+            this.$prompt('','新增尺码组', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPlaceholder:'输入尺码组名称'
+            }).then(({ value }) => {
+                let sendData = { Name: value, Id:'' }
+                this.$store.dispatch('addSizeGroup', sendData).then(()=>{
+                    this.curGroupSizeType = 'add'
+                })
+            }).catch(()=>{})
+        },
+        handleTabsEdit(item, i) {
+            let groupId = i === -1 ? '' : item.GROUPID
+            this.curtab = i != -1 ? i : -1
+            this.$store.dispatch('getsizeState', { GroupId: groupId})
+        },
+        submitForm(){
+            if(this.chooseGroupType == -1){
+                this.$message.warning('请点击尺码组选择尺码')
+                return
+            }
+            this.$emit('getSizeDateclick', this.chooseCurGroup)
+            this.$emit('getSizeGroupID', this.SizeGroupId)
+        },
+        closeModal(type) {
+            this.$emit("closeModal");
+            this.$emit('getSizeGroupID', '')
+        },
+        choseSizeType(item, i){
+            this.curItem = item
+            this.SizeGroupId = item.GROUPID
+            this.updataAfterItem = item
+            this.curIndex = i
+            this.inputVisible = false
+
+            let param = this.sizeGroupList, newParam = []
+            for(var i in param){
+                if(param[i].GROUPID == item.GROUPID){
+                    newParam = param[i].SIZELIST[0].arr
+                }
+            }
+            this.chooseCurGroup = newParam
+        },
+        curChoose(item){ },
+        showInput(item){
+            if(localStorage.getItem("isExperience") == 'true' ){
+                const h = this.$createElement;
+                this.$msgbox({
+                    title: '提示',
+                    message: h('p', null, [
+                        h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ '),
+                        h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+                    ]),
+                    showCancelButton: false,
+                    confirmButtonText: '我知道了',
+                    confirmButtonClass: 'btnFalses'
+                })
+                return
+            }
+
+            this.$prompt('','新增尺码', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                inputPlaceholder:'请输入尺码名称'
+            }).then(({ value }) => {
+                let sendData = { Name: value, GroupId: item.GROUPID, type: 'add' }
+                this.$store.dispatch('getsizeaddState', sendData)
+            }).catch(()=>{})
+        },
+        getNewData(newParam){
+            let newData = []
+            for(let i in newParam){
+                if(newParam[i].SIZELIST[0].id == "" && newParam[i].SIZELIST[0].name == '' && newParam[i].SIZEBARCODENO == ''){
+                    newParam[i].SIZELIST[0].name = []
+                    newParam[i].SIZELIST[0].id = []
+                    newParam[i].SIZELIST[0].SIZEBARCODENO = []
+                    newParam[i].SIZELIST[0]['arr'] = []
+                }else{
+                    let arr1 = newParam[i].SIZELIST[0].id, arr2 = newParam[i].SIZELIST[0].name, arr3= newParam[i].SIZELIST[0].SIZEBARCODENO, newArr = []
+                    for(let j in arr1){
+                        newArr.push({id: arr1[j], name: arr2[j], SIZEBARCODENO: arr3[j]})
+                    }
+                    newParam[i].SIZELIST[0]['arr'] = newArr
+                }
+                newData.push(newParam[i])
+            }
+            this.sizeGroupList = newData
+            this.curItem = !this.isAddSize ? newData[0] : this.updataAfterItem
+        },
+        defaultSize(){
+            this.$store.dispatch('getsizeGroupList',{})
+        },
+        showSizeClick(){
+
+        },
+    },
+    mounted(){
+        this.defaultSize()
+    }
+}
+</script>
+
+<style lang='scss' scoped>
+    .setSize_content{ width: 100%; display: table }
+    .addSize{ margin-left:8px; border:1px dashed #ddd }
+    .button-new-tag {
+        margin-left: 10px;
+        height: 32px;
+        line-height: 30px;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    .input-new-tag { width: 90px; margin-left: 10px; vertical-align: bottom; }
+    .sizeGroup_List{
+        max-height: 400px; min-height: 300px; overflow-y: auto;
+        .radioStyle{
+            width: 100%; margin: 8px 0; color:#ff8800
+        }
+    }
+    .pull-right{
+        width: 250px; height:40px; line-height:40px;
+        i{ color:#3976f1; font-size:16pt }
+        span{ color: #999 }
+    }
+    .leftconent{ height: 300px; overflow-y: auto }
+
+    .leftconent ul li {
+        position: relative;
+        padding: 10px 12px;
+        color: #333;
+        width: 100%;
+        height:40px;
+        line-height: 40px;
+        float: left;
+        background: #f2f2f2;
+        cursor: pointer;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .leftconent ul li:hover{
+        background:#A0CFFF;
+        color:#fff
+    }
+    .leftconent ul li.active{
+        background:#3EA9FF;
+        color:#fff
+    }
+    .leftconent ul li span{
+        margin: 0;
+        line-height: 1.4;
+    }
+
+</style>

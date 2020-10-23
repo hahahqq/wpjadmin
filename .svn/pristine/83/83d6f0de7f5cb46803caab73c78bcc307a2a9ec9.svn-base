@@ -1,0 +1,322 @@
+<template>
+  <div v-loading="loading">
+    <el-form label-width="140px">
+      <el-row :gutter="10" class="text-left">
+        <el-col :xs="24" :sm="8" :md="8">
+          <el-form-item label="会员等级：">
+            <el-select size="small" v-model="pageData.LevelName" placeholder="请选择" class="full-width">
+              <el-option label value>全部</el-option>
+              <el-option
+                v-for="(item,i) in memberLevelList"
+                :key="i"
+                v-if="item.NAME"
+                :label="item.NAME"
+                :value="item.NAME"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="8" :md="8">
+          <el-form-item label="会员标签：">
+            <el-select size="small" v-model="pageData.VipFlag" placeholder="请选择" class="full-width">
+              <el-option label value>全部</el-option>
+              <el-option
+                v-for="(item,j) in flagList"
+                :key="j"
+                v-if="item.VIPFLAG && j>0"
+                :label="item.VIPFLAG"
+                :value="item.VIPFLAG"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="8" :sm="8" :md="8">
+          <el-form-item label="手机号/卡号/姓名：">
+            <el-input size="small" v-model="pageData.Filter" placeholder="请输入会员手机号/卡号/姓名" class="full-width"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="8" :md="8" >
+          <el-form-item label="会员状态：">
+            <el-radio-group size="small" v-model="pageData.Status">
+              <el-radio-button size="small" label="-1">全部</el-radio-button>
+              <el-radio-button size="small" label="0">正常</el-radio-button>
+              <el-radio-button size="small" label="2">挂失</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="8" :md="8">
+          <el-form-item class="text-left full-width">
+            <el-button size="small" @click="onSubmit(0)">重设</el-button>
+            <el-button size="small" type="primary" @click="onSubmit(1)" :loading="loading">查询</el-button>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+    <!-- 单选 -->
+    <el-table
+      v-if="!isArr"
+      ref="singleTable"
+      border
+      size='small'
+      :data="dataList"
+      highlight-current-row
+      @current-change="handleCurrentChange"
+      header-row-class-name="bg-f1f2f3"
+      height="300px"
+      style="width: 100%"
+    >
+      <el-table-column prop="NAME" label="姓名" width="120" sortable fixed="left"></el-table-column>
+      <el-table-column prop="CODE" label="卡号" width="130"></el-table-column>
+      <el-table-column prop="SEX" width='60' label="性别" :formatter="formatSex"></el-table-column>
+      <el-table-column prop="MOBILENO" label="手机号码" width="120"></el-table-column>
+      <el-table-column prop="LEVELNAME" label="等级"></el-table-column>
+      <el-table-column prop="VIPFLAG" label="标签"></el-table-column>
+      <el-table-column prop="SHOPNAME" label="所属店铺"></el-table-column>
+      <el-table-column prop="INTEGRAL" label="积分"></el-table-column>
+      <el-table-column prop="MONEY" label="余额"></el-table-column>
+      <el-table-column prop="DISCOUNT" label="剩余次卡"></el-table-column>
+      <el-table-column prop="QWEMONEY" label="欠款"></el-table-column>
+      <el-table-column prop="STATUS" label="状态" :formatter="formatStatus" fixed="right"></el-table-column>
+    </el-table>
+    <!-- 多选 -->
+    <el-table
+      v-if="isArr"
+      border
+      size='small'
+      :data="dataList"
+      v-loading="loading"
+      element-loading-text="数据加载中..."
+      @selection-change="handleSelectionChange"
+      :row-key="getRowKeys"
+      ref="multipleTable"
+      height="300"
+      header-row-class-name="bg-f1f2f3"
+      style="width: 100%;"
+    >
+      <el-table-column type="selection" :reserve-selection="true" width="36" fixed="left"></el-table-column>
+      <el-table-column prop="NAME" label="姓名" width="100" sortable></el-table-column>
+      <el-table-column prop="CODE" label="卡号" width="110"></el-table-column>
+      <el-table-column prop="SEX" label="性别" width="60" align='center' :formatter="formatSex"></el-table-column>
+      <el-table-column align='center' prop="MOBILENO" label="手机号码" width="120"></el-table-column>
+      <el-table-column align='center' prop="LEVELNAME" label="等级"></el-table-column>
+      <el-table-column align='center' prop="VIPFLAG" label="标签"></el-table-column>
+      <el-table-column align='center' prop="SHOPNAME" label="所属店铺"></el-table-column>
+      <el-table-column align='right' prop="INTEGRAL" label="积分"></el-table-column>
+      <el-table-column align='right' prop="MONEY" label="余额"></el-table-column>
+      <!-- <el-table-column align='right' prop="DISCOUNT" label="剩余次卡"></el-table-column> -->
+      <el-table-column align='right' prop="QWEMONEY" label="欠款"></el-table-column>
+      <el-table-column align='center' prop="STATUS" label="状态" :formatter="formatStatus"></el-table-column>
+    </el-table>
+    <!-- 分页 -->
+    <div class="m-top-sm clearfix elpagination">
+
+      <el-checkbox v-if="isArr" style="float:left" @change="choseAllVipFun" v-model="isChoseAll" border>选择全部检索会员</el-checkbox>
+
+      <el-pagination
+        background
+        @size-change="handlePageChange"
+        @current-change="handlePageChange"
+        :current-page.sync="pagination.PN"
+        :page-size="pagination.PageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="pagination.TotalNumber"
+        class="text-right"
+      ></el-pagination>
+    </div>
+    <!-- handle -->
+    <div class="text-right m-top-sm">
+      <div v-if="!isArr" class="m-right-md inline-block pull-left">会员：
+        <el-tag size="medium" class="font-16">{{choseText}}</el-tag>
+      </div>
+      <el-button @click="closeModal('resetList')">取 消</el-button>
+      <el-button type="primary" @click="handleSubmit" :loading="loading">确 定</el-button>
+    </div>
+  </div>
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+import MIXINS from "@/mixins/index";
+let _ = require("lodash");
+export default {
+  mixins: [MIXINS.IS_SHOW_POPUP],
+  props: {
+    isArr: {
+      type: Boolean,
+      default: false
+    }
+  },
+  data() {
+    return {
+      pagelist: [],
+      loading: false,
+      pagination: {
+        TotalNumber: 0,
+        PageNumber: 0,
+        PageSize: 20,
+        PN: 0
+      },
+      isChoseAll: false,
+      searchText: "",
+      pageData: {
+        PN: 1,
+        Filter: "",
+        Status: -1,
+        LevelName: "",
+        VipFlag: ""
+      },
+      currentRow: {},
+      choseText: "点击商品进行选择",
+      multipleSelection: [],
+      getRowKeys(row){
+        return row.ID
+      },
+    };
+  },
+  computed: {
+    ...mapGetters({
+      dataList: "memberList",
+      dataListState: "memberListState",
+      memberLevelList: "memberLevelList",
+      flagList: "memberFlagList",
+      memberListAllState: 'memberListAllState'
+    })
+  },
+  watch: {
+    memberListAllState(data){
+      console.log(data)
+      if(data.success){
+        this.allVipData = data.data.List
+        this.multipleSelection = data.data.List
+      }
+    },
+    isShowFirstPopup(value) {
+      if (value) {
+        this.defaultData();
+      }
+    },
+    dataListState(data) {
+      this.loading = false;
+      if (data.success) {
+        this.pagination = {
+          TotalNumber: data.paying.TotalNumber,
+          PageNumber: data.paying.PageNumber,
+          PageSize: data.paying.PageSize,
+          PN: data.paying.PN
+        };
+      }
+      this.pageData.PN = this.dataListState.paying.PN;
+    }
+  },
+  methods: {
+    choseAllVipFun(){
+      // console.log(this.isChoseAll)
+      // if(this.isChoseAll){
+      //   let LevelName = this.pageData.LevelName != '' ? `'${this.pageData.LevelName}'` : ''
+      //   let VipFlag = this.pageData.VipFlag != '' ? `'${this.pageData.VipFlag}'` : ''
+      //   this.$store.dispatch("getMemberListAll", { Filter: this.pageData.Filter, Status : this.pageData.Status, LevelName : LevelName, VipFlag: VipFlag})
+      // }
+    },
+    closeModal(type) {
+      if (this.$refs.ruleForm) {
+        this.$refs.ruleForm.resetFields();
+      }
+      if (type == "resetList") {
+        this.$emit("resetList");
+        this.multipleSelection = []
+        this.$refs.multipleTable.clearSelection()
+      } else {
+        this.$emit("closeModal");
+      }
+    },
+    formatSex: function(row, column) {
+      //性别显示转换
+      return row.SEX == 0 ? "男" : row.SEX == 1 ? "女" : "未知";
+    },
+    formatStatus: function(row, column) {
+      //-1=全部,0=正常，2=挂失
+      return row.STATUS == 0 ? "正常" : row.STATUS == 2 ? "挂失" : "未知";
+    },
+    getNewData() {
+      let LevelName = this.pageData.LevelName != '' ? `'${this.pageData.LevelName}'` : ''
+      let VipFlag = this.pageData.VipFlag != '' ? `'${this.pageData.VipFlag}'` : ''
+      this.$store.dispatch("getMemberList", { PN: this.pageData.PN, Filter: this.pageData.Filter, Status : this.pageData.Status, LevelName : LevelName, VipFlag: VipFlag}).then(() => {
+        this.loading = true;
+      })
+
+      // if(this.isChoseAll){
+      //   this.$store.dispatch("getMemberListAll", { Filter: this.pageData.Filter, Status : this.pageData.Status, LevelName : LevelName, VipFlag: VipFlag})
+      // }
+    },
+    handlePageChange: function(currentPage) {
+      if (this.pageData.PN == currentPage || this.loading) {
+        return;
+      }
+      this.pageData.PN = parseInt(currentPage);
+      this.getNewData();
+    },
+    handleCurrentChange(val) {
+      // 单选
+      this.currentRow = val;
+      this.choseText = this.currentRow.NAME;
+    },
+    handleSelectionChange(rows) {
+      this.multipleSelection = []
+      if (rows) {
+        rows.forEach(row => {
+          if (row) {
+            this.multipleSelection.push(row);
+          }
+        })
+      }
+    },
+    handleSubmit() {
+      this.$store
+        .dispatch("selectingMember", {
+          isArr: this.isChoseAll,
+          data: this.isArr ? this.multipleSelection : this.currentRow
+        })
+        .then(() => {
+          this.closeModal('closeModal');
+        });
+    },
+    onSubmit(v) {
+      if (v == 1) {
+        this.getNewData();
+      } else {
+        this.pageData = {
+          PN: 1,
+          Filter: "",
+          Status: -1,
+          LevelName: "",
+          VipFlag: ""
+        };
+      }
+    },
+    defaultData() {
+      let list = this.$store.state.member.memberList;
+      let list2 = this.$store.state.member.memberLevelList;
+      let list3 = this.$store.state.member.memberFlagList;
+
+        this.getNewData()
+
+      if (list2.length == 0) {
+        this.$store.dispatch("getMemberLevel")
+      }
+      if (list3.length == 0) {
+        this.$store.dispatch("getMemberFlag")
+      }
+      this.pagelist = [...this.dataList];
+      this.pagination = {
+        TotalNumber: this.dataListState.paying.TotalNumber,
+        PageNumber: this.dataListState.paying.PageNumber,
+        PageSize: this.dataListState.paying.PageSize,
+        PN: this.dataListState.paying.PN
+      };
+      this.pageData.PN = this.dataListState.paying.PN;
+    }
+  },
+  mounted() {
+    this.defaultData();
+  }
+};
+</script>

@@ -1,0 +1,975 @@
+<template>
+  <div class="warehousing">
+    <div v-if="this.isPurViewFun(91040102)">
+      <div class="content-eighty">
+        <div class="content-center">
+          <el-row :gutter="10">
+            <el-col :xs="24" :sm="12" :md="6">
+              <span>店铺</span>
+              <el-select size='small' v-model="shopId" placeholder="请选择店铺">
+                <el-option v-for="item in shopList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
+              </el-select>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="6">
+              <span>供应商</span>
+              <el-select size='small' v-model="pageData.SUPPLIERID" @change="referData" placeholder="请选择供应商">
+                <el-option v-for="item in supplierList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
+              </el-select>
+            </el-col>
+            <el-col :xs="24" :sm="12" :md="6">
+              <el-input
+                type="default"
+                v-model="searchText" size='small'
+                @keydown.enter.native="scanSearch(searchText)"
+                autofocus="true"
+                placeholder="请扫描商品或单品条形码"
+              >
+                <div slot="prepend">
+                  <i class="icon-barcode"></i>
+                  <span class="m-left-xs">扫码</span>
+                </div>
+              </el-input>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="6" style='text-align:right'>
+              <el-date-picker size="small"
+                v-model="BILLDATE"
+                type="date"
+                value-format="timestamp"
+                placeholder="选择日期"
+              ></el-date-picker>
+            </el-col>
+          </el-row>
+        </div>
+      </div>
+
+      <div class="content-table4">
+        <div class="content-table-center">
+          <div class='tableStyle'>
+            <el-table
+              border size='small'
+              :data="theGoodsList"
+              :height="tableHeight"
+              @row-click='handleCurRow'
+              :highlight-current-row='true'
+              header-row-class-name="bg-f1f2f3"
+              empty-text='暂无数据,请点击 "增加行" 或 扫码添加商品'
+              class="full-width m-top-sm"
+            >
+              <el-table-column type='index' width='60' align="center" label="序号" fixed='left'></el-table-column>
+              <el-table-column label="商品" fixed='left'>
+                <template slot-scope="scope">
+                  <span v-if='!scope.row.isEdit && scope.row.SIZENAME != ""'>{{scope.row.GOODSNAME}}</span>
+                  <span v-if='scope.row.isEdit && scope.row.SIZENAME != ""'>{{scope.row.GOODSNAME}}</span>
+                  <el-select
+                    size="small"
+                    v-if='scope.row.isEdit == true && scope.row.SIZENAME == ""'
+                    v-model="scope.row.GOODSID"
+                    :remote-method="handleGoodsFilter"
+                    reserve-keyword
+                    remote
+                    clearable
+                    @change='curSelect(scope.$index,scope.row)'
+                    @focus='defaultGoodsList'
+                    filterable
+                    placeholder="请输入货号、品名或条码">
+                    <el-option v-for='(item,index) in goodsListData' :key='index' :label='item.NAME' :value='item.ID'>
+                      <span style='float:left'>{{item.CODE}}</span>
+                      <span style="float:right; color: #8492a6; font-size: 12px">{{item.NAME}}</span>
+                    </el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+              <el-table-column prop='GOODSCODE' label="货号" align="center" width="120"></el-table-column>
+              <el-table-column prop='COLORNAME' label="颜色" width="80" align="center"></el-table-column>
+              <el-table-column prop='SIZENAME' label="尺码" width='80' align="center"></el-table-column>
+              <el-table-column prop='PURPRICE' label="参考进价" width="80" align="center">
+                <template slot-scope="scope">
+                  {{isPurViewFun(91040112) ? scope.row.PURPRICE : '****'}}
+                </template>
+              </el-table-column>
+              <el-table-column label="折扣" align="center" width="120">
+                <template slot-scope='scope'>
+                  <span v-if='!scope.row.isEdit && scope.row.SIZENAME !=""'>{{scope.row.DISCOUNT}}</span>
+                  <el-input-number v-if='scope.row.isEdit && scope.row.SIZENAME == ""' size='small' style="width:100px" disabled :min='0' controls-position="right" v-model.trim="scope.row.DISCOUNT" placeholder="请输入" @change="changePr(scope.row)"></el-input-number>
+                  <el-input-number v-if='scope.row.isEdit && scope.row.SIZENAME != ""' size='small' style="width:100px" :min='0' controls-position="right" v-model.trim="scope.row.DISCOUNT" placeholder="请输入" @change="changePr(scope.row)"></el-input-number>
+                </template>
+              </el-table-column>
+              <el-table-column label="单价" align="center" width="130">
+                <template slot-scope="scope">
+                  <span v-if='!scope.row.isEdit && scope.row.SIZENAME !=""'>{{isPurViewFun(91040112) ? scope.row.PRICE : '****'}}</span>
+                  <el-input-number v-if='scope.row.isEdit && scope.row.SIZENAME == ""' size='small' style="width:110px" disabled controls-position="right" v-model.trim="scope.row.PRICE" placeholder="请输入" @change="changeDP(scope.row)"></el-input-number>
+                  <el-input-number v-if='scope.row.isEdit && scope.row.SIZENAME != ""' size='small' style="width:110px" controls-position="right" v-model.trim="scope.row.PRICE" placeholder="请输入" @change="changeDP(scope.row)"></el-input-number>
+                </template>
+              </el-table-column>
+              <el-table-column label="数量" align="center" width="120">
+                <template slot-scope='scope'>
+                  <span v-if='!scope.row.isEdit && scope.row.SIZENAME !=""'>{{scope.row.QTY}}</span>
+                  <el-input-number v-if='scope.row.isEdit && scope.row.SIZENAME == ""' size='small' style='width:100px' disabled controls-position="right" :min="1" v-model.trim="scope.row.QTY" placeholder="请输入" @input="totalfun"></el-input-number>
+                  <el-input-number v-if='scope.row.isEdit && scope.row.SIZENAME != ""' size='small' style='width:100px' controls-position="right" :min="1" v-model.trim="scope.row.QTY" placeholder="请输入" @input="totalfun"></el-input-number>
+                </template>
+              </el-table-column>
+              <el-table-column label="金额" align="center" width="100" >
+                <template slot-scope='scope'>
+                  {{isPurViewFun(91040112) ? (scope.row.PRICE * scope.row.QTY).toFixed(2) : '****'}}
+                  <!-- <span>{{ (scope.row.PRICE * scope.row.QTY).toFixed(2) }}</span> -->
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="60" fixed='right'>
+                <template slot-scope='scope'>
+                  <el-button v-if='scope.row.GOODSID != "" && scope.row.SIZENAME !=""' type="text" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <el-row :gutter="10" class="marginTB-sm">
+            <el-col :xs="24" :sm="12" :md="4" class="row-flex flex-items-center">
+              <span class="leftLabel">优惠金额</span>
+              <el-input size='small' type='number' v-model.number="pageData.BREAKSMONEY" @input="totalfun" @keyup.enter.native="totalfun" placeholder="￥ 0.00"></el-input>
+            </el-col>
+
+            <el-col :xs="24" :sm="12" :md="4" class="row-flex flex-items-center">
+              <span class="leftLabel">其它费用</span>
+              <el-input size="small" type='number' style="width:180px" v-model.number="pageData.OTHERMONEY" @input="totalfun" @keyup.enter.native="totalfun" placeholder="￥ 0.00"></el-input>
+            </el-col>
+
+            <el-col :xs="24" :sm="8" :md="5" class="row-flex flex-items-center">
+              <span class="leftLabel">结算账户</span>
+              <el-select size="small" style="width:180px" v-model="pageData.PAYTYPEID" @change="referData" placeholder="选择账户">
+                <el-option
+                  v-for="pitem in SelectPaywayList"
+                  :key="pitem.ID"
+                  :label="pitem.NAME"
+                  :value="pitem.ID"
+                ></el-option>
+              </el-select>
+            </el-col>
+
+            <el-col :xs="24" :sm="8" :md="5" class="row-flex flex-items-center">
+              <span class="leftLabel">实付金额</span>
+              <el-input size='small' type='number' v-model.number="pageData.PAYMONEY" placeholder="￥0.00"></el-input>
+            </el-col>
+
+            <el-col :md="5" style="float:right; text-align:right" >
+              <span>总合计 </span>
+              <span class="text-danger font-600" style="font-size:18px; ">
+                <i v-if='theGoodsList.length > 1' style="font-size:16px">共 {{totalNum}} 件 , </i>
+                <i>{{isPurViewFun(91040112) ? '&yen; '+ totalPrice : '****'}}</i>
+              </span>
+            </el-col>
+          </el-row>
+
+          <el-row :gutter="10" class="marginTB-sm">
+            <el-col :xs="24" :sm="8" :md="13" class="row-flex flex-items-center">
+              <span class="leftLabel">备 注</span>
+              <el-input size="small" v-model="pageData.REMARK" placeholder="输入单据备注"></el-input>
+            </el-col>
+          </el-row>
+
+          <div class='marginTB-sm'>
+            <span class="text-999 m-top-sm" style='float:left'>
+              <span>制单人 :</span> {{USERNAME}}
+              <span style='margin-left:30px'>制单时间 :  &nbsp; </span> {{zhiDanData}}
+            </span>
+            <span class='text-right' style='float:right'>
+              <el-button style='margin-right:40px' plain icon='el-icon-upload' @click='showUploadDialog = true'>导 入</el-button>
+              <el-button type="success" plain icon="el-icon-plus" @click='addNewBill'>新增单据</el-button>
+              <el-button type="info" @click="handleSubmit(0)" :disabled="theGoodsList.length == 0" :loading="CGloading">草稿</el-button>
+              <el-button type="primary" @click="handleSubmit(1)" :disabled="theGoodsList.length == 0" :loading="loading">保存</el-button>
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <el-dialog :title='titleName' :visible.sync="isAddGoodsGroup" width="70%" append-to-body>
+        <span>点击颜色可批量设置该颜色的数量</span>
+        <table class='tableStock m-top-sm' border='0' cellspacing='0' cellpadding='0' width='100%'>
+          <thead>
+            <tr>
+              <th style="width:100px">颜色</th>
+              <th v-for="(size,indexS) in currentSizes" :key="indexS">{{size.SIZENAME}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for='(color, indexC) in currentColors' :key='indexC'>
+              <td @click='batchAddNum(color, indexC)' class="namehover">
+                {{color.COLORNAME}}
+              </td>
+              <td v-for="(size,indexS) in currentSizes" :key="indexS">
+                <el-input type='number' v-model.number="color[size.SIZEID]" :min='1' ></el-input>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style='margin:16px auto; text-align:center;'>
+          <el-button type='info' @click='cancelAdd()' plain="">取消 (Esc）</el-button>
+          <el-button type='primary' @click='twoDisConfirm()' plain="">确认 (Enter)</el-button>
+        </div>
+
+        <el-collapse :accordion='true'>
+          <el-collapse-item>
+            <template slot="title"><span style='font-size:16px; color:red'>显示库存</span> </template>
+            <table class='tableStock' border='0' cellspacing='0' cellpadding='0' width='100%' >
+              <thead>
+                <tr>
+                  <th style="width:100px">颜色</th>
+                  <th v-for="(size,indexS) in currentSizes" :key="indexS">{{size.SIZENAME}}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for='(color, indexC) in currentColors' :key='indexC'>
+                  <td>{{color.COLORNAME}}</td>
+                  <td v-for="(size,indexS) in currentSizes" :key="indexS">
+                    <span>{{storedCount[color.COLORID][size.SIZEID]}}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </el-collapse-item>
+        </el-collapse>
+
+      </el-dialog>
+
+      <el-dialog title="导入采购入库单" :visible.sync="showUploadDialog" width="94%" append-to-body :close-on-click-modal='false'>
+        <uploadBillTable @closeModal='showUploadDialog = false' @GetUploadExportData='getUploadData' :dealUploadData="{dealState:'Discount'}"></uploadBillTable>
+      </el-dialog>
+    </div>
+
+    <div v-else style="height: 500px; width: 100%; background:#fff; text-align:center; color:#999; margin: 10px 10px" >
+      <img src="static/images/emptyData.png" alt="" style="margin-top: 100px">
+      <div>没有此功能权限，请联系管理员授权</div>
+    </div>
+
+  </div>
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+import { getHomeData, getUserInfo } from "@/api/index";
+import dayjs from 'dayjs'
+import music from '@/assets/12053.mp3'
+export default {
+  data() {
+    return {
+      loading: false,
+      CGloading: false,
+      searchText:'',
+      shopId: getHomeData().shop.SHOPID,
+      BILLDATE: dayjs(),
+      USERNAME: getUserInfo().UserName,
+      pageData: {
+        SUPPLIERID: "",
+        BILLDATE: '',
+        ManualNo: "", //手工单号
+        PAYTYPEID: "", // 付款方式ID
+        PAYMONEY: '',
+        REMARK: "",
+        GoodsList: [], // 货号Id,颜色Id,尺码Id,数量,单价,备注
+        IsCheck: 1,
+        FromBillId: "", // 引用采购单号
+        BREAKSMONEY: '',
+        OTHERMONEY: '',
+        BILLID:''
+      },
+      zhiDanData: dayjs(new Date()).format('YYYY-MM-DD'),
+      theGoodsList: [],
+      goodsListData:[],
+      constGOODSLIST: [],
+      currentColors:[],
+      currentSizes:[],
+      storedCount:[],
+      ColorList:[],
+      sizeList:[],
+      stockList:[],
+      titleName:'',
+      showUploadDialog: false,
+      isAddGoodsGroup: false,
+      totalPrice: 0,
+      goodsObj:{},
+      pageDataBill: {
+        PN: 0,
+        Filter: "",
+        Status: 1,
+        TypeID: '', //商品类别ID
+        DescType: 0,
+        IsGift: -1,
+        YearList: '',
+        SeasonList: '',
+        BrandList: '',
+        CategoryList: '',
+        SexNameList: '',
+      },
+      vCheckGoodsTimeOut:undefined,
+      tableHeight: document.body.clientHeight - 330,
+      sendDataObj:{
+        PN: 0,
+        Filter: "",
+        Status: -1,
+        TypeID: '', //商品类别ID
+        DescType: 0,
+        IsGift: -1,
+        YearList: '',
+        SeasonList: '',
+        BrandList: '',
+        CategoryList: '',
+        SexNameList: ''
+      },
+      SelectPaywayList:[],
+      totalNum:0,
+    }
+  },
+  computed: {
+    ...mapGetters({
+      shopList: "shopList",
+      supplierList: "supplierList",
+      goodsState: "goodsState",
+      goodsItem: "goodsItem",
+      goodsList2: 'goodsList2',
+      goodsListState2:'goodsListState2',
+      paywayList: "paywayList",
+      dataList: 'warehousingItem',
+      dataObj: 'warehousingObj',
+      warehousingAddState:'warehousingAddState',
+      OnlyOneGoodsState:'OnlyOneGoodsState',
+      // cgdWarehousingDataList:'cgdWarehousingDataList',
+      datagListState3: "goodsListState3",
+      barcodeScanGoodsState: 'barcodeScanGoodsState'
+    })
+  },
+  created(){
+    let that = this
+    document.onkeydown = function(e){
+      var key = window.event.keyCode;
+      if(key == 27){  // esc
+        that.cancelAdd()
+      }else if(key == 13 && that.isAddGoodsGroup == true){  // Enter
+        that.twoDisConfirm()
+      }
+    }
+  },
+  watch: {
+    barcodeScanGoodsState(data){
+      console.log(data)
+      if(data.success){
+        let item = data.data.obj
+        if(item.ID == undefined){
+          this.$message.error( this.searchText +', 查无此商品 ！')
+          this.searchText = ''
+          let mp3 = new Audio()
+          mp3.src = music
+          mp3.play()
+          return
+        }
+
+        if(item.ISDETAILBARCODE == 1){
+          this.searchGoodsPushFun(item)
+        }else{
+          this.getGoodsItemFun(data.data)
+          this.titleName = item.NAME + ' ( '+  item.CODE+' )'
+          this.isAddGoodsGroup = true  //弹出批量添加商品窗口
+          this.searchText = ''
+        }
+
+      }else{
+        this.$message.error(data.message)
+      }
+    },
+    paywayList(data){
+        let param = data, newParam = []
+        for(var i in param){
+            if(param[i].NAME != '余额支付' && param[i].NAME != '欠款' && param[i].NAME != '扫码支付'){
+              newParam.push(param[i])
+            }
+        }
+        this.SelectPaywayList = newParam
+    },
+    OnlyOneGoodsState(data){
+      if(data.length == 0){
+        this.$message.error( this.searchText +', 查无此商品 ！')
+        this.searchText = ''
+        let mp3 = new Audio()
+        mp3.src = music
+        mp3.play()
+        return
+      }
+
+      this.searchGoodsPushFun(data[0])
+    },
+    goodsState(data) {
+      if (data.success) {
+        this.getGoodsItemFun(data.data)
+      } else {
+        this.$message.error(data.message)
+      }
+    },
+    goodsListState2(data){
+      if(data.success){
+        this.goodsListData = this.goodsList2
+        this.constGOODSLIST = [...data.data.PageData.DataArr]
+      }
+    },
+    warehousingAddState(data){
+      this.loading = false
+      this.CGloading = false
+      if(data.success){
+        this.$message.success('保存成功！')
+        this.theGoodsList = [{
+          GOODSNAME: "",
+          GOODSID:'',
+          GOODSCODE: "",
+          PRICE: 0,
+          PURPRICE: 1,
+          SIZENAME: "",
+          COLORNAME: "",
+          QTY: 1,
+          DISCOUNT:0,
+          isEdit: true
+        }]
+        this.pageData.OTHERMONEY = ''
+        this.pageData.BREAKSMONEY = ''
+        this.pageData.SUPPLIERID = ''
+        this.pageData.PAYTYPEID = ''
+        this.pageData.PAYMONEY = ''
+        this.pageData.REMARK = ''
+        this.pageData.BILLID = ''
+        this.totalPrice = 0
+        this.$store.dispatch("getWarehousingItem", { BillId: data.data.OutBillId });
+      }else{
+        this.$message.error(data.message)
+      }
+    }
+  },
+  methods: {
+    searchGoodsPushFun(info){
+      let param = this.theGoodsList
+      let info1 = [{
+        GOODSNAME: info.NAME,
+        GOODSID: info.ID,
+        GOODSCODE: info.CODE,
+        COLORID: info.COLORID,
+        SIZEID: info.SIZEID,
+        PRICE: info.PURPRICE,
+        PURPRICE: info.PURPRICE,
+        SIZENAME: info.SIZENAME,
+        COLORNAME: info.COLORNAME,
+        QTY: 1,
+        DISCOUNT:1,
+        isEdit: false
+      }]
+
+      if(this.theGoodsList.length == 0){
+        this.theGoodsList = info1
+      }else{
+        let arr2 = this.theGoodsList.concat(info1)
+        let noEmptyArr = arr2.filter(item => item.GOODSID != '' && item.GOODSNAME != '' )
+        let newArr = []
+        noEmptyArr.forEach(el=> {
+          const res = newArr.findIndex(ol=> {
+            return el.COLORID == ol.COLORID && el.SIZEID == ol.SIZEID && el.GOODSNAME == ol.GOODSNAME && el.GOODSID == ol.GOODSID && el.PRICE == ol.PRICE
+          })
+
+          if (res!== -1) {
+            newArr[res].QTY = Number(newArr[res].QTY) + Number(el.QTY);
+          } else {
+            newArr.push(el);
+          }
+        })
+        this.theGoodsList = newArr.concat({
+          GOODSNAME: "",
+          GOODSID:'',
+          GOODSCODE: "",
+          PRICE: 0,
+          PURPRICE: 1,
+          SIZENAME: "",
+          COLORNAME: "",
+          QTY: 1,
+          DISCOUNT:0,
+          isEdit: true
+        })
+      }
+
+      this.searchText = ''
+      this.totalfun()
+    },
+    getGoodsItemFun(data){
+        let storedCount = []
+        let result = data.StockList
+        for(var i=0; i<result.length; i++) {
+          var stored = result[i];
+    			if( storedCount[stored.COLORID] == undefined)	{
+    				storedCount[stored.COLORID] = []
+    			}
+          storedCount[stored.COLORID][stored.SIZEID] = stored.STOCKQTY
+        }
+
+        this.storedCount = storedCount
+
+        this.currentColors = data.ColorList
+        this.currentSizes = data.SizeList
+        this.stockList = data.StockList   // 商品库存列表
+        this.goodsObj = data.obj
+    },
+    getUploadData(data){
+      let arr = [], newArr = []
+      for(var i in data){
+        arr.push({
+          GOODSNAME: data[i].GOODSNAME,
+          GOODSID: data[i].GOODSID,
+          GOODSCODE: data[i].GOODSCODE,
+          PRICE: data[i].PRICE,
+          PURPRICE: data[i].GOODSPURPRICE,
+          SIZEID: data[i].SIZEID,
+          SIZENAME: data[i].SIZENAME,
+          COLORID: data[i].COLORID,
+          COLORNAME: data[i].COLORNAME,
+          QTY : data[i].QTY,
+          DISCOUNT: data[i].Discount,
+          isEdit: false,
+        })
+      }
+
+      arr.forEach(el=> {
+        const res = newArr.findIndex(ol=> {
+          return el.COLORID == ol.COLORID && el.SIZEID == ol.SIZEID && el.GOODSNAME == ol.GOODSNAME && el.GOODSID == ol.GOODSID && el.PRICE == ol.PRICE
+        });
+        if (res!== -1) {
+          newArr[res].QTY = Number(newArr[res].QTY) + Number(el.QTY);
+        } else {
+          newArr.push(el);
+        }
+      })
+
+      this.theGoodsList = newArr.concat({
+        GOODSNAME: "",
+        GOODSID:'',
+        GOODSCODE: "",
+        PRICE: 0,
+        PURPRICE: 1,
+        SIZENAME: "",
+        COLORNAME: "",
+        QTY: 1,
+        DISCOUNT:0,
+        isEdit: true
+      })
+
+      this.totalfun()
+      this.showUploadDialog = false
+    },
+    referData(value){
+      this.$forceUpdate()
+    },
+    changePr(row){
+      row.PRICE = parseFloat(row.PURPRICE * row.DISCOUNT).toFixed(2)
+      this.totalfun()
+    },
+    changeDP(row){
+      row.PURPRICE = row.PURPRICE == 0 ? 1 : row.PURPRICE
+      row.DISCOUNT = parseFloat(row.PRICE / row.PURPRICE).toFixed(2)
+      this.totalfun()
+    },
+    handleCurRow(row){
+      let param = this.theGoodsList, newParam = []
+      for(var i in param){
+        if(param[i].GOODSID == row.GOODSID && param[i].COLORID == row.COLORID && param[i].SIZEID == row.SIZEID && param[i].PRICE == row.PRICE){
+          param[i].isEdit = true
+        }else if(param[i].GOODSCODE == '' && param[i].SIZENAME == '' && param[i].COLORNAME == ''){
+          param[i].isEdit = true
+        } else{
+          param[i].isEdit = false
+        }
+        newParam.push(param[i])
+      }
+      this.theGoodsList = newParam
+    },
+    cancelAdd(){
+      this.isAddGoodsGroup = false
+      let param = this.theGoodsList , newParam = []
+      for(var i in param){
+        if(param[i].SIZENAME == ''){
+          param[i].GOODSNAME = ''
+          param[i].GOODSCODE = ''
+          param[i].GOODSID = ''
+        }
+        newParam.push(param[i])
+      }
+      this.theGoodsList = newParam
+    },
+    showSetNum(){
+      this.theGoodsList.splice(this.theGoodsList.length -1, 0)
+    },
+    twoDisConfirm(){
+      if(this.searchText == ''){
+        this.theGoodsList.splice(this.theGoodsList.length -1, 1)
+        let insertModels = [];
+        if(this.storedCount == undefined){
+          this.storedCount = []
+        }
+        for(let i=0; i< this.currentColors.length; i++)	{
+          let color = this.currentColors[i];
+          for(let j=0; j< this.currentSizes.length; j++){
+            let size = this.currentSizes[j];
+            if(color[size.SIZEID] != undefined && color[size.SIZEID] != ''){
+              if( this.storedCount[this.currentColors[i].COLORID] == undefined){
+                this.storedCount[this.currentColors[i].COLORID] = [];
+              }
+
+              let item = this.goodsObj
+              let newModel ={
+                GOODSID : item.ID,
+                GOODSNAME : item.NAME,
+                GOODSCODE: item.CODE,
+                QTY: color[size.SIZEID],
+                PRICE: item.PURPRICE,
+                PURPRICE: item.PURPRICE,
+                COLORID: color.COLORID,
+                COLORNAME: color.COLORNAME,
+                SIZEID: size.SIZEID,
+                SIZENAME: size.SIZENAME,
+                DISCOUNT: Math.round(item.PURPRICE / item.PURPRICE * 100) / 100,
+                isEdit:false
+              }
+              insertModels.push(newModel)
+            }
+          }
+        }
+
+        if(this.theGoodsList.length == 0){
+          this.theGoodsList = insertModels.concat({
+            GOODSNAME: "",
+            GOODSID:'',
+            GOODSCODE: "",
+            PRICE: 0,
+            PURPRICE: 1,
+            SIZENAME: "",
+            COLORNAME: "",
+            QTY: 1,
+            DISCOUNT:0,
+            isEdit: true
+          })
+        }else{
+          let arr2 = this.theGoodsList.concat(insertModels), newArr = []
+          arr2.forEach(el=> {
+            const res = newArr.findIndex(ol=> {
+              return el.COLORID == ol.COLORID && el.SIZEID == ol.SIZEID && el.GOODSNAME == ol.GOODSNAME && el.GOODSID == ol.GOODSID && el.PRICE == ol.PRICE
+            });
+            if (res!== -1) {
+              newArr[res].QTY = Number(newArr[res].QTY) + Number(el.QTY);
+            } else {
+              newArr.push(el);
+            }
+          })
+
+          this.theGoodsList = newArr.concat({
+            GOODSNAME: "",
+            GOODSID:'',
+            GOODSCODE: "",
+            PRICE: 0,
+            PURPRICE: 1,
+            SIZENAME: "",
+            COLORNAME: "",
+            QTY: 1,
+            DISCOUNT:0,
+            isEdit: true
+          })
+        }
+        this.isAddGoodsGroup = false
+        this.pageData.OTHERMONEY = ''
+        this.pageData.BREAKSMONEY = ''
+        this.pageData.PAYTYPEID = ''
+        this.pageData.PAYMONEY = ''
+        this.totalfun()
+      }
+    },
+    batchAddNum(color, idx){
+      this.$prompt(`批量录入 ( ${color.COLORNAME}  )`, '', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder:'请输入数字',
+        inputPattern: /[!^0-9.]/,
+        inputErrorMessage:'只能为数字'
+      }).then(({ value }) => {
+        for(var i=0;i < this.currentSizes.length;i++){
+          this.currentColors[idx][this.currentSizes[i].SIZEID] = value;
+        }
+        this.showSetNum()
+      }).catch(()=>{ })
+    },
+    addNewBill(){ // 新增单据
+      let haveData = this.theGoodsList.filter(item => item.GOODSNAME != '' && item.GOODSCODE != '')
+      if(haveData.length != 0){
+        this.$confirm( '单据还未保存，确定要新增单据？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.theGoodsList = [{
+            GOODSNAME: "",
+            GOODSID:'',
+            GOODSCODE: "",
+            PRICE: 0,
+            PURPRICE: 1,
+            SIZENAME: "",
+            COLORNAME: "",
+            QTY: 1,
+            DISCOUNT:0,
+            isEdit: true
+          }]
+          this.pageData = {}
+          this.searchText = ''
+          this.totalPrice = 0
+        }).catch(()=>{})
+      }
+    },
+    scanSearch(searchText){  // 根据单据号查询
+      // this.pageDataBill.Filter = searchText
+      this.$store.dispatch('getBarCodeScanGoods', { Code: searchText })
+    },
+    curSelect(idx, row){
+      let param = this.goodsListData , obj = {}
+      for(let i in param){
+        if(param[i].ID == row.GOODSID){
+          obj = param[i]
+        }
+      }
+      row.GOODSNAME = obj.NAME
+      row.PRICE = obj.PRICE
+      row.GOODSCODE = obj.CODE
+      this.totalfun()
+      row.ID = row.GOODSID
+      this.$store.dispatch('getGoodsItem', row).then(()=>{
+        if(obj.NAME != undefined){
+          this.titleName = obj.NAME + ' ( '+  obj.CODE+' )'
+          this.isAddGoodsGroup = true  //弹出批量添加商品窗口
+        }
+      })
+    },
+    handleGoodsFilter(val){
+      if(val == ""){
+        this.goodsListData = this.constGOODSLIST
+        return
+      }
+
+      if(this.vCheckGoodsTimeOut){
+        window.clearTimeout(this.vCheckGoodsTimeOut);
+      }
+      let that = this
+      // 1秒内如果有改动查询关键字，就取消查询，否则触发查询
+      this.vCheckGoodsTimeOut = setTimeout(function() {
+        that.$store.dispatch('getGoodsList2', { Status : 1, Filter: val, PN: 0 })
+      }, 800)
+    },
+    addRow() {
+      let newParam = this.theGoodsList.filter(item => item.GOODSNAME == '' && item.GOODSCODE == '')
+      if(newParam.length != 0){
+        this.$message.warning('请先完成之前的操作 !')
+        return
+      }
+      this.theGoodsList.push({
+        GOODSNAME: "",
+        GOODSID:'',
+        GOODSCODE: "",
+        PRICE: 0,
+        PURPRICE: 1,
+        SIZENAME: "",
+        COLORNAME: "",
+        QTY: 1,
+        DISCOUNT:1,
+        isEdit: true
+      })
+    },
+    handleSubmit(value) {
+      if(this.theGoodsList.length == 1){
+        this.$message.warning('请先选择要入库的商品！')
+        return
+      }
+
+      let haveEmptyGoods = this.theGoodsList.filter(item => item.GOODSNAME == '' && item.GOODSCODE == '')
+      if(haveEmptyGoods.length > 1){
+        this.$message.warning('表格中有未保存的商品')
+        return
+      }
+
+      if(this.pageData.SUPPLIERID == ''){
+        this.$message.warning('请选择供应商')
+        return
+      }
+
+      if(value == 0){
+        this.CGloading = true
+      }else{
+        this.loading = true
+      }
+
+      this.theGoodsList.splice(this.theGoodsList.length -1, 1)
+      let param = this.theGoodsList, newArr = []
+      for(let i=0;i<param.length;i++){
+        newArr.push({
+          GoodsId : param[i].GOODSID,
+          Qty: param[i].QTY,
+          Price: param[i].PRICE,
+          ColorId: param[i].COLORID,
+          SizeId: param[i].SIZEID,
+          Remark:''
+        })
+      }
+
+      let sendData = {
+        ShopId: this.shopId,
+        BillId: this.pageData.BILLID == undefined || this.pageData.BILLID == '' ? '' : this.pageData.BILLID,
+        SupplierId: this.pageData.SUPPLIERID,
+        BillDate: dayjs(this.BILLDATE).valueOf(),
+        ManualNo: '', //手工单号  中国标准时间转时间
+        PayTypeId: this.pageData.PAYTYPEID == undefined || this.pageData.PAYTYPEID == '' ? '' : this.pageData.PAYTYPEID, // 付款方式ID
+        PayMoney: this.pageData.PAYMONEY == undefined || this.pageData.PAYMONEY == '' ? '' : this.pageData.PAYMONEY,
+        Remark: this.pageData.REMARK == '' || this.pageData.REMARK == undefined ? '' : this.pageData.REMARK,
+        GoodsList: JSON.stringify(newArr),
+        IsCheck: value,   // 0: 草稿  1：确认单
+        FromBillId: '', // 引用采购单号
+        BreaksMoney: this.pageData.BREAKSMONEY == '' || this.pageData.BREAKSMONEY == undefined ? '' : this.pageData.BREAKSMONEY,
+        OtherMoney: this.pageData.OTHERMONEY == '' || this.pageData.OTHERMONEY == undefined ? '' : this.pageData.OTHERMONEY
+      }
+
+      this.$store.dispatch('addWarehousing',sendData)
+    },
+    handleDel(idx, row) {
+      this.theGoodsList.splice(idx, 1)
+      this.pageData.OTHERMONEY = ''
+      this.pageData.BREAKSMONEY = ''
+      this.pageData.PAYTYPEID = ''
+      this.pageData.PAYMONEY = ''
+      this.totalfun()
+    },
+    totalfun() {
+      let tprice = 0, param = this.theGoodsList, tnum = 0
+      for (let i = 0; i < param.length; i++) {
+        tprice += param[i].PRICE * param[i].QTY
+        tnum += Number(param[i].QTY)
+      }
+      let BreaksMoney = this.pageData.BREAKSMONEY == undefined ? 0 : this.pageData.BREAKSMONEY  //优惠金额
+      let OtherMoney = this.pageData.OTHERMONEY == undefined ? 0 : this.pageData.OTHERMONEY  // 其他金额
+      this.totalPrice = parseFloat(tprice - BreaksMoney + OtherMoney).toFixed(2)
+      this.totalNum = tnum -1
+    },
+    defaultGoodsList(){
+      this.$store.dispatch('getGoodsList2',{ Status: 1, Filter: '', PN: 0})
+    }
+  },
+  mounted() {
+    let agentPermission = getUserInfo().List
+    let arr = agentPermission.filter(element => element.MODULENAME == '采购入库');
+    console.log(arr)
+    if (arr.length > 0 && !this.isPurViewFun(arr[0].MODULECODE)) {
+      this.$message.warning('没有此功能权限，请联系管理员授权!')
+      this.theGoodsList = []
+      return
+    }
+
+    if (this.shopList.length == 0) {
+      this.$store.dispatch("getShopList")
+    }
+    this.$store.dispatch("getSupplierList", { IsStop: 0, IsCurr :0 })
+    this.$store.dispatch("getPaywayList", {})
+    this.defaultGoodsList()
+
+    let getItemData = sessionStorage.getItem('theGoodsList')
+    let theGoodsList = JSON.parse(getItemData)
+
+    if(theGoodsList != null){
+      this.theGoodsList = theGoodsList.concat({
+        GOODSNAME: "",
+        GOODSID:'',
+        GOODSCODE: "",
+        PRICE: 0,
+        PURPRICE: 1,
+        SIZENAME: "",
+        COLORNAME: "",
+        QTY: 1,
+        DISCOUNT:0,
+        isEdit: true
+      })
+      let getItemObj = sessionStorage.getItem('theGoodsObj')
+      let obj = JSON.parse(getItemObj)
+      let haveCurSupplier = this.supplierList.filter(item => item.ID == obj.SUPPLIERID)
+      if(haveCurSupplier.length != 0){
+        this.pageData = JSON.parse(getItemObj)
+      }else{
+        this.pageData = obj
+        this.pageData.SUPPLIERID = ''
+      }
+      this.totalfun()
+    }else{
+      this.theGoodsList = [{
+          GOODSNAME: "",
+          GOODSID:'',
+          GOODSCODE: "",
+          PRICE: 0,
+          PURPRICE: 1,
+          SIZENAME: "",
+          COLORNAME: "",
+          QTY: 1,
+          DISCOUNT:0,
+          isEdit: true
+      }]
+    }
+
+  },
+  components: {
+    inputScan: () => import("@/components/goods/scanSearch.vue"),
+    uploadBillTable: () => import('../uploadExportBill.vue')
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+.warehousing .el-input-group__prepend {
+  padding: 0 10px !important;
+  background-color: #409eff !important;
+  border-color: #409eff !important;
+}
+
+.el-table td, .el-table th {
+  text-align: center;
+}
+.leftLabel {
+  width: 70px;
+  min-width: 70px;
+}
+
+.tableStock{
+  text-align: center;
+  thead{
+    background:#409eff; color:#fff; height:36px; line-height:36px;
+    tr{
+      th{
+        border-right:1px solid #fff
+      }
+    }
+  }
+  tbody{
+    tr{
+      height: 36px; line-height: 36px;
+      td{
+        border:1px solid #ebeef5;
+        input{
+          border:none; height: 36px; line-height: 36px; width: 100%; text-align: center
+        }
+        input:hover{
+          outline: 1px solid #409eff;
+        }
+      }
+    }
+  }
+}
+.namehover{
+  text-decoration: underline; color:#409eff;
+}
+.namehover:hover{
+  color:#333; cursor: pointer;
+}
+
+
+
+</style>
+

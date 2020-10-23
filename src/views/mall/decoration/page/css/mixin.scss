@@ -1,0 +1,108 @@
+@charset "utf-8";
+
+$color1: #fe2278, #b6c1d4, #fff;
+$color2:#403737, #ccc2c3, #fff;
+$color3:#564c42, #f5b800, #fff;
+$color4:#cf3035, #ddaf72, #fff;
+$color5:#ff4f00, #ff9400, #fff;
+$color6:#e73f83, #f1a879, #fff;
+$color7:#e74c5e, #e0b87f, #fff;
+$color8:#b268bb, #e0a2e8, #fff;
+$color9:#b19ce2, #f1a879, #fff;
+$color10: #fda283, #fbab66, #fff;
+$color11: #dbb865, #e6577d, #fff;
+$color12: #6b9275, #fdab66, #fff;
+$color13: #20a4ff, #52d05c, #fff;
+$color14: #4a72f6, #c2dd6b, #fff;
+$color15: #654af6, #a69be6, #fff;
+$color16: #28abfe, #70dacb, #fff;
+$color17: #0cc59c, #9899a4, #fff;
+$color18: #6ddbd1, #6b8492, #fff;
+//将背景颜色以键值对的形式存在map中
+$colorList : (
+    1: $color1,
+    2: $color2,
+    3: $color3,
+    4: $color4,
+    5: $color5,
+    6: $color6,
+    7: $color7,
+    8: $color8,
+    9: $color9,
+    10: $color10,
+    11: $color11,
+    12: $color12,
+    13: $color13,
+    14: $color14,
+    15: $color15,
+    16: $color16,
+    17: $color17,
+    18: $color18,
+  );
+
+@each $i, $color in $colorList {
+  ul.showTheme#{$i} li:first-child{
+      background-color: nth($color, 1);
+       border: 1px solid nth($color, 1);
+  }
+  ul.showTheme#{$i} li:nth-child(2){
+    background-color: nth($color, 2);
+     border: 1px solid nth($color, 2);
+  }
+  ul.showTheme#{$i} li:last-child{
+    background-color: nth($color, 3);
+    border: 1px solid#ddd;
+  }
+}
+
+
+
+@mixin themeBg($idx){
+  background-color:red;
+  @each $i, $color in $colorList {
+    [data-theme = theme#{$i}] & {
+        background-color: nth($color, $idx);
+    }
+  }
+}
+@mixin themeColor($idx){
+  color:red;
+  @each $i, $color in $colorList {
+    [data-theme = theme#{$i}] & {
+        color: nth($color, $idx);
+    }
+  }
+}
+
+.theme_bg{
+  @include themeBg(1);
+}
+.theme_color{
+  @include themeColor(1);
+}
+
+
+// @mixin font_color($color){/*通过该函数设置字体颜色，后期方便统一管理；*/
+// 	color:$color;
+//   [data-theme="theme1"] & {
+//     color:$font-color-theme1;
+//   }
+//   [data-theme="theme2"] & {
+//     color:$font-color-theme2;
+//   }
+//   [data-theme="theme3"] & {
+//     color:$font-color-theme3;
+//   }
+// }
+// @mixin bg_color($color){/*通过该函数设置主题颜色，后期方便统一管理；*/
+//   background-color:$color;
+//   [data-theme="theme1"] & {
+//     background-color:$background-color-theme1;
+//   }
+//   [data-theme="theme2"] & {
+//     background-color:$background-color-theme2;
+//   }
+//   [data-theme="theme3"] & {
+//     background-color:$background-color-theme3;
+//   }
+// }

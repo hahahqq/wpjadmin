@@ -1,0 +1,272 @@
+<template>
+  <div class="shopquery">
+    <section>
+      <el-input type="default" size="small" v-model="searchText" placeholder="输入商品名称/货号/条码" @keyup.enter.native="queryData()" class="pull-right-" style="width: 300px;">
+        <el-button slot="append" type="default" size="small" @click="queryData()" >查询</el-button>
+      </el-input>
+      <span style="float: right; " v-if='shopViewType == 1'>
+        <el-badge type='danger' :value="multipleSelection.length" class="item">
+          <span>已选商品</span>
+        </el-badge>
+      </span>
+    </section>
+    <section class="bg-whitepaddingLR-md full-width" style="margin-top:12px ">
+      <el-row class="tac">
+        <el-col :span="3">
+            <div class="leftconent">
+              <ul>
+                <li v-for="(item,i) in pagelist" :key='i' @click="handleTabsEdit(item, i)" :class="{active:curtab==i}">
+                  <span>{{item.NAME}}</span>
+                </li>
+              </ul>
+            </div>
+        </el-col>
+        <el-col :span='21'>
+          <div class='checkboxStyle'>
+            <el-table border size='small' :data="pageglist" v-loading="loading" height='320'
+              element-loading-text="数据加载中..." ref="multipleTable"
+              element-loading-spinner="el-icon-loading"
+              @selection-change="handleSelectionChange"
+              :row-key="getRowKeys"
+              header-row-class-name="bg-f1f2f3" class="full-width" empty-text='暂无商品数据'
+            >
+              <el-table-column type='selection' width="60" :reserve-selection="true" v-if='shopViewType == 1'></el-table-column>
+              <!-- <el-table-column prop="RN" label="序号" width="50" align="center" fixed="left"></el-table-column> -->
+              <el-table-column prop="CODE" label="货号" fixed="left"></el-table-column>
+              <el-table-column prop="NAME" label="商品名称"></el-table-column>
+              <el-table-column prop="COLORNAME" label="颜色" align="center" width="90"></el-table-column>
+              <el-table-column prop="SIZENAME" label="尺码" align="center"></el-table-column>
+              <el-table-column prop="BARCODE" label="条码"></el-table-column>
+              <el-table-column prop="PRICE" label="零售价" align="center" width="90"></el-table-column>
+              <el-table-column prop="STOCKQTY" label="库存" align="center" width="90"></el-table-column>
+            </el-table>
+          </div>
+          <div class="m-top-sm clearfix elpagination">
+            <el-pagination
+              background
+              @size-change="handlePageChange"
+              @current-change="handlePageChange"
+              :current-page.sync="pagination.PN"
+              :page-size="pagination.PageSize"
+              layout="total, prev, pager, next, jumper"
+              :total="pagination.TotalNumber"
+              class="text-center"
+            ></el-pagination>
+          </div>
+        </el-col>
+      </el-row>
+      <el-row style="text-align:center; margin-top:30px" v-if='shopViewType == 1'>
+        <el-button type="info" @click='closeModal()'>取 消</el-button>
+        <el-button type='primary' @click='submitChoseGoods'>确 认</el-button>
+      </el-row>
+    </section>
+  </div>
+
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+export default {
+  props:['goodsValSearch','goodsList', 'paginationData','shopViewType','isIntegral'],
+  data() {
+    return {
+      loading: false,
+      searchText: '',
+      searchText1:'',
+      curtab:0,
+      pagelist: [],
+      pageglist:[],
+      pagination: {
+        TotalNumber: 0,
+        PageNumber: 0,
+        PageSize: 20,
+        PN: 0
+      },
+      index:'',
+      pageData: {
+        PN: 1,
+        Filter: "",
+        Status: 1,
+        TypeID: '', //商品类别ID
+        DescType: 0,
+        IsGift: -1,
+        YearList: '',
+        SeasonList: '',
+        BrandList: '',
+        CategoryList: '',
+        SexNameList: '',
+      },
+      chooseList:[],
+      getRowKeys(row){
+        return row.BARCODE
+      },
+      multipleSelection:[],
+      searchType:1,
+      saveSearchText:''
+    }
+  },
+  computed: {
+    ...mapGetters({
+      dataList: "categoryList",
+      dataListState: "categoryListState",
+      datagList: "goodsList3",
+      datagListState: "goodsListState3",
+    })
+  },
+  watch: {
+    goodsValSearch(data){
+      this.pageData.PN = 1
+      this.pageData.TypeID = ''
+      this.searchText = data
+      this.pageData.IsGift = this.isIntegral == 1 ? 1 : -1
+      this.multipleSelection = []
+      this.$refs.multipleTable.clearSelection();
+      this.getGoodsData(data)
+    },
+    dataListState(data) {
+      if (data.success) {
+        this.pagelist = [...this.dataList];
+        this.pagelist.unshift({  NAME: '全部商品', ID: ''})
+        this.pagination = {
+          TotalNumber: data.paying.TotalNumber,
+          PageNumber: data.paying.PageNumber,
+          PageSize: data.paying.PageSize,
+          PN: data.paying.PN
+        }
+      }
+    },
+    datagListState(data) {
+      this.loading = false;
+      if (data.success) {
+        this.searchText = ''
+        let dataList = [...this.datagList]
+        this.pageglist = dataList
+        this.pagination = {
+          TotalNumber: data.paying.TotalNumber,
+          PageNumber: data.paying.PageNumber,
+          PageSize: data.paying.PageSize,
+          PN: data.paying.PN
+        }
+      }else{
+        this.$message.error(data.message)
+      }
+    },
+  },
+  methods: {
+    handleSelectionChange(rows) {
+      this.multipleSelection = []
+      if (rows) {
+        rows.forEach(row => {
+          if (row) {
+            this.multipleSelection.push(row);
+          }
+        })
+      }
+      console.log(this.multipleSelection)
+    },
+    submitChoseGoods(){
+      if(this.multipleSelection.length == 0){
+        this.$message('未选择需要的商品')
+        return
+      }
+      this.$emit('closeModal')
+      this.$emit('getSelectList', this.multipleSelection)
+      this.multipleSelection = []
+      this.$refs.multipleTable.clearSelection()
+    },
+    handlePageChange: function(currentPage) {
+      if (this.pageData.PN == currentPage) {
+        return;
+      }
+      this.pageData.PN = parseInt(currentPage);
+      this.getGoodsData(this.saveSearchText);
+    },
+    queryData(){
+      this.pageData.PN = 1
+      this.pageData.TypeID = ''
+      this.searchType = 1
+      this.saveSearchText = this.searchText
+      this.getGoodsData(this.searchText)
+    },
+    handleTabsEdit(item, i) {
+      this.curtab = i;
+      this.pageData.TypeID=item.ID
+      this.pageData.PN = 1
+      this.getGoodsData(this.searchText);
+    },
+    selectGoods(item){
+      this.$emit('closeModal');
+      this.$emit('getSelectList',item)
+    },
+    closeModal(){
+      this.$emit('closeModal');
+      this.multipleSelection = []
+      this.$refs.multipleTable.clearSelection();
+    },  
+    getGoodsData(val) {
+      this.pageData.IsGift = this.isIntegral == 1 ? 1 : -1
+      console.log(this.isIntegral)
+      this.pageData.Filter = val
+      this.$store.dispatch("getGoodsList3", this.pageData).then(()=>{
+        this.loading = true
+        this.searchText1 = this.searchText
+      })
+    },
+    getNewData() {
+      this.$store.dispatch("getCategoryList",{}).then(() => {
+        this.loading = true;
+      });
+    },
+  },
+  mounted() {
+    if (this.dataList.length == 0) {
+      this.getNewData();
+    } else {
+      this.pagelist = [...this.dataList];
+      this.pagelist.unshift({ NAME: '全部商品', ID: '' })
+    }
+
+    if(this.pageglist.length == 0){
+      this.getGoodsData(this.goodsValSearch)
+    }
+  },
+  components: {
+
+  }
+};
+
+</script>
+<style>
+.item {
+  margin: 10px 40px 0 0
+}
+
+.shopquery .m-top-lg {
+  margin-top: 20px;
+}
+
+.leftconent{
+  height: 320px;
+  overflow-y: auto
+}
+
+.leftconent ul li {
+  position: relative;
+  padding: 10px 12px;
+  color: #333;
+  background: #f2f2f2;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd
+}
+.leftconent ul li:hover{
+  background:#A0CFFF;
+  color:#fff
+}
+.leftconent ul li.active {
+  background:#3EA9FF;
+  color:#fff;
+}
+.leftconent ul li span {
+  margin: 0;
+  line-height: 1.4;
+}
+</style>

@@ -1,0 +1,328 @@
+<template>
+  <div>
+    <el-form ref="ruleForm" :model="ruleForm" :rules="rules" inline label-width="100px">
+      <el-form-item label="会员" class="no-m-right" style="width:49%">
+        <div>{{theData.NAME}}</div>
+      </el-form-item>
+      <el-form-item label="充值金额" prop="AddMoney" class="no-m-right" style="width:49%">
+        <el-input v-model="ruleForm.AddMoney" autofocus @change="handleInput2(1)" style="width:200px" ref="inputa"></el-input>
+      </el-form-item>
+      <el-form-item label="赠送金额" prop="GiftMoney" class="no-m-right" style="width:49%">
+        <el-input v-model="ruleForm.GiftMoney" @change="handleInput2(2)" style="width:200px" ref="inputg"></el-input>
+      </el-form-item>
+      <el-form-item label="充值方式" prop="PayTypeId" class="no-m-right" style="width:49%">
+        <el-select v-model="ruleForm.PayTypeId" placeholder="请选择充值方式" style="width:200px">
+          <el-option v-for="item in paywayList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="门店" prop="ShopId" class="no-m-right" style="width:49%">
+        <el-select v-model="ruleForm.ShopId" placeholder="请选择门店" style="width:200px">
+          <el-option v-for="item in shopList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="是否发短信" class="no-m-right" style="width:49%">
+        <el-switch v-model="ruleForm.IsSms"></el-switch>
+      </el-form-item>
+      <!-- <el-form-item label="员工提成" class="no-m-right" style="width:49%">
+        <el-button type="primary" plain size="mini" @click="isShowDeal=true">设置</el-button>
+        <span class="font-12">最多三人</span>
+        <ul
+          class="rounded-xs"
+          :class="{'border':royaltyEmployee2.length>0}"
+          style="height:122px;width:200px"
+        >
+          <li
+            v-for="(item,i) in royaltyEmployee2"
+            :key="i"
+            class="bg-light border-bottom- paddingLR-sm"
+          >
+            <span class="inline-block" style="width:100px">{{item.name}}</span>
+            <span class="inline-block text-danger">&yen;{{item.money}}</span>
+          </li>
+        </ul>
+      </el-form-item> -->
+      <el-form-item label="销售员" class="no-m-right" style="width:49%" >
+         <el-select placeholder="请选择" v-model="ruleForm.empval" class="full-width" style="width:200px">
+            <el-option v-for="(item,i) in employeeList" :key="i" :label="item.NAME" :value="item.ID" size="small"></el-option>
+         </el-select>
+      </el-form-item>
+
+      <el-form-item label="备注说明" class="no-m-right" style="width:49%">
+        <el-input
+          v-model="ruleForm.Remark"
+          type="textarea"
+          rows="3"
+          placeholder="请输入备注说明"
+          style="width:200px"
+        ></el-input>
+        <div class="p-top-lg">
+          <el-button type="primary" @click="onSubmit" :loading="loading">保 存</el-button>
+          <el-button @click="closeModal">取 消</el-button>
+        </div>
+      </el-form-item>
+    </el-form>
+    <!-- 员工提成信息 -->
+    <el-dialog width="460px" title="员工提成设置" :visible.sync="isShowDeal" append-to-body>
+      <div>
+        <el-form ref="ruleForm2" label-width="100px">
+          <el-form-item label="提成金额">
+            <div>{{royaltyMoney}}</div>
+          </el-form-item>
+          <el-form-item label="员工">
+            <el-select
+              v-model="royaltyEmployee"
+              @change="royaltyEmployeeFun"
+              multiple
+              clearable
+              :multiple-limit="3"
+              placeholder="请选择"
+              class="full-width"
+            >
+              <el-option
+                v-for="(item,i) in employeeList"
+                :key="item.ID"
+                :label="item.NAME"
+                :value="i"
+              ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="提成金额" style="height:130px">
+            <ul class="rounded-xs" :class="{'border':royaltyEmployee2.length>0}">
+              <li
+                v-for="(item,i) in royaltyEmployee2"
+                :key="i"
+                class="bg-light border-bottom- paddingLR-sm"
+              >
+                <span class="inline-block" style="width:100px">{{item.name}}</span>
+                <span class="inline-block text-danger">&yen;{{item.money}}</span>
+              </li>
+            </ul>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="onSubmit2">确 定</el-button>
+            <el-button @click="onSubmit2('reset')">重 设</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-dialog>
+  </div>
+  <!-- 会员 储值卡充值-->
+</template>
+<script>
+import { mapGetters } from "vuex";
+import { getHomeData } from "@/api/index";
+export default {
+  props: {
+    theState: { type: Boolean, default: false },
+    theData: { type: Object, default: { ID: "", NAME: "" } }
+  },
+  data() {
+    return {
+      pagelist:[],
+      ruleForm: {
+        ShopId: "",
+        VipId: "",
+        Remark: "",
+        IsSms: false,
+        AddMoney: 0, // 充值金额
+        GiftMoney: 0, // 赠送金额
+        PayTypeId: "", // 充值方式
+        SaleEmpMoney: {} // 员工提成信息
+      },
+      rules: {
+        ShopId: [{ required: true, message: "请选择门店", trigger: "change" }],
+        PayTypeId: [
+          { required: true, message: "请选择充值方式", trigger: "change" }
+        ],
+        AddMoney: [
+          {
+            required: true,
+            validator: (rule, value, callback) => {
+              this.changeMoney();
+              if (!value) {
+                callback(new Error("请填写有效金额"));
+              } else {
+                callback();
+              }
+            },
+            trigger: "blur"
+          }
+        ],
+        GiftMoney: [
+          {
+            validator: (rule, value, callback) => {
+              this.changeMoney();
+              if (value > this.ruleForm.AddMoney) {
+                callback(new Error("赠送金额不能大于充值金额"));
+              } else {
+                callback();
+              }
+            },
+            trigger: "blur"
+          }
+        ]
+      },
+      loading: false,
+      isShowDeal: false,
+      royaltyMoney: 0,
+      royaltyEmployee: [],
+      royaltyEmployee2: [],
+      getAddMoneyList:[]
+    };
+  },
+  computed: {
+    ...mapGetters({
+      shopList: "shopList",
+      dataInfo: "memberItemInfo",
+      dataState: "memberBAdjustState",
+      paywayList: "paywayList",
+      employeeList: "employeeList",
+      EmpAddRate: "EmpAddRate",
+      dataState:'memberRechargeState',
+      marketingRechargedetailed:"marketingRechargeStatus",
+      empdataListState: 'empdataListState'
+    })
+  },
+  watch: {
+   empdataListState(data) {
+      if (data.success) {
+        this.pagelist = [...this.empdataList];
+      }
+    },
+    marketingRechargedetailed(data){
+      this.getAddMoneyList = data.data.GiftList
+      console.log(data.data.GiftList)
+    },
+    theState(v) {
+      if (v) {
+        this.ruleForm.Money = 0;
+        this.defaultData();
+      }
+    },
+    dataState(data) {
+      this.loading = false;
+      if (data.success) {
+        this.$store.dispatch("clearMember", 4);
+        this.$store.dispatch('getMemberItem', { ID: this.theData.ID})
+        this.$emit("resetData");
+      }else{
+        this.$message.error(data.message);
+      }
+    }
+  },
+  methods: {
+    handleInput2(status) {
+      if (status == 1) {
+        // this.AddMoney = this.onlyInputnumber(this.AddMoney);
+        let getAddMoneyList = this.getAddMoneyList, newMoney = []
+        for(var i in getAddMoneyList){
+          if(this.ruleForm.AddMoney >= getAddMoneyList[i].ADDMONEY){
+            newMoney.push(getAddMoneyList[i].MONEY)
+          }
+        }
+
+        if(newMoney.length > 0){
+          var max = newMoney.reduce(function(a , b){
+            return b > a ? b : a;
+          })
+          this.ruleForm.GiftMoney = max
+        }else{
+          this.ruleForm.GiftMoney = ''
+        }
+        console.log(this.ruleForm)
+        this.$refs.inputa.focus();
+        this.$refs.inputg.focus();
+      } else {
+        // this.ruleForm.GiftMoney = this.onlyInputnumber(this.ruleForm.GiftMoney);
+      }
+      // this.$forceUpdate()
+    },
+    closeModal() {
+      this.$emit("closeModal");
+    },
+    onSubmit() {
+      this.ruleForm.VipId = this.theData.ID;
+      this.$refs["ruleForm"].validate(valid => {
+        if (valid) {
+         //  let data = Object.assign({}, this.ruleForm, {
+         //    SaleEmpMoney: JSON.stringify(this.ruleForm.SaleEmpMoney)
+         //  });
+
+         console.log(this.ruleForm)
+
+          this.$store.dispatch("memberRecharge", this.ruleForm).then(() => {
+            this.loading = true;
+          });
+        } else {
+          console.log("error submit!!");
+          return false;
+        }
+      });
+    },
+    defaultData() {
+      if (this.paywayList.length == 0) {
+        this.$store.dispatch("getPaywayList", {});
+      }
+      if (this.shopList.length == 0) {
+        this.$store.dispatch("getShopList", {});
+      }
+      if (this.employeeList.length == 0) {
+        this.$store.dispatch("getEmployeeList", {});
+      }
+      this.$store.dispatch("getRechargeValue");
+      this.$refs["ruleForm"].resetFields();
+      this.royaltyEmployee = [];
+      this.royaltyEmployee2 = [];
+      this.ruleForm.SaleEmpMoney = {};
+      this.royaltyMoney = 0;
+      if (!this.ruleForm.ShopId) {
+        this.ruleForm.ShopId = getHomeData().shop.ID;
+      }
+    },
+    royaltyEmployeeFun(arr) {
+      let money = parseFloat(this.royaltyMoney / arr.length).toFixed(2);
+      this.royaltyEmployee2 = [];
+      // this.ruleForm.SaleEmpMoney = {};
+      // for (let i = 0; i < arr.length; i++) {
+      //   this.royaltyEmployee2.push({
+      //     name: this.employeeList[arr[i]].NAME,
+      //     money: money
+      //   });
+      //   this.ruleForm.SaleEmpMoney[i] = {
+      //     EmpId: this.employeeList[arr[i]].ID,
+      //     Money: money
+      //   };
+      // }
+    },
+    onSubmit2(type) {
+      if (type == "reset") {
+        this.royaltyEmployee = [];
+        this.royaltyEmployee2 = [];
+        this.ruleForm.SaleEmpMoney = {};
+        this.royaltyMoney = 0;
+      } else {
+        this.isShowDeal = false;
+      }
+    },
+    changeMoney() {
+      if (this.ruleForm.AddMoney > this.ruleForm.GiftMoney) {
+        this.royaltyMoney = this.ruleForm.AddMoney - this.ruleForm.GiftMoney;
+      } else {
+        this.royaltyMoney = 0;
+      }
+      if (this.royaltyEmployee2.length > 0) {
+        let arr = [...this.royaltyEmployee2];
+        let money = parseFloat(this.royaltyMoney / arr.length).toFixed(2);
+        for (let i = 0; i < arr.length; i++) {
+          this.royaltyEmployee2[i].money = money;
+        }
+      }
+    }
+  },
+  mounted() {
+    this.defaultData();
+  }
+};
+</script>
+<style scoped>
+</style>

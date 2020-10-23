@@ -1,0 +1,1210 @@
+<template>
+  <div class="t-botton-timescountc" ref="elememt">
+    <headerPage @returnOrderList1='returnOrderList1' :updataDate='date' @returnOrderObj1='returnOrderObj1'></headerPage>
+    <!-- 列表 -->
+    <div ref='addsockheight' class='overflowscroll'>
+      <div class='tableStyle tableLineHeight'>
+        <el-table border size='small'
+          :data="shopDataList"
+          :height="tableHeight"
+          empty-text="暂无数据，请选择商品"
+          :highlight-current-row='true'
+          @row-click='handleCurRow'
+          header-row-class-name="bg-f5 text-f3"
+          width='100%'>
+          <el-table-column align='center' type='index' label='序号'></el-table-column>
+          <el-table-column align='center' prop="goodsCode" label="货号"></el-table-column>
+          <el-table-column align='center' prop='goodsname' label="商品名称"></el-table-column>
+          <el-table-column align='center' prop="ColorName" label="颜色" width="100"></el-table-column>
+          <el-table-column align='center' prop="SizeName" label="尺码" width="100"></el-table-column>
+          <el-table-column align='center' prop='GoodsPrice' label='零售价' width="100"></el-table-column>
+          <el-table-column align='center' label="折扣">
+            <template slot-scope="scope">
+              <span v-show='!scope.row.notEdit'>{{scope.row.Discount}}</span>
+              <span v-show="scope.row.notEdit">
+                <el-input-number size='mini' style="width:100px" controls-position='right' :min='0' v-model.trim='scope.row.Discount' @keyup.enter.native="changePr(scope.row)" @change="changePr(scope.row)"></el-input-number>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column align='center' label="实销价">
+            <template slot-scope="scope">
+              <span v-show='!scope.row.notEdit'>{{scope.row.Price}}</span>
+              <span v-show="scope.row.notEdit">
+                <el-input-number size="mini" :style="`width:${scope.row.Remark == '' ? '120' : '110'}px`" controls-position="right" :min='0' v-model.trim='scope.row.Price' @keyup.enter.native='changeDP(scope.row)' @change='changeDP(scope.row)'></el-input-number>
+              </span>
+              <span v-if='scope.row.Remark != "" && scope.row.Remark != undefined  ' style="text-align:right; float:right">
+                  <el-tooltip placement="right">
+                    <div slot="content">{{scope.row.Remark}}</div>
+                    <el-button type="text" size="small" icon='el-icon-info'></el-button>
+                  </el-tooltip>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column align='center' label="数量">
+            <template slot-scope="scope">
+              <span v-show='!scope.row.notEdit'>{{scope.row.Qty}}</span>
+              <span v-show="scope.row.notEdit">
+                 <!-- onkeyup="value=value.replace(/[^\w/]/ig,'')" -->
+                <el-input-number type="number" size="mini" style='width:90px' controls-position="right" v-model.trim='scope.row.Qty'  @keyup.enter.native='sureEditQty(scope.row,$event.target)' @input="totalFun()" @change='totalFun()'></el-input-number>
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column align='center' prop="totalMoney" label="金额"></el-table-column>
+          <el-table-column label="操作" fixed="right" width="100">
+            <template slot-scope="scope">
+              <el-button size="mini" type='text' @click="handleDel(scope.$index, scope.row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+    <div class="c_footer" ref='footer'>
+      <el-row :gutter="24">
+        <el-col :span="8" style="padding:16px 16px; position:relative; border-right:2px solid #e4e4e4">
+          <el-select v-model='searchText' size="small" filterable remote reserve-keyword :remote-method="remoteMethod" style='width:100%' :loading='loading' @change="handleSelect(searchText)" @focus='defaultMemberData()' placeholder="请输入会员名或手机号">
+            <el-option v-for='(item,i) in dataMemberList' :key='i' :value='item' >
+              <span style='float:left'>{{item.NAME}}</span>
+              <span style="float:right; color: #8492a6; font-size:13px">{{item.MOBILENO}}</span>
+            </el-option>
+          </el-select>
+          <div class="vip_sock" style="overflow: hidden; border-radius: 8px; color:#666; background: #f5f57fa; border: 1px solid #ddd; height:130px;">
+            <div class="viptop" style="overflow: hidden;">
+              <div class="viptop_l pull-left">
+                <img :src="vipnews.IMAGEURL" onerror="this.src='static/images/admin.png'" style="width:40px;height:40px; margin-right:5px; border-radius:50%" class="pull-left">
+                <div class="viptop_lc pull-left" v-if="isVip">
+                  <p>{{vipnews.NAME}}</p>
+                  <p style="font-size:12px"><span>{{vipnews.MOBILENO}}</span>&nbsp;&nbsp;&nbsp;<span v-if='vipnews.NAME != "散客"'> 折扣 {{vipnews.DISCOUNT *100}} %</span></p>
+                </div>
+                <div class='viptop_lc pull-left' style="line-height: 40px" v-else>
+                    <p>{{vipnews.NAME}}</p>
+                </div>
+              </div>
+
+              <div class="viptop_r pull-right" v-if="isVip">
+                <i class="el-icon-tickets" style="cursor:pointer; margin-right: 10px" @click="handleEdit()"></i>
+                <i class='el-icon-delete' style="cursor:pointer" @click="resetVipInfo"></i>
+              </div>
+            </div>
+
+            <div class="vip_content" v-if='vipnews.NAME != "散客"'>
+              <ul>
+                <li><p style="font-size:12px">积分</p><p style="color:#f9484C">{{vipnews.INTEGRAL}}</p></li>
+                <li><p style="font-size:12px">余额</p><p style="color:#f9484C">{{vipnews.MONEY}}</p></li>
+                <li><p style="font-size:12px">生日</p><p style="color:#f9484C">{{ new Date(vipnews.BIRTHDATE=='undefined' ? 0 : vipnews.BIRTHDATE) | time }} </p></li>
+              </ul>
+            </div>
+          </div>
+        </el-col>
+        <el-col :span="8" style="padding:16px 16px; border-right:2px solid #e4e4e4">
+          <el-form :inline="false" class='inputColor' :model="ruleForm" ref="ruleForm" label-width="60px">
+            <el-form-item label="商　品">
+              <el-input type="default" v-model="searchVal" ref='input' size="small" placeholder="输入商品名称/货号/条码" @keyup.enter.native='searchGoods()'>
+                  <el-button type="primary" slot='append' class='block' @click='searchGoods' icon="el-icon-search">查询</el-button>
+              </el-input>
+            </el-form-item>
+            <el-form-item label="销售员">
+              <el-select placeholder="请选择" v-model="ruleForm.empval" class="full-width" size="small">
+                <el-option v-for="(item,i) in pagelist" :key="i" :label="item.NAME" :value="item.ID" size="small"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="备　注" class="clearfix">
+              <el-input v-model="Remark" size="small" placeholder="请输入备注说明"></el-input>
+            </el-form-item>
+          </el-form>
+        </el-col>
+        <el-col :span="8" style="padding:16px 16px;">
+          <el-row style="height:60px">
+            <el-col :span="7">
+              <el-button type="primary" plain @click="saveGuaDan" :disabled="shopDataList.length == 0">挂 单 - F8 </el-button>
+            </el-col>
+            <el-col :span="7">
+              <el-badge type='danger' :value="guadancxlistBillCount">
+                <el-button type="primary" :disabled="guadancxlistBillCount == 0" plain @click="isShowGuaDan">取 单 - F9 </el-button>
+              </el-badge>
+            </el-col>
+            <el-col :span="9">
+              <el-button style='float:right' type="info" @click='clearData()'>清 空</el-button>
+            </el-col>
+          </el-row>
+          <el-row style="height:60px">
+            <el-col>
+              <el-button plain type='primary' @click='openMoneyBox()'>钱箱 - F10</el-button>
+            </el-col>
+          </el-row>
+          <div class="cr_footer">
+            <span style="display: inline-block; line-height: 40px">
+              共
+              <strong style='font-size:24pt; font-family:"宋体"; color:#f9484C'> {{Math.abs(TotalNum)}}</strong>件，
+              合计:
+              <strong style="font-size:24pt; font-family:'宋体'; color:#f9484C">
+                <span style='font-size:10pt'> ￥</span>{{TotalPrice}}
+              </strong>
+            </span>
+
+            <span class="pull-right">
+              <span class='btnPayMoney' @click='btnPayMoney()' >结账</span>
+              <p style="width:100%; text-align:center">( space )</p>
+            </span>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
+
+    <el-dialog title="商品查询" :visible.sync="isShowList" width="80%" :close-on-click-modal='false' style="max-width:100%;" append-to-body>
+       <shopqueryPage @closeModal="isShowList=false; searchVal=''; $refs.input.focus()" :goodsValSearch='goodsVal' :shopViewType='1' @getSelectList="getSelectList"></shopqueryPage>
+    </el-dialog>
+
+    <el-dialog title="挂单系统" :visible.sync="isguadanShowList" width="80%" :close-on-click-modal='false'  style="max-width:100%;" append-to-body>
+      <guadanPage @closeModal="isguadanShowList=false; $refs.input.focus()" v-on:pullgoodsList='pullgoodsList' style="max-width:100%; height:400px; overflow:hidden;" ></guadanPage>
+    </el-dialog>
+
+    <recharge style="display:none" @closeModalrecharge="showRecharge=false; $refs.input.focus()" :rechargeListList1='rechargeListList' :vipItem='vipnews' :totalprice="TotalPrice" :rechargestatus='5' ref="okSubmit"></recharge>
+
+    <el-dialog title="收银" class="recharge1" :visible.sync="showRecharge" width="860px" :close-on-click-modal='false' :close-on-press-escape='false' :show-close='false' append-to-body>
+      <!-- <recharge @closeModalrecharge="showRecharge=false; $refs.input.focus()" :rechargeListList1='rechargeListList' :vipItem='vipnews' :getpullBillList='getpullBillList' :totalprice="TotalPrice" @CashRecharge="CashRecharge" @couponInfo='couponInfo' :rechargestatus='5' ref="okSubmit"></recharge> -->
+      <recharge @closeModalrecharge="showRecharge=false;" :rechargeListList1='rechargeListList' :vipItem='vipnews' :totalprice="TotalPrice" @CashRecharge="CashRecharge" @couponInfo='couponInfo' :rechargestatus='5' ref="okSubmit"></recharge>
+    </el-dialog>
+
+    <el-dialog title="会员详情" :visible.sync="showItem" width="770px" style="max-width:100%;" append-to-body :before-close="handleDialogClose">
+      <item-page @closeModal="showItem=false" :dataProfile='dataProfile' :pageState="showItem"></item-page>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import Vue from 'vue';
+import { mapState, mapGetters } from "vuex";
+import { getDayindate } from "@/util/Printing"
+import { getUserInfo, getHomeData} from '@/api/index'
+import { getOpenMoneyBox } from "@/util/Printing"
+import { nscreenexCodeFun } from "@/util/objectivity";
+import dayjs from 'dayjs';
+import music from '@/assets/12053.mp3'
+let _ = require("lodash");
+export default {
+  data() {
+    return {
+      isReturnGoods: false,
+      showItem: false,
+      autoFocus:true,
+      date: new Date(),
+      pagelist:[],
+      VipId:'',
+      Remark:'',
+      ruleForm:{
+        empval:''
+      },
+      isVip: false,
+      isShowList: false,
+      isguadanShowList: false,
+      showVipstatus: false,
+      typecheck: false,
+      showRecharge: false,
+      TotalPrice: 0.00,
+      TotalNum:0,
+      searchText: '',
+      dataMemberList:[],
+      pageData: { PN: 1, Filter: "", Status: -1, LevelName: "", VipFlag: ""},
+      goodsVal:'',
+      searchVal:'',
+      shopDataList: [],
+      vipnews: {
+        NAME: '散客',
+        MOBILENO: '—',
+        DISCOUNT: 1,
+        IMAGEURL: '',
+        VIPFLAG: 'x',
+        INTEGRAL: '0',
+        MONEY: '0',
+        VIPID:'',
+        BIRTHDATE: 'undefined'
+      },
+      ConstNum:1,
+      getpullBillList:{},
+      loading: false,
+      pageDataGoods: {
+        PN: 1,
+        Filter: "",
+        Status: -1,
+        TypeID: '', //商品类别ID
+        DescType: 0,
+        IsGift: -1,
+        YearList: '',
+        SeasonList: '',
+        BrandList: '',
+        CategoryList: '',
+        SexNameList: '',
+      },
+      pageglist:[],
+      pagination: {
+        TotalNumber: 0,
+        PageNumber: 0,
+        PageSize: 20,
+        PN: 0
+      },
+      vipnews1 : {
+        NAME: '散客',
+        MOBILENO: '——',
+        DISCOUNT: 1,
+        IMAGEURL: '',
+        VIPFLAG: 'x',
+        INTEGRAL: '0',
+        MONEY: '0',
+        VIPID:'',
+        BIRTHDATE: 'undefined'
+      },
+      guaDanId:'',
+      pageData1: {
+        PN: 1,
+        Filter: "",
+        Status: 1,  //商品状态 -1=all  1=启用 0=停用
+        TypeID: '', //商品类别ID
+        IsGift: -1
+      },
+      rechargeListList:[],
+      tableHeight:350,
+      dataProfile:{
+        obj:{},
+        total:{}
+      },
+      isNeedSale: false,
+      uploadShowDialog: false,
+      couponItem: {
+         CouponNo:'',
+         CouponMoney: 0,
+         FavorMoney: 0
+      }
+    }
+  },
+  computed: {
+    ...mapGetters({
+      loginState: "loginState",
+      empdataList : "employeeList",
+      empdataListState : "employeeListState",
+      getguadancdlistState : 'getguadancdlistState',
+      memberListState: 'memberListState',
+      saveGuadanState : 'saveGuadanState',
+      datagList: "goodsList",
+      datagListState: "goodsListState",
+      savePayMoneyState:'savePayMoneyState',
+      guadancxlistState: 'guadancxlistState',
+      guadancxlistBillCount:'guadancxlistBillCount',
+      datagList3: "goodsList3",
+      datagListState3: "goodsListState3",
+      rechargeListState:'rechargeListState',
+      dataState: "memberState",
+      dataState2: 'memberState2'
+    }),
+  },
+  watch: {
+     searchText() {
+      this.searchfun()
+    },
+    loginState(data) {
+      if (data.success) {
+        this.isNeedSale = getUserInfo().CompanyConfig.ISNEEDSALER
+      }
+    },
+    dataState(data) {
+      if (data.success) {
+        this.showItem = true;
+        this.dataProfile.obj = data.data.obj
+      }
+    },
+    dataState2(data){
+      if(data.success){
+        this.dataProfile.total = data.data
+      }
+    },
+    rechargeListState(data){  //支付方式
+      let param = data.data.List, newParam = []
+      if(this.isVip == true ){
+        newParam = param
+      }else{
+        for(var i in param){
+          if(param[i].NAME != '欠款' && param[i].NAME != '余额支付'){
+            newParam.push(param[i])
+          }
+        }
+      }
+      this.rechargeListList = newParam
+    },
+    guadancxlistState(data){ },
+    savePayMoneyState(data){
+      this.$refs.input.focus()
+      if(data.success){
+        this.shopDataList = []
+        this.vipnews = {
+          NAME: '散客', MOBILENO: '——', DISCOUNT: '1', IMAGEURL: '', VIPFLAG: 'x',
+          INTEGRAL: '0', MONEY: '0', VIPID:'', BIRTHDATE: 'undefined'
+        }
+        this.isReturnGoods = false
+        this.ruleForm.empval = ''
+        this.Remark = ''
+        this.guaDanId = ''
+        this.isVip = false
+        this.showRecharge = false
+        this.TotalPrice = 0.00
+        this.TotalNum = 0
+        this.VipId = ''
+        this.$message.success('结账成功！')
+        this.$store.dispatch("getguadancxlistState", {})
+
+        this.pageData1.Filter = ''
+        this.$store.dispatch("getGoodsList3", this.pageData1).then(() =>{
+          this.uploadShowDialog = false
+        })
+
+        let pageData = {
+          BeginDate: 1,
+          EndDate: 9999999999999,
+          Filter: '',
+          PN: 1,
+          BillNo: ''
+        }
+        this.$store.dispatch("getrqueryItem", pageData)
+        let qresurl = this.$store.state.commodityc.saveQRcodeIMG;
+
+        if(localStorage.getItem("SavesetupPrint") == "true"){
+          getDayindate('91020303',data.data.OutBillId, 1, qresurl)
+        }
+
+        this.$refs.okSubmit.isShowLoading()
+
+      }else{
+        this.$message.error(data.message)
+        this.$refs.okSubmit.isShowLoading()
+      }
+    },
+    datagListState(data) {
+      let param = [...this.datagList], newParam = []
+      for(let i in param){
+        param[i].num = 0
+        newParam.push(param[i])
+      }
+      this.pageglist = newParam
+      if (data.success) {
+        this.pagination = {
+          TotalNumber: data.paying.TotalNumber,
+          PageNumber: data.paying.PageNumber,
+          PageSize: data.paying.PageSize,
+          PN: data.paying.PN
+        }
+      }
+    },
+    datagListState3(data){
+      if(data.success){
+        if(this.uploadShowDialog == false){
+          return
+        }
+        let param = this.shopDataList, info = [...this.datagList3]
+        if(info.length == 0){
+          this.$message.error( this.searchVal +', 查无此商品 ！')
+          this.searchVal = ''
+          // let mp3 = new Audio()
+          // mp3.src = music
+          // mp3.play()
+        }else if(info.length == 1){
+          let Price, Remark, Discount;
+          if(info[0].DISPRICE != undefined){
+            if(info[0].ISVIPDISCOUNT == true){
+              Price = parseFloat(info[0].DISPRICE * this.vipnews.DISCOUNT * 100) / 100
+              if(this.vipnews.DISCOUNT != 1){
+                Remark = '（限时特价' + info[0].DISPRICE + '元, 会员折扣' + this.vipnews.DISCOUNT +')'
+              }else{
+                Remark = '（限时特价' + info[0].DISPRICE + '元)'
+              }
+              Discount = (Price / info[0].PRICE).toFixed(2)
+            }else{
+              Price = info[0].DISPRICE
+              Remark = '（限时特价' + info[0].DISPRICE + '元)'
+              Discount = (info[0].DISPRICE / info[0].PRICE).toFixed(2)
+            }
+
+            if(info[0].VIPPRICE != undefined && info[0].VIPPRICE != 0 && this.VipId != ''){
+              if( info[0].VIPPRICE < Price ){
+                Price = info[0].VIPPRICE
+                Discount = 1
+                Remark = '（会员价' + info[0].VIPPRICE + '元)'
+              }
+            }
+          }else{
+            console.log(this.VipId)
+            if(info[0].VIPPRICE != undefined && info[0].VIPPRICE != 0 && this.VipId != ''){
+              let disPrice = info[0].PRICE * this.vipnews.DISCOUNT
+              if(disPrice < info[0].VIPPRICE){
+                Price = disPrice
+                Discount = Discount = this.vipnews.DISCOUNT
+                Remark = '（会员折扣' + Discount + ')'
+              }else{
+                Price = info[0].VIPPRICE
+                Discount = 1
+                Remark = '（会员价' + info[0].VIPPRICE + '元)'
+              }
+            }else{
+              if(this.vipnews.DISCOUNT != 1 && this.VipId != ''){
+                Price = info[0].PRICE * this.vipnews.DISCOUNT
+                Discount = this.vipnews.DISCOUNT
+                Remark = '（会员折扣' + Discount + ')'
+              }else{
+                Price = info[0].PRICE
+                Discount = 1
+                Remark = ''
+              }
+            }
+          }
+
+          let info1 = {
+            GoodsId : info[0].ID,
+            goodsname : info[0].NAME,
+            Qty:1,
+            GoodsPrice: info[0].PRICE,
+            Price: Price,
+            ColorId: info[0].COLORID,
+            SizeId: info[0].SIZEID,
+            ColorName: info[0].COLORNAME,
+            SizeName: info[0].SIZENAME,
+            Remark: Remark,
+            notEdit: false,
+            DISPRICE: info[0].DISPRICE,
+            ISVIPDISCOUNT: info[0].ISVIPDISCOUNT,
+            Discount: Discount,
+            totalMoney: ( Price * 1 * 1).toFixed(2),
+            goodsCode: info[0].CODE
+          }
+
+          if(this.shopDataList.length == 0){
+            this.shopDataList.push(info1)
+            this.searchVal = ''
+          }else{
+            let arr2 = this.shopDataList.concat(info1), newArr = []
+            arr2.forEach(el=> {
+              const res = newArr.findIndex(ol=> {
+                return el.ColorId == ol.ColorId && el.SizeId == ol.SizeId && el.goodsname == ol.goodsname && el.GoodsId == ol.GoodsId
+              })
+              if (res!== -1) {
+                newArr[res].Qty = Number(newArr[res].Qty) + Number(el.Qty)
+              } else {
+                newArr.push(el)
+              }
+            })
+            this.shopDataList = newArr
+            this.searchVal = ''
+          }
+        }else if(info.length > 1){
+          this.isShowList = true
+          this.goodsVal = this.searchVal
+        }
+      }else{
+        this.$message.error(data.message)
+      }
+    },
+    saveGuadanState(data){
+      this.$refs.input.focus()
+      this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+      if(data.success){
+        this.$store.dispatch("getguadancxlistState", {})
+        this.$refs.okSubmit.isShowLoading()
+        this.isClear()
+      }
+    },
+    memberListState(data){
+       console.log(data)
+       this.loading = false
+         if(data.success){
+            this.dataMemberList = [...data.data.PageData.DataArr]
+         }else{
+            this.$message.error(data.message)
+         }
+    },
+    empdataListState(data) {
+      if (data.success) {
+        this.pagelist = [...this.empdataList];
+      }
+    }
+  },
+  methods: {
+    searchfun: _.debounce(function() {
+      this.searchGoods(0);
+    }, 1000),
+    handleDialogClose(){
+      this.showItem = false
+    },
+    handleEdit() {
+      if(this.isPurViewFun(91040107) == false){
+        this.$message.warning('没有此功能权限，请联系管理员授权')
+        return
+      }
+      this.$store.dispatch("getMemberItem", { ID: this.VipId}).then(() => {
+        this.$store.dispatch("getMemberItem2", { ID: this.VipId})
+      })
+    },
+    openMoneyBox(){
+      getOpenMoneyBox()
+    },
+    changePr(row){
+      row.Price = parseFloat(row.Discount * row.GoodsPrice).toFixed(3)
+      this.totalFun()
+    },
+    changeDP(row){
+      row.Discount = parseFloat(row.Price / row.GoodsPrice).toFixed(3)
+      this.totalFun()
+    },
+    handleCurRow(row){
+      this.ConstNum = row.Qty
+      // console.log(row, this.ConstNum)
+      // this.$forceUpdate()
+      let param = this.shopDataList, newParam = []
+      for(var i in param){
+        if(param[i].goodsname == row.goodsname && param[i].ColorName == row.ColorName && param[i].SizeName == row.SizeName){
+          param[i].notEdit = true
+        }else{
+          param[i].notEdit = false
+        }
+        newParam.push(param[i])
+      }
+      this.shopDataList = newParam
+    },
+    btnPayMoney(){
+      let empval = this.ruleForm.empval ?  this.ruleForm.empval : ''
+      if(this.isNeedSale == true && empval == ''){
+        this.$message.warning('请选择销售员 !')
+        return
+      }
+      if(this.shopDataList.length != 0){
+        this.showRecharge = true
+        this.$store.state.commodityc.payMoneyVipID = this.VipId == '' || this.VipId == undefined ? '' : this.VipId
+        nscreenexCodeFun(4, String(this.TotalPrice));
+        this.startRecharge()
+        this.$refs.okSubmit.getPullBillFun(this.getpullBillList)
+      }else{
+        this.$message.warning('请先添加要结账的商品 !')
+      }
+    },
+    startRecharge(){
+      this.$store.dispatch("getrechargeList", {
+        codestatus: this.isVip != false ? 1 : ""
+      })
+    },
+    clearData(){
+      if(this.shopDataList.length != 0){
+        this.$confirm('是否确认清空单据信息?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.isClear()
+        }).catch(() => { })
+      }else{
+        this.isClear()
+      }
+    },
+    isClear(){
+      this.shopDataList = []
+      this.TotalPrice = 0.00
+      this.TotalNum = 0
+      this.vipnews = {
+        NAME: '散客', MOBILENO: '——', DISCOUNT: '1', IMAGEURL: '', VIPFLAG: 'x',
+        INTEGRAL: '0', MONEY: '0', VIPID:'', BIRTHDATE: 'undefined'
+      }
+      this.VipId = ""
+      this.ruleForm.empval=""
+      this.Remark=""
+      this.isReturnGoods = false
+      this.$refs.input.focus()
+      this.getpullBillList = {}
+      this.$refs.okSubmit.isShowLoading()
+    },
+    isShowGuaDan(){
+      if(this.guadancxlistBillCount == 0){
+        this.$message.warning('暂无可取单数据 ！')
+      }else{
+        this.isguadanShowList = true
+      }
+    },
+    resetVipInfo(){
+      this.vipnews = {
+        NAME: '散客', MOBILENO: '——', DISCOUNT: '1', IMAGEURL: '', VIPFLAG: 'x',
+        INTEGRAL: '0', MONEY: '0', VIPID:'', BIRTHDATE: 'undefined'
+      }
+      this.isVip = false
+      this.VipId = ''
+      let data = this.shopDataList
+      for(let i in data){
+          let Price, Remark, Discount;
+          if(data[i].DISPRICE != undefined){
+            Price = data[i].DISPRICE
+            Remark = '（限时特价' + data[i].DISPRICE + '元)'
+            Discount = data[i].DISPRICE / data[i].GoodsPrice
+          }else{
+            Price = data[i].GoodsPrice
+            Discount = 1
+            Remark = ''
+          }
+          data[i].Price = parseFloat(Price)
+          data[i].Discount = Discount
+          data[i].Remark = Remark
+      }
+      this.totalFun()
+    },
+    returnOrderList1(data){
+       console.log('2345')
+      let param = data, newArr = []
+      for(let i=0;i<param.length;i++){
+        newArr.push({
+          GoodsId : param[i].GOODSID,
+          goodsname : param[i].GOODSNAME,
+          Qty: -1 * param[i].QTY,
+          GoodsPrice: param[i].GOODSPRICE,
+          Price: (param[i].BALANCEPRICE).toFixed(2),
+          ColorId: param[i].COLORID,
+          SizeId: param[i].SIZEID,
+          ColorName: param[i].COLORNAME,
+          SizeName: param[i].SIZENAME,
+          notEdit: false,
+          Discount: (param[i].BALANCEPRICE / param[i].GOODSPRICE).toFixed(3),
+          DISPRICE: param[i].DISPRICE,
+          ISVIPDISCOUNT: param[i].ISVIPDISCOUNT,
+          Remark: '退货商品',
+          // totalMoney: (param[i].PRICE * param[i].DISCOUNT * param[i].QTY).toFixed(2),
+          totalMoney: (param[i].BALANCEPRICE * (param[i].BALANCEPRICE / param[i].GOODSPRICE) * param[i].QTY).toFixed(2) * -1,
+          goodsCode: param[i].GOODSCODE
+        })
+      }
+      this.shopDataList = newArr
+      this.getpullBillList = {}
+    },
+    returnOrderObj1(data){
+      if (Object.keys(data).length > 0) {
+        this.isReturnGoods = true
+        this.vipnews = {
+          NAME : data.VIPNAME,
+          MOBILENO: data.VIPTEL,
+          IMAGEURL: data.IMAGEURL,
+          DISCOUNT: data.PRODUCTDISCOUNT ? data.PRODUCTDISCOUNT : '',
+          INTEGRAL: data.VIPINTEGRAL,
+          MONEY: data.VIPMONEY,
+          VIPFLAG: data.VIPFLAG,
+          BIRTHDATE: data.BIRTHDATE
+        }
+        this.VipId = data.VIPID == undefined ? '' : data.VIPID
+        this.isVip = data.VIPID == undefined ? false : true
+        this.ruleForm.empval = data.SALEEMPID
+        this.totalFun()
+      }
+    },
+    couponInfo(data){
+       this.couponItem = data
+       this.showRecharge = false
+    },
+    CashRecharge(data){
+      let GoodsDetaila = []
+      for (let i = 0; i < this.shopDataList.length; i++) {
+        Vue.delete(this.shopDataList[i], 'notEdit');
+        GoodsDetaila.push(this.shopDataList[i])
+      }
+      let sendData = {
+        BillDate: data.BillDate,
+        VipId: this.VipId == undefined ? '' : this.VipId,
+        CustomerName: this.vipnews.NAME != '散客' ? this.vipnews.NAME : '' ,
+        CustomerPhone: this.vipnews.MOBILENO != '——' ? this.vipnews.MOBILENO : '',
+        Remark: this.Remark == undefined ? '' : this.Remark,
+        GoodsList: JSON.stringify(GoodsDetaila),
+        IsCheck: 1,
+        PayMoney: data.PayMoney,
+        PayTypeId: data.PaytypeId,
+        PayIntegral: data.PayIntegral,
+        IntegralMoney: data.IntegralMoney,
+        IsSms: data.IsSms,
+        SaleEmpId: this.ruleForm.empval ? this.ruleForm.empval : '',
+        FavorMoney: data.FavorMoney,
+        GetIntegral: data.GetIntegral,
+        CouponNo: data.CouponNo,
+        CouponMoney: data.CouponMoney,
+
+        Address: '',
+        OtherMoney: '',
+        ReturnReason:'',
+        BillId: this.guaDanId == '' ? '' : this.guaDanId,
+      }
+
+      if(data.IsMorePayWay){
+        sendData.PayTypeList = JSON.stringify(data.PayTypeList)
+        this.$store.dispatch('payMoneyMorePayWay', sendData)
+      }else{
+        this.$store.dispatch('payMoney', sendData)
+      }
+    },
+    searchGoods(){
+      if(this.searchVal == ''){
+        this.isShowList = true
+      }else{
+        this.pageData1.Filter = this.searchVal
+        this.$store.dispatch("getGoodsList3", this.pageData1).then(()=>{
+          this.uploadShowDialog = true
+        })
+      }
+    },
+    pullgoodsList(data){
+      let d = data.Obj
+      this.getpullBillList = d
+
+      this.guaDanId = d.BILLID
+      this.VipId = d.VIPID
+      this.isVip = this.VipId != undefined ?  true : false
+      this.Remark = d.REMARK
+      this.ruleForm.empval = d.SALEEMPID
+
+      let param = data.GoodsObj, newArr = []
+      let discount = d.DISCOUNT ? d.DISCOUNT : 1
+      if (d.VIPNAME != '散客') {
+        this.vipnews = {
+          NAME : d.VIPNAME,
+          MOBILENO: d.VIPTEL,
+          IMAGEURL: d.IMAGEURL ? d.IMAGEURL : '',
+          DISCOUNT: d.SERVICEDISCOUNT,
+          INTEGRAL: d.VIPINTEGRAL,
+          MONEY: d.VIPMONEY,
+          VIPFLAG: d.VIPFLAG,
+          BIRTHDATE: d.BIRTHDATE
+        }
+      }else{
+        this.vipnews = this.vipnews1
+      }
+
+      for(let i=0;i<param.length;i++){
+        let p = param[i]
+        newArr.push({
+          GoodsId : p.GOODSID,
+          goodsname : p.GOODSNAME,
+          Qty: p.QTY,
+          GoodsPrice: p.GOODSPRICE,
+          Price: (p.GOODSPRICE * p.DISCOUNT).toFixed(2),
+          ColorId: p.COLORID,
+          SizeId: p.SIZEID,
+          ColorName: p.COLORNAME,
+          SizeName: p.SIZENAME,
+          notEdit: false,
+          Remark: p.REMARK,
+          DISPRICE: p.DISPRICE,
+          Discount: (p.DISCOUNT).toFixed(2),
+          ISVIPDISCOUNT: p.ISVIPDISCOUNT,
+          totalMoney: (p.GOODSPRICE * p.DISCOUNT * p.QTY).toFixed(2),
+          goodsCode: p.GOODSCODE
+        })
+      }
+      this.shopDataList = newArr
+      console.log(this.getpullBillList)
+
+      this.$refs.okSubmit.getPullBillFun(this.getpullBillList)
+    },
+    curRowInfo(row){
+      // row.notEdit = !row.notEdit
+      this.ConstNum = row.Qty
+    },
+    sureEditQty(row, target){
+      if(!/^\d+$/.test(target.value)){
+        row.Qty = this.ConstNum
+        this.$message.warning('请输入整数')
+        return
+      }
+      this.totalFun()
+    },
+    saveGuaDan(){
+      let GoodsDetaila = []
+      for (let i = 0; i < this.shopDataList.length; i++) {
+        Vue.delete(this.shopDataList[i], 'notEdit');
+        GoodsDetaila.push(this.shopDataList[i])
+      }
+
+      let sendData = {
+        BillDate: new Date().getTime(),
+        VipId: this.VipId == undefined ? '' : this.VipId,
+        CustomerName: this.vipnews.NAME != '散客' ? this.vipnews.NAME : '' ,
+        CustomerPhone: this.vipnews.MOBILENO != '——' ? this.vipnews.MOBILENO : '',
+        Remark: this.Remark,
+        GoodsList: JSON.stringify(GoodsDetaila),
+        IsCheck: 0,
+        PayMoney: 0,
+        PayTypeId: '',
+        PayIntegral: 0,
+        IntegralMoney: 0,
+        IsSms: 0,
+        SaleEmpId: this.ruleForm.empval ? this.ruleForm.empval : '',
+        GetIntegral: '',
+        CouponNo: this.couponItem.CouponNo,
+        CouponMoney: this.couponItem.CouponMoney,
+        FavorMoney: this.couponItem.FavorMoney,
+        Address: '',
+        OtherMoney: ''
+      }
+      this.$store.dispatch('saveGuadan', sendData)
+    },
+    remoteMethod(query){
+      this.pageData.Filter = query
+      this.pageData.ShopId = query != '' ? '' : getHomeData().shop.ID
+      this.$store.dispatch('getMemberList', this.pageData)
+    },
+
+    handleSelect(item) {
+      let ip = JSON.parse(sessionStorage.getItem('serverIP'))
+      this.typecheck = true;
+      this.showVipstatus = false;
+      this.searchText = '';
+      this.VipId = item.ID
+      this.isVip = true
+      if (Object.keys(item).length > 0) {
+        for (let key in this.vipnews) {
+          let UCkey = key.toUpperCase();
+          this.vipnews[key] = item[UCkey];
+        }
+        if (item.IMAGEURL == undefined || item.IMAGEURL == '') {
+          let VIPIMAGESIMG = ip + "/resources/vipimages/"
+          this.vipnews.IMAGEURL = VIPIMAGESIMG + item.ID + '.png';
+        } else {
+          this.vipnews.IMAGEURL = item.IMAGEURL;
+        }
+        this.defaultMemberData()
+      }
+      let data = this.shopDataList
+      console.log(data)
+      if(data.length != 0){
+        for(let i in data){
+          let Price, Remark, Discount;
+          if(data[i].DISPRICE != undefined){
+            if(data[i].ISVIPDISCOUNT == true){
+              Price = parseFloat(data[i].DISPRICE * this.vipnews.DISCOUNT * 100) / 100
+              if(this.vipnews.DISCOUNT != 1){
+                Remark = '（限时特价' + data[i].DISPRICE + '元, 会员折扣' + this.vipnews.DISCOUNT +')'
+              }else{
+                Remark = '（限时特价' + data[i].DISPRICE + '元)'
+              }
+              Discount =  Price / data[i].GoodsPrice
+            }else{
+              Price = data[i].DISPRICE
+              Remark = '（限时特价' + data[i].DISPRICE + '元)'
+              Discount = data[i].DISPRICE / data[i].GoodsPrice
+            }
+
+            if(data[i].VIPPRICE != undefined && data[i].VIPPRICE != 0 && this.VipId != ''){
+              if( data[i].VIPPRICE < Price ){
+                Price = data[i].VIPPRICE
+                Discount = 1
+                Remark = '（会员价' + data[i].VIPPRICE + '元)'
+              }
+            }
+
+          }else{
+            if(data[i].VIPPRICE != undefined && data[i].VIPPRICE != 0 && this.VipId != ''){
+              let disPrice = data[i].GoodsPrice * this.vipnews.DISCOUNT
+              if(disPrice < data[i].VIPPRICE){
+                Price = disPrice
+                Discount = Discount = this.vipnews.DISCOUNT
+                Remark = '（会员折扣' + Discount + ')'
+              }else{
+                Price = data[i].VIPPRICE
+                Discount = 1
+                Remark = '（会员价' + data[i].VIPPRICE + '元)'
+              }
+            }else{
+              if(this.vipnews.DISCOUNT != 1 && this.VipId != ''){
+                Price = data[i].GoodsPrice * this.vipnews.DISCOUNT
+                Discount = this.vipnews.DISCOUNT
+                Remark = '（会员折扣' + Discount + ')'
+              }else{
+                Price = data[i].GoodsPrice
+                Discount = 1
+                Remark = ''
+              }
+            }
+          }
+
+          data[i].Price = parseFloat(Price).toFixed(2)
+          data[i].Discount = Discount.toFixed(2)
+          data[i].Remark = Remark
+        }
+        this.totalFun()
+      }
+    },
+    defaultMemberData(){
+      let sendData = { PN: 1, Filter: "", Status: -1, LevelName: "", VipFlag: "", ShopId: getHomeData().shop.ID }
+
+      this.$store.dispatch("getMemberList", sendData).then(() => {
+        this.loading = true
+      })
+    },
+
+    getSelectList(data){
+      let param = data, newArr = []
+      for(let i=0;i<param.length;i++){
+        let Price, Remark, Discount;
+        if(param[i].DISPRICE != undefined){
+          if(param[i].ISVIPDISCOUNT == true){
+            Price = parseFloat(param[i].DISPRICE * this.vipnews.DISCOUNT * 100) / 100
+            if(this.vipnews.DISCOUNT != 1){
+              Remark = '（限时特价' + param[i].DISPRICE + '元, 会员折扣' + this.vipnews.DISCOUNT +')'
+            }else{
+              Remark = '（限时特价' + param[i].DISPRICE + '元)'
+            }
+            Discount = Price / param[i].PRICE
+          }else{
+            Price = param[i].DISPRICE
+            Remark = '（限时特价' + param[i].DISPRICE + '元)'
+            Discount = param[i].DISPRICE / param[i].PRICE
+          }
+
+          if(param[i].VIPPRICE != undefined && param[i].VIPPRICE != 0 && this.VipId != ''){
+            if( param[i].VIPPRICE < Price ){
+              Price = param[i].VIPPRICE
+              Discount = 1
+              Remark = '（会员价' + param[i].VIPPRICE + '元)'
+            }
+          }
+
+        }else{
+          // 在这里判断是否有会员价
+          if(param[i].VIPPRICE != undefined && param[i].VIPPRICE != 0 && this.VipId != ''){
+            let disPrice = param[i].PRICE * this.vipnews.DISCOUNT
+            if(disPrice < param[i].VIPPRICE){
+              Price = disPrice
+              Discount = Discount = this.vipnews.DISCOUNT
+              Remark = '（会员折扣' + Discount + ')'
+            }else{
+              Price = param[i].VIPPRICE
+              Discount = 1
+              Remark = '（会员价' + param[i].VIPPRICE + '元)'
+            }
+
+          }else{
+            if(this.vipnews.DISCOUNT != 1 && this.vipnews.DISCOUNT != ''){
+              Price = (param[i].PRICE * this.vipnews.DISCOUNT).toFixed(2)
+              Discount = this.vipnews.DISCOUNT
+              Remark = '（会员折扣' + Discount + ')'
+            }else{
+              Price = param[i].PRICE
+              Discount = 1
+              Remark = ''
+            }
+          }
+        }
+
+        newArr.push({
+          GoodsId : param[i].ID,
+          goodsname : param[i].NAME,
+          Qty: 1 ,
+          GoodsPrice: param[i].PRICE,
+          Price: Price,
+          ColorId: param[i].COLORID ? param[i].COLORID : '',
+          SizeId: param[i].SIZEID ? param[i].SIZEID : '',
+          ColorName: param[i].COLORNAME,
+          SizeName: param[i].SIZENAME,
+          notEdit: false,
+          Remark: Remark,
+          Discount: String(Discount).length > 5 ? Discount.toFixed(2) : Discount,
+          DISPRICE: param[i].DISPRICE,
+          ISVIPDISCOUNT: param[i].ISVIPDISCOUNT,
+          totalMoney: (param[i].PRICE * 1 * Discount).toFixed(2),
+          VIPPRICE : param[i].VIPPRICE,
+          goodsCode: param[i].CODE
+        })
+      }
+
+      if(this.shopDataList.length == 0){
+        this.shopDataList = newArr
+      }else{
+        let arr2 = this.shopDataList.concat(newArr), newArr1 = []
+        arr2.forEach(el=> {
+          const res = newArr1.findIndex(ol=> {
+            return el.ColorId == ol.ColorId && el.SizeId == ol.SizeId && el.goodsname == ol.goodsname && el.GoodsId == ol.GoodsId
+          });
+          if (res!== -1) {
+            newArr1[res].Qty = Number(newArr1[res].Qty) + Number(el.Qty);
+          } else {
+            newArr1.push(el)
+          }
+        })
+        this.shopDataList = newArr1
+      }
+      this.$refs.input.focus()
+    },
+
+    handleDel(idx, row){
+      this.shopDataList.splice(idx, 1)
+      this.totalFun()
+    },
+    totalFun(){
+      let str = 0, param = this.shopDataList, num = 0
+      for(let i in param){
+        str += param[i].Price * param[i].Qty
+        num += Number(param[i].Qty)
+        param[i].totalMoney = (param[i].Price * param[i].Qty).toFixed(2)
+      }
+      this.TotalNum = num
+      this.TotalPrice = str.toFixed(2)
+    },
+    setcommonHeight() {
+      let that = this
+      let elememtheight = that.$refs.elememt.offsetHeight;
+      let footerheight = that.$refs.footer.offsetHeight;
+      this.tableHeight = elememtheight - footerheight - 60;
+      that.$refs.addsockheight.style.height = (elememtheight - footerheight - 60) + 'px';
+      document.getElementsByClassName('tableLineHeight')[0].style.height = this.tableHeight+'px'
+    }
+  },
+  components: {
+    headerPage: () => import("@/components/checkout/header"),
+    shopqueryPage: () => import("@/components/checkout/shopquery"),
+    guadanPage: () => import("@/components/checkout/guadanc"),
+    itemPage: () => import("@/views/member/item"),
+    recharge: () => import("@/components/Recharge/RechargeNew")
+  },
+  beforeCreate() {
+
+  },
+  created(){
+    let that = this
+    document.onkeydown = function(e){
+      var key = window.event.keyCode;
+      if(key == 32){  // space : 结账
+        if(that.shopDataList.length != 0){
+          that.showRecharge = true
+          that.startRecharge()
+        }
+      }else if(key == 119){ // F8 : 挂单
+        if(that.shopDataList.length != 0){
+          that.saveGuaDan()
+        }
+      }else if(key == 120){ // F9 : 取单
+      console.log(key)
+        if(that.guadancxlistBillCount != 0){
+          that.isguadanShowList = true
+        }
+      }else if(key == 121){  // F10 : 打开钱箱
+        that.openMoneyBox()
+      }
+    }
+  },
+  mounted() {
+    this.isNeedSale = getUserInfo().CompanyConfig.ISNEEDSALER
+
+    this.$nextTick(() => {
+        this.$refs.input.focus()
+    })
+    this.$store.dispatch("getEmployeeList", {}).then(() => {})
+    if(this.guadancxlistBillCount == 0){
+      this.$store.dispatch("getguadancxlistState", {})
+    }
+    this.totalFun()
+    this.setcommonHeight()
+    let that = this
+    this.timer = setInterval(() => {
+      that.date = JSON.stringify(new Date()) // 修改数据date
+    }, 1000)
+
+    window.onresize = function(){   //在窗口大小改变后触发 onresize 事件
+      let elememtheight = that.$refs.elememt.offsetHeight
+      let footerheight = that.$refs.footer.offsetHeight
+      that.tableHeight = elememtheight - footerheight - 60
+      that.$refs.addsockheight.style.height = (elememtheight - footerheight - 60) + 'px';
+    }
+  }
+}
+
+</script>
+<style lang="scss" scoped >
+.c_footer{ border-top: 1px solid #ddd }
+.c_footer .el-autocomplete{ width:100% }
+.my-autocomplete {
+  li {
+    line-height: normal;
+    padding: 7px;
+    border: 1px solid #f00;
+    background:#ccc;
+    .name {
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .addr {
+      font-size: 12px;
+      color: #b4b4b4;
+    }
+
+    .highlighted .addr {
+      color: #ddd;
+    }
+  }
+}
+.t-botton-timescountc {
+  height: 100%;
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+}
+
+.vip_sock {
+  color: #fff;
+  padding: 12px;
+  margin-top: 10px;
+}
+
+.vip_sock .vip_content {
+  margin-top : 16px
+}
+
+.vip_sock .viptop,
+.vip_sock .vip_content {
+  overflow: hidden;
+}
+
+.vip_content ul li {
+  float: left;
+  width: 33.33%;
+  text-align: center;
+  border-right: 1px solid #ddd
+}
+.vip_content ul li:last-child{
+  border-right: none
+}
+
+.vip_sock p {
+  margin: 0 0 5px 0;
+}
+
+.getMemberList_sock {
+  position: absolute;
+  bottom: 191px;
+  left: 24px;
+  right: 24px;
+  z-index: 99999;
+  max-height: 200px;
+  background: #fff;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.getMemberList_sock ul li {
+  overflow: hidden;
+  cursor: pointer;
+  padding: 3px 3px;
+}
+
+.getMemberList_sock ul li:hover {
+  background: #3ea9ff;
+  color: #fff;
+}
+.btnPayMoney{
+  width:120px;
+  height:50px;
+  font-size:26pt;
+  border-left: 2px solid #e5e5e5;
+  padding: 0 20px;
+  text-align:right;
+  font-weight:bold;
+  font-family:"宋体";
+}
+.btnPayMoney:hover{
+  cursor: pointer;
+}
+</style>

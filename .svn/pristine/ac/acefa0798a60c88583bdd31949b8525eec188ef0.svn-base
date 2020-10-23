@@ -1,0 +1,896 @@
+<template>
+<el-container>
+  <el-header style="height:50px;">
+    <headerPage></headerPage>
+  </el-header>
+  <el-container>
+    <el-aside width="100px">
+        <section style="min-width:100px;">
+        <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+        </section>
+    </el-aside>
+    <el-container>
+      <div class="content-new-fex">
+        <div class="member-main-top">
+           <div class="content-center">
+                <div class="member-main-top-buttom">
+                    <div class="btn">
+                        <div class="btm-list">
+                            <el-button type="primary" size="small" @click="showAddNewChange()">添加商品</el-button>
+                        </div>
+
+                        <!-- <el-button size="small"
+                          type="default"
+                          icon="el-icon-upload2"
+                          for="input"
+                          :loading="importLoading"
+                          @click='uploadGoodsSize()'
+                        >商品导入(含尺码)</el-button> -->
+
+                        <div class="btm-list">
+                          <el-button
+                              type="default"
+                              icon
+                              for="input"
+                              plain 
+                              size="small"
+                              :loading="importLoading"
+                              @click="$refs.upload.click()"
+                          >商品导入</el-button>
+                          <input
+                              type="file"
+                              ref="upload"
+                              @change="readExcel"
+                              accept=".xls, .xlsx"
+                              class="outputlist_upload hide"
+                          />
+                          </div>
+                        <div class="btm-list"><el-button plain size="small"  @click="ExportGoodsData">商品导出</el-button></div>
+                        <div class="btm-list">
+                          <el-button plain size="small">
+                              <a href="static/images/商品导入模板.xls" class="producttemplate">下载模板</a>
+                          </el-button>
+                        </div>
+                    </div>
+                    <div class="ipt">
+                      <el-input v-model="searchText" placeholder="请输入商品" style="width:52%" size="small">
+                      <template slot="append" @click="searchfun2(1)"><span style="font-size:12px;">搜索</span></template>
+                      </el-input>
+                    </div>
+                </div>
+             <div class="content-center-button">
+              <el-row class="member-main-top-type">
+                  <el-col :span="8" v-if="deskmode==1">
+                      商品类型&nbsp;&nbsp;&nbsp;
+                      <el-select v-model="value1" placeholder="请选择" size="small"  @change="selectMode" clearable>
+                          <el-option
+                          v-for="(item,index) in mode"
+                          :key="index"
+                          :label="item.name"
+                          :value="item.id">
+                          </el-option>
+                      </el-select>
+                  </el-col>
+                  <el-col :span="8">
+                      商品分类&nbsp;&nbsp;&nbsp;
+                      <el-select v-model="value2" placeholder="请选择" size="small"  @change="selectMode" clearable>
+                          <el-option
+                          v-for="item in commoditycflList"
+                          :key="item.ID"
+                          :label="item.NAME"
+                          :value="item.ID">
+                          </el-option>
+                      </el-select>
+                  </el-col>
+                  <el-col :span="8">
+                      状态&nbsp;&nbsp;&nbsp;
+                      <el-select v-model="value3" placeholder="请选择" size="small" @change="selectMode" clearable>
+                          <el-option
+                          v-for="item in status"
+                          :key="item.id"
+                          :label="item.name"
+                          :value="item.id">
+                          </el-option>
+                      </el-select>
+                  </el-col>
+              </el-row>
+             </div>
+           </div>
+        </div>
+        <div class="content-table3">
+          <div class="content-table-center">
+            <el-table
+                size='small'
+                highlight-current-row
+                :data="pagelist"
+                :height="tablename"
+                v-loading="loading"
+                ref="Table"
+                @selection-change="handleSelectionChange"
+                style="width: 100%;"
+                header-row-class-name="bg-f1f2f3"
+            >
+                <el-table-column type="selection" width="42" fixed="left"></el-table-column>
+                <el-table-column prop="NAME" label="商品" width="160" sortable>
+                    <template slot-scope="scope">
+                      <img :src="scope.row.goodsImg" onerror="this.src='static/images/shopmore.png'" alt="" style='float:left; border-radius:3px; width:40px; height:40px; margin-right:8px'>
+                      <span style='height:40px; width:102px'>
+                          <i class="text-3399ff pull-left inline-block" style="width:92px;overflow: hidden; text-overflow:ellipsis;white-space: nowrap;">{{scope.row.NAME ? scope.row.NAME : ' '}}  </i>
+                          <i class="" style="width:92px">{{scope.row.MOBILENO}}</i>
+                          {{scope.row.CODE}}
+                      </span> 
+                    </template>
+                </el-table-column>
+                <el-table-column prop="BRAND" align='center' label="品牌"></el-table-column>
+                <el-table-column prop="TYPENAME" align="center" label="分类" width="90"></el-table-column>
+                <el-table-column prop='PYEAR' align="center" label="年份" width="50"></el-table-column>
+                <el-table-column prop="SEASON" align="center" label="季节" width="60"></el-table-column>
+                <el-table-column prop="UNITNAME" align="center" label="单位" width="50"></el-table-column>
+                <el-table-column prop='LONGCOLORNAME' align='center' label="颜色" show-overflow-tooltip min-width="110"></el-table-column>
+                <el-table-column prop='LONGSIZENAME' align='center' label='尺码' show-overflow-tooltip min-width="110"></el-table-column>
+                <el-table-column prop='PRICE' align='center' label="零售价" width="70"></el-table-column>
+                <el-table-column prop='PURPRICE' align='center' label="采购价" width="70">
+                <template slot-scope='scope'>
+                    {{isPurViewFun(91040112) ? scope.row.PURPRICE : '****'}}
+                </template>
+                </el-table-column>
+                <el-table-column prop='STOCKQTY' align='center' label="库存" width="70"></el-table-column>
+            </el-table>
+            <!-- 分页 -->
+            <div v-show="dataList.length>0" class="m-top-smts clearfix elpagination">
+                <div>
+                  <el-row>
+                    <el-col :span="12">
+                      <el-button size="small" @click="delGoods">删除商品</el-button>
+                    </el-col>
+                    <el-col :span="12">
+                      <el-pagination
+                          @size-change="handlePageChange"
+                          @current-change="handlePageChange"
+                          :current-page.sync="pagination.PN"
+                          :page-size="pagination.PageSize"
+                          layout="total, prev, pager, next, jumper"
+                          :total="pagination.TotalNumber"
+                          class="text-right"
+                      ></el-pagination>
+                    </el-col>
+                  </el-row>
+                </div>
+            </div>
+          </div>
+        </div>
+      <!-- add -->
+      <el-dialog
+        v-if="showAddNew&&dealType=='add'"
+        title="新增普通商品/服务项目"
+        :visible.sync="showAddNew"
+        width="55%"
+      >
+        <el-tabs tab-position="left" type="border-card" class="addGoods-cont">
+          <el-tab-pane label="普通商品">
+            <span slot="label">
+              <div class="addGoods">
+                <div style="height:80px;"> <img src="static/images/goods.png"></div>
+                <div>普通商品</div>
+              </div>
+            </span>
+            <add-new-goods
+              @closeModal="showAddNew=false"
+              @resetList="showAddNew=false;getNewData();"
+              :dataType="{value:1,dealState:'add'}"
+            ></add-new-goods>
+          </el-tab-pane>
+          <el-tab-pane label="服务项目">
+            <span slot="label">
+              <div class="addGoods">
+                <div style="height:80px;"> <img src="static/images/service.png" ></div>
+                <div>服务项目</div>
+              </div>
+            </span>
+            <add-new-goods
+              @closeModal="showAddNew=false"
+              @resetList="showAddNew=false;getNewData();"
+              :dataType="{value:2,dealState:'add'}"
+            ></add-new-goods>
+          </el-tab-pane>
+        </el-tabs>
+      </el-dialog>
+        <!-- 商品详情 -->
+        <el-dialog
+            title="商品详情"
+            :visible.sync="showItem"
+            width="700px"
+            top="2%"
+            style="max-width:100%;"
+        >
+            <add-new-goods
+                v-if="showItem"
+                @closeModal="showItem=false"
+                @resetList="showItem=false;getNewData();"
+                :dataType="{value:parseInt(goodsMode)+1,dealState:'edit'}"
+            ></add-new-goods>
+        </el-dialog>
+
+      </div>
+    </el-container>
+  </el-container>
+</el-container>
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+import MIXNINS_EXPORT from "@/mixins/exportData.js";
+// import table2excel from 'js-table2excel'
+import MIXINS_GOOD from "@/mixins/good.js";
+import { GOODS_IMGURL } from "@/util/define";
+import { getUserInfo} from '@/api/index'
+let _ = require("lodash");
+
+export default {
+    mixins: [MIXINS_GOOD.GOOD_MENU,MIXNINS_EXPORT.TOEXCEL, MIXNINS_EXPORT.TODATA],
+    data() {
+      return {
+        dataTypes:{},
+        activeName: "first",
+        retrievalShow:false,
+        unretrievalShow:false,
+        notesShow:false,
+        pagelist: [],
+        mode:[{id:1,name:'服务'},{id:0,name:'商品'}],
+        status:[{id:1,name:'上架'},{id:0,name:'下架'}],
+        value1:"",
+        value2:"",
+        value3:"",
+        options1:"",
+        showAddNew: false,
+        getgoodsIMGURL: "",
+        loading: false,
+        pagination: {
+          TotalNumber: 0,
+          PageNumber: 0,
+          PageSize: 20,
+          PN: 1
+        },
+        searchText: "",
+        isFilter: false,
+        pageData: {
+          PN: 1,
+          Filter: "",
+          Status: -1,
+          LevelName: "",
+          VipFlag: "",
+          ShopId: "",
+          FilterStr:"",
+          Mode: -1
+        },
+        multipleSelection: [],
+        reportLoss: { loading: false, num: 0 },
+        showAddNew: false,
+        showItem: false,
+        exportLoading: false,
+        form: {
+          name: '',
+          qty: '',
+          retQty:'',
+          region: '',
+          date1: '',
+          date2: '',
+          delivery: false,
+          Remark:'',
+          ID:'',
+        },
+        unform: {
+          name: '',
+          qty: '',
+          retQty:'',
+          region: '',
+          date1: '',
+          date2: '',
+          delivery: false,
+          Remark:'',
+          ID:'',
+        },
+        loading:false,
+        deskmode:'',
+        tablename:document.body.clientHeight-300,
+        Goodscode:''
+      }
+    },
+    computed: {
+        ...mapGetters({
+            dataList: "goodsList",
+            goodsListState:"goodsListState",
+            commoditycflList: "commoditycflList",
+            goodsMovingState:"goodsMovingState",
+            // dgoodsdeleteState: "goodsdeleteState",
+            exportGoodsState: "exportGoodsState",
+            importState: "importGoodsState",
+            gparameterstate: "gparameterstate",
+            delGoods:'delGoods'
+        })
+    },
+    watch: {
+        delGoods(data){
+            this.loading = false
+            if (data.success) {
+                this.$message({
+                    message: "操作成功",
+                    type: "success"
+                });
+                this.getNewData();
+            } else {
+                this.$message({ message: data.message, type: "error" })
+            }
+        },
+        gparameterstate(data) {
+            if (
+                data.success &&
+                Object.keys(data.data.CompanyConfig).length > 0
+            ) {
+                let code = data.data.CompanyConfig.AUTOGENGOODSCODE;
+                this.Goodscode=code;
+            }
+        },
+      outputsState(data) {
+          // 导入 mixins
+          if (data.state) {
+              this.importExcel(this.outputs);
+          } else {
+              this.$message({
+                  showClose: true,
+                  message: "数据为空",
+                  type: "error"
+              });
+          }
+      },
+      importState(data) {
+          if (data.success) {
+              this.$message("导入成功");
+              this.$store.dispatch("getGoodsList", {
+                  Status: -1,
+                  Mode: -1,
+                  Filter: "",
+                  PN: 1
+              });
+          } else {
+              this.$message(data.message);
+          }
+      },
+      exportGoodsState(data) {
+          this.exportLoading = false;
+          if (data.success) {
+              this.exportExcel(data.data.PageData);
+          }
+      },
+      dgoodsdeleteState(data){
+        this.loading=false;
+        if (data.success) {
+                this.$message({
+                    message: "操作成功",
+                    type: "success"
+                });
+                this.getNewData();
+        } else {
+            this.$message({ message: data.message, type: "error" })
+        }
+      },
+      
+      dataList(data){
+        this.getgoodsIMGURL = GOODS_IMGURL;
+        let setDate= data
+        let agentPermission = getUserInfo().List
+        let arr = agentPermission.filter(element => element.MODULENAME == "查看成本价");
+        if (arr.length > 0 && !this.isPurViewFun(arr[0].MODULECODE)) {
+          for(var i in setDate){
+            setDate[i].goodsImg= this.getgoodsIMGURL + setDate[i].ID + ".png";
+            setDate[i].PURPRICE='***'
+          }
+        } else {
+          for(var i in setDate){
+            setDate[i].goodsImg= this.getgoodsIMGURL + setDate[i].ID + ".png";
+          }
+        }
+        this.pagelist=setDate;
+        this.loading=false;
+      },
+      goodsListState(data){
+        this.pagination={
+            TotalNumber: data.data.PageData.TotalNumber,
+            PageNumber: data.data.PageData.PageNumber,
+            PageSize: data.data.PageData.PageSize,
+            PN: data.data.PageData.PN
+        }
+      },
+      searchText() {
+          this.searchfun();
+      },
+      goodsMovingState(data){
+        if (data.success) {
+                this.$message({
+                    message: "操作成功",
+                    type: "success"
+                });
+                this.retrievalShow=false;
+                this.unretrievalShow=false;
+                this.getNewData();
+        } else {
+            this.$message({ message: data.message, type: "error" })
+        }
+      },
+      dataState(data) { console.log(data.data)
+          if (data.success && this.loading && this.dealType == "edit") {
+              this.showItem = true;
+          }
+          this.loading = false;
+      },
+    },
+    methods: {
+      uploadGoodsSize(){
+        this.uploadType = 2
+        this.$refs.upload.click()
+      },
+      ExportGoodsData() {
+          this.$store.dispatch("getExportGoodsData", {
+              FilterStr: this.searchText,
+              Mode: this.pageData.Mode,
+              TypeID: this.pageData.TypeID,
+              Status: this.pageData.Status
+          })
+          .then(() => {
+              this.exportLoading = true;
+          });
+      },
+      exportExcel(arr) {
+
+          // 导出到excel
+
+          this.getgoodsIMGURL = GOODS_IMGURL;
+          var list = [...arr];
+          for(var i in list){
+            list[i].GOODIMG=this.getgoodsIMGURL + list[i].ID + ".png";
+            if(list[i].STATUS==1){
+              list[i].STATUS='启用'
+            }else{
+              list[i].STATUS='停用'
+            }
+
+            if(list[i].GOODSMODE==1){
+              list[i].GOODSMODE='服务'
+            }else{
+               list[i].GOODSMODE='商品'
+            }
+          }
+          var head = [
+              "商品名称",
+              "商品编码",
+              "商品分类",
+              "商品价格",
+              "会员价",
+              "商品进价",
+              "库存",
+              "单位",
+              "商品规格",
+              "状态",
+              "类型",
+              "商品预警",
+              "备注",
+              "图片链接"
+          ];
+          var val = [
+              "NAME",
+              "CODE",
+              "TYPENAME",
+              "PRICE",
+              "VIPPRICE",
+              "PURPRICE",
+              "STOCKQTY",
+              "UNITNAME",
+              "SPECS",
+              "STATUS",
+              "GOODSMODE",
+              "MINSTOCKNUMBER",
+              "REMARK",
+              "GOODIMG"
+          ];
+          var title = "商品导出" + this.getNowDateTime();
+          this.export2Excel(head, val, list, title);
+      },
+      importExcel(arr) {
+          // 导入数据
+          let newData = [];
+          for (let i = 1; i < arr.length; i++) {
+              let strCode;
+              for (var index in arr[i]) {
+                  let strlen = index.replace(/\s*/g, "").length;
+                  if (strlen > 40) {
+                      strCode = arr[i][index];
+                  }
+              }
+              console.log("编号",arr[i].__EMPTY_1)
+              if(arr[i].__EMPTY_1=="商品" || arr[i].__EMPTY_1=="服务" || arr[i].__EMPTY_1==1 ||arr[i].__EMPTY_1==0){
+                let item = {
+                    Code: strCode,
+                    Name: arr[i].__EMPTY == undefined ? "" : arr[i].__EMPTY,
+                    GoodsMode:
+                        arr[i].__EMPTY_1 == undefined ||
+                        arr[i].__EMPTY_1 == "商品" ||
+                        arr[i].__EMPTY_1 == 0
+                            ? 0
+                            : 1,
+                    TypeName:
+                        arr[i].__EMPTY_2 == undefined ? "" : arr[i].__EMPTY_2,
+                    Specs: 
+                        arr[i].__EMPTY_3 == undefined ? "" : arr[i].__EMPTY_3,
+                    Remark:
+                        arr[i].__EMPTY_4 == undefined ? "" : arr[i].__EMPTY_4,
+                    UnitName:
+                        arr[i].__EMPTY_5 == undefined ? "" : arr[i].__EMPTY_5,
+                    Price:
+                        arr[i].__EMPTY_6 == undefined ? "" : arr[i].__EMPTY_6,
+                    PurPrice:
+                        arr[i].__EMPTY_7 == undefined ? "" : arr[i].__EMPTY_7,
+                    StockQty:
+                        arr[i].__EMPTY_8 == undefined ? "" : arr[i].__EMPTY_8,
+                    VipPrice:
+                        arr[i].__EMPTY_9 == undefined ? "" : arr[i].__EMPTY_9,
+                };
+                newData.push(item);
+              }else{
+                this.$message.error('导入的商品编码填写错误,请重新填写再导入');
+                this.importLoading = false;
+                return;
+              }
+          }
+          // console.log(newData); return;
+          this.$store.dispatch("getImportGoodsData", newData).then(() => {
+              // this.importLoading = true;
+          });
+      },
+      retrievalChange(e,event){
+        let agentPermission = getUserInfo().List
+        let arr = agentPermission.filter(element => element.MODULECODE == "210040102");
+        if (arr.length > 0 && !this.isPurViewFun(arr[0].MODULECODE)) {
+          this.$message.warning('没有此功能权限，请联系管理员授权!')
+        } else {
+          this.form.name=event.NAME;
+          this.form.qty=event.STOCKQTY;
+          this.form.ID=event.ID;
+          this.retrievalShow=true;
+        }
+      },
+      UnRetrievalChange(e,event){
+        let agentPermission = getUserInfo().List
+        let arr = agentPermission.filter(element => element.MODULECODE == "210040102");
+        if (arr.length > 0 && !this.isPurViewFun(arr[0].MODULECODE)) {
+          this.$message.warning('没有此功能权限，请联系管理员授权!')
+        } else {
+          this.unform.name=event.NAME;
+          this.unform.qty=event.STOCKQTY;
+          this.unform.ID=event.ID;
+          this.unretrievalShow=true;
+        }
+      },
+      setRetrival(){
+            this.$refs.form.validate(valid => {
+                if (valid) {
+                  let setDate= Object.assign({},{
+                    id:this.form.ID,
+                    QTY:this.form.retQty,
+                    BillType:this.form.region,
+                    Remark:this.form.Remark,
+                    movemode:-1,
+                  })
+                  this.$store.dispatch("setGoodsMoving", setDate);
+                  this.form={
+                    name: '',
+                    qty: '',
+                    retQty:'',
+                    region: '',
+                    date1: '',
+                    date2: '',
+                    delivery: false,
+                    Remark:'',
+                    ID:'',
+                  }
+                } else {
+                    console.log("error submit!!");
+                    return false;
+                }
+            });
+      },
+      unSetRetrival(){
+            this.$refs.unform.validate(valid => {
+                if (valid) {
+                  let setDate= Object.assign({},{
+                    id:this.unform.ID,
+                    QTY:this.unform.retQty,
+                    BillType:this.unform.region,
+                    Remark:this.unform.Remark,
+                    movemode:1,
+                  })
+                  this.$store.dispatch("setGoodsMoving", setDate);
+                  this.unform={
+                    name: '',
+                    qty: '',
+                    retQty:'',
+                    region: '',
+                    date1: '',
+                    date2: '',
+                    delivery: false,
+                    Remark:'',
+                    ID:'',
+                  }
+                } else {
+                    console.log("error submit!!");
+                    return false;
+                }
+            });
+        // this.retrievalShow=false
+      },
+      notesChange(e,event){
+        this.notesShow=true;
+        this.dataTypes=Object.assign({},event);
+        this.$store.dispatch("getGoodsInventory", {
+          ID: this.dataTypes.ID,
+          PN: 1
+        });
+      },
+      searchfun: _.debounce(function() {
+          this.searchfun2(0);
+      }, 1000),
+      searchfun2(type) {
+          this.pageData.FilterStr = this.searchText;
+          this.pageData.PN = 1
+          this.getNewData();
+      },
+      handlePageChange: function(currentPage) { 
+          // 那你要等我吗？  6点
+        console.log("页面跳转",currentPage)
+          this.pagination.PN = parseInt(currentPage);
+          this.pageData.PN = parseInt(currentPage);
+          this.pageData.Mode=this.value1;
+          this.getNewData();
+      },
+      getNewData() {
+          this.$store.dispatch("getGoodsList", this.pageData).then(() => {
+              this.loading = true;
+          });
+      },
+      handleSelectionChange(val) {
+        if(val.length>1){
+          this.$refs.Table.clearSelection();
+          this.$refs.Table.toggleRowSelection(val.pop());
+        }else{
+          this.multipleSelection = val;
+        }
+      },
+      delGoods(){
+          if(getUserInfo().CompanyCode.length < 11){
+            const h = this.$createElement;
+            this.$msgbox({
+            title: '提示',
+            message: h('p', null, [
+                h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ '),
+                h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+            ]),
+            showCancelButton: false,
+            confirmButtonText: '我知道了',
+            confirmButtonClass: 'btnFalses'
+            })
+            return
+        }
+
+
+        if(this.multipleSelection.length==0){
+            this.$message("请选择商品");
+            return;
+        }
+        let item = {}
+        if(this.multipleSelection.length>0){
+            item = this.multipleSelection[0];
+            if(item.STOCKQTY != 0){
+                this.$message({
+                    message:'库存数不为0, 不能删除',
+                    duration: 1000,
+                    type:'warning'
+                })
+            }
+
+            this.$confirm("确定删除商品"+ "【 " + item.NAME +" 】", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            }).then(() => {
+                this.$store.dispatch("delGoods", {data: item }).then(()=>{
+                    // this.getNewData()
+                    this.loading = true
+                })
+            }).catch(()=>{})
+        }
+      },
+      selectMode(e){
+        console.log(this.value3)
+        this.loading = true;
+        this.$store.dispatch("getGoodsList", {
+            Status: this.value3,
+            Mode: String(this.value1),
+            TypeID:this.value2,
+            FilterStr: "",
+            PN: 1
+        });
+      },
+      
+      handleEdit(idx, item) {
+          this.$store.dispatch("getGoodsItem", item).then(() => {
+              this.goodsMode = parseInt(item.GOODSMODE);
+              this.dealType = "edit";
+              // this.loading = true;
+          });
+          this.showItem = true;
+      },
+      showAddNewChange(){
+        this.showAddNew=true;
+        this.dealType='add'
+        if(this.Goodscode==true){
+           this.$store.dispatch("getGoodsCode").then(() => {});
+        }
+      }
+    },
+    mounted() {
+      this.$store.dispatch("getparameterstate");
+      this.$store.dispatch("getGoodsList", {
+          Status: 1,
+          Mode: -1,
+          FilterStr: "",
+          PN: 1
+      });
+    },
+  created() {
+    this.activePath = this.$route.path;
+    let getUser = getUserInfo();
+    console.log("getUser")
+    console.log(getUser.TradeType)
+    console.log("getUser")
+    this.deskmode=getUser.TradeType
+  },
+  beforeCreate() {
+    this.$store.dispatch("getGoodsList", {
+        Status: 1,
+        Mode: -1,
+        FilterStr: "",
+        PN: 1
+    });
+    let list = this.$store.state.commodityc.commoditycflList;
+    if (list.length == 0) {
+        this.$store.dispatch("getcommoditycflList", {}).then(() => {});
+    }
+
+  },
+  components: {
+    headerPage: () => import("@/components/header"),
+    addNewGoods: () => import("@/components/goods/add"),
+    recordPage: () => import("@/components/goods/record"),
+  },
+};
+</script>
+<style scoped>
+.member-header{
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+.center-title{
+  width: 100px;
+  text-align: center;
+  height: 50px;
+  line-height: 50px;
+  border: solid 1px #d7d7d7;
+}
+.center-cont{
+  width: 100px;
+  text-align: center;
+  height: 50px;
+  line-height: 50px;
+}
+.el-header{
+  padding: 0 !important;
+}
+.shop{
+  display: flex;
+  align-items: center;
+  height: 50px;
+  position: relative;
+}
+.shop .name{
+  position: absolute;
+  right: 50px;
+  height: 50px;
+  line-height: 50px;
+  width: 150px;
+  text-align: center;
+  top: 0;
+  /* background: rebeccapurple; */
+}
+  .el-header, .el-footer {
+    background-color: #fff;
+    color: #333;
+  }
+  
+  .el-aside {
+    background-color: #D3DCE6;
+    color: #333;
+    text-align: center;
+    line-height: 200px;
+  }
+  .member-main-top{
+    background: #fff;
+  }
+  .member-main-table{
+    margin-top: 8px;
+    width: 99%;
+    margin-left: 0.5%;
+    margin-right: 0.5%;
+    height: 600px;
+    background: #fff;
+  }
+  .member-main-top-buttom{
+    /* margin-top: 5px; */
+    display: flex;
+    height: 60px;
+    width: 100%;
+    align-items: center;
+    /* margin-left: 28px; */
+  }
+  .member-main-top-buttom .btn{
+      width: 50%;
+      display: flex;
+      align-items: center;
+      padding-top: 7px
+  }
+  .member-main-top-buttom .ipt{
+      width: 50%;
+      text-align: right;
+      padding-top:7px
+  }
+  .btm-list{
+      margin-right: 25px;
+  }
+  .member-main-top-type{
+    height: 60px;
+    width: 100%;
+    line-height: 60px;
+    padding-bottom: 7px;
+  }
+  .addGoods{
+    width: 60px;
+    height: 160px;
+    text-align: center;
+  }
+  .addGoods img{
+    padding-top:25px;
+  }
+  .addGoods-cont >>> .el-tabs__item.is-left{
+    height: 160px !important;
+  }
+  .addGoods-cont >>> .is-scrollable{
+        padding: 0 !important;
+  }
+  .addGoods-cont >>> .el-tabs__nav{
+    height: 780px !important;
+
+  }
+  .retrieval{
+    width: 94%;
+    margin-left: 3%;
+    margin-right: 3%;
+  }
+  .content-table3{
+    position: absolute;
+    bottom: 0px;
+    top: 140px;
+    left: 10px;
+    right: 10px;
+    background: #fff;
+  }
+</style>
+
+

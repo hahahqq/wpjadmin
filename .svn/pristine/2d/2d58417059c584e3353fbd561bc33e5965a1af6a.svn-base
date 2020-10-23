@@ -1,0 +1,547 @@
+<template>
+  <el-container>
+    <el-header style="height:50px;">
+      <headerPage></headerPage>
+    </el-header>
+    <el-container>
+      <el-aside width="100px">
+          <section style="min-width:100px;">
+          <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+          </section>
+      </el-aside>
+      <el-container>
+          <div class="content-new-fex">
+            <div class="content-eighty">
+              <div class="content-center">
+                <el-button size="small" type="primary" @click="handleDeal('add',{})" icon="el-icon-plus">新增</el-button>
+              </div>
+            </div>
+
+            <div class="content-table4">
+              <div class="content-table-center">
+
+                <!--列表-->
+                <el-table border size='small' :data="tableData" v-loading="loading" max-height="500" header-row-class-name="bg-f1f2f3" class="rull-width" >
+                  <el-table-column type="index" label="序号" width="80" align="center"></el-table-column>
+                  <el-table-column prop="USERNAME" label="姓名" width="120" align="center"></el-table-column>
+                  <el-table-column prop="USERCODE" label="账号"></el-table-column>
+
+                  <el-table-column prop="PURVIEWCOUNT" label="操作权限" align="center">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.ISADMIN">全部权限</span>
+                      <span v-else>{{scope.row.PURVIEWCOUNT}} 项</span>
+                    </template>
+                  </el-table-column>
+
+                  <el-table-column prop="SHOPCOUNT" label="店铺权限" align="center">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.ISADMIN">全部店铺</span>
+                      <span v-else>{{scope.row.SHOPCOUNT}} 家</span>
+                    </template>
+                  </el-table-column>
+
+                  <el-table-column prop="BRANDSTR" label="品牌权限" align="center">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.ISADMIN">全部品牌</span>
+                      <span v-else>{{scope.row.BRANDSTR}}</span>
+                    </template>
+                  </el-table-column>
+
+                  <el-table-column prop="ISSTOP" label="状态" width="90" align="center">
+                    <template slot-scope="scope">
+                      <span v-if="scope.row.ISSTOP" style="color:#d9001b">停用</span>
+                      <span v-else style="color:#4b7902">启用</span>
+                    </template>
+                  </el-table-column>
+
+                  <el-table-column label="操作" width="180px">
+                    <template slot-scope="scope">
+                        <el-button size="small" type="text" @click="handlePassW(scope.row)">密码</el-button>
+                        <el-button :disabled="scope.row.ISADMIN" size="small" type="text" @click="handlePer(scope.$index, scope.row)">权限</el-button>
+                        <el-button size="small" type="text" :disabled="scope.row.ISADMIN" @click="handleDelUser(scope.row)">删除</el-button>
+                        <el-button size="small" type="text" :disabled="scope.row.ISADMIN" @click="handleDeal('edit',scope.row)">详情</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+
+                <!-- 分页 -->
+                <div class="m-top-sm clearfix elpagination" v-if='pagination.TotalNumber > 20'>
+                  <el-pagination
+                    background
+                    @size-change="handlePageChange"
+                    @current-change="handlePageChange"
+                    :current-page.sync="pagination.PN"
+                    :page-size="pagination.PageSize"
+                    layout="total, prev, pager, next, jumper"
+                    :total="pagination.TotalNumber"
+                    class="text-center"
+                  ></el-pagination>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <el-dialog :title="dealType=='add'?'新增用户':'编辑用户'" :visible.sync="dialogVisible" width="60%" >
+          <div>
+            <el-form ref="ruleForm" size="small" :model="ruleForm" :rules="rules" label-width="100px">
+              <el-form-item label="姓名" prop='username'>
+                <el-input size="small" style="width: 200px" v-model="ruleForm.username" clearable placeholder="请输入用户姓名"></el-input>
+              </el-form-item>
+              <el-form-item label="账号" prop='usercode'>
+                <el-input size="small" style="width: 200px" v-model="ruleForm.usercode" clearable placeholder="请输入用户编码"></el-input>
+              </el-form-item>
+              <el-form-item label="密码" v-if="dealType=='add'" prop='password'>
+                <el-input size="small" v-model="ruleForm.password" type="password" style="width: 200px" clearable placeholder="请输入用户密码" ></el-input>
+              </el-form-item>
+
+              <el-form-item label="是否停用" v-if="dealType=='edit'">
+                <el-switch v-model="ruleForm.IsStop" active-color="#13ce66" inactive-color="#ccc"></el-switch>
+              </el-form-item>
+
+              <el-form-item label="店铺权限">
+                <div class="full-width">
+                  <div class="inline-block m-right-sm m-bottom-sm" v-for="(item,i ) in pageList2" :key="'shop'+i" :class="{'text-theme':item.ISPURVIEW==1}">
+                    <el-checkbox size="small" v-model="item.IsPurview" :label="item.SHOPNAME" border></el-checkbox>
+                  </div>
+                </div>
+              </el-form-item>
+
+              <el-form-item label="品牌权限">
+                <div class="full-width">
+                    <el-checkbox style="float:left; margin-right: 10px; margin-bottom:10px" border :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全部品牌</el-checkbox>
+
+                    <el-checkbox-group style="float:left" v-model="checkedCities" @change="handleCheckedCitiesChange">
+                      <el-checkbox border style="margin-right: 10px; margin-left: 0" v-for="(item,index) in pageList3" :key="index" :label="item">{{item.NAME}}</el-checkbox>
+                    </el-checkbox-group>
+                </div>
+              </el-form-item>
+
+              <el-form-item label="用户权限">
+                <el-button type="text" @click="openPermission">用户权限 {{userPermissionNum}} 项</el-button>
+              </el-form-item>
+
+              <el-form-item>
+                <el-button type="primary" @click="submitForm" :loading="loading">保 存</el-button>
+                <el-button @click="closeModal">取 消</el-button>
+              </el-form-item>
+            </el-form>
+          </div>
+        </el-dialog>
+
+        <el-dialog title="设置用户权限" :visible.sync="isShowPermission" width="70%">
+            <div v-for="(item,key,i) in pageList" :key="i" class="row-flex">
+              <div class="paddingTB-sm block" style="width:100px">
+                <span>{{item.info.MODULENAME}}</span>
+              </div>
+              <div class="full-width">
+                <div
+                  class="inline-block m-left-sm m-bottom-sm"
+                  v-for="subItem in item.list"
+                  :key="subItem.FUNID"
+                  v-show="subItem.MODULENAME != '满减满折'"
+                  :class="{'text-theme':subItem.ISPURVIEW==1}"
+                >
+                  <el-checkbox v-model="subItem.IsPurview" :label="subItem.MODULENAME" border></el-checkbox>
+                </div>
+              </div>
+            </div>
+
+            <el-button @click="setPermission" :loading="loading" type="primary" style="margin-left:100px;">保 存</el-button>
+            <el-button @click='isShowPermission= false;' type="primary" plain>取消</el-button>
+        </el-dialog>
+      </el-container>
+    </el-container>
+  </el-container>
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+import MIXINS_SETUP from "@/mixins/setup";
+export default {
+  mixins: [MIXINS_SETUP.SIDERBAR_MENU],
+  data() {
+    return {
+      checkAll: false,
+      checkedCities:[],
+      isIndeterminate: true,
+
+      tableData: [],
+      pageList: {},
+      loading: false,
+      dialogVisible: false,
+      dealType: "add",
+      pagination: {
+        TotalNumber: 0,
+        PageNumber: 0,
+        PageSize: 20,
+        PN: 0
+      },
+      ruleForm: {
+        username: "",
+        password: "",
+        usercode: "",
+        isadmin: false,
+        IsStop: false
+      },
+      rules: {
+        username:[
+          { required: true, message: '请输入用户姓名', trigger: 'blur' }
+        ],
+        usercode:[
+          { required: true, message: '请输入用户编码', trigger: 'blur'}
+        ],
+        password:[
+          { required: true, message: '请输入密码', trigger: 'blur'}
+        ]
+      },
+      isShowPermission: false,
+      pageData: { PN: 0 },
+      uid: "",
+      viewPermission: 0,
+      userPermission: [],
+      userPermissionNum: 0,
+      pageList2: [],
+      pageList3: [],
+      saveStoreState: 0
+    };
+  },
+  computed: {
+    ...mapGetters({
+      dataList: "userList",
+      dataListState: "userListState",
+      dataState: "userState",
+      dealState: "dealUserState",
+      permissionListState: "permissionListState",
+      resetUserPassWordState: 'resetUserPassWordState',
+      delUserState: 'delUserState',
+      dataStore: "permissionStore",
+      dataBrand: 'permissionBrand',
+
+      permissionList: "permissionList",
+      permissionState: "permissionState",
+      permissionStoreState: 'permissionStoreState'
+    })
+  },
+  watch: {
+    permissionStoreState(data){
+      if(this.saveStoreState == 1){
+        this.getNewData()
+      }
+    },
+    permissionState(data) {
+      this.loading = false;
+      this.isShowPermission = false
+      if (data.success) {
+        this.getNewData()
+      }
+    },
+    delUserState(data){
+      console.log(data)
+      this.$message({
+        message: data.success ? '删除成功 ！' : data.message,
+        type: data.success ? "success" : "error"
+      })
+      this.getNewData()
+    },
+    resetUserPassWordState(data){
+      this.$message({
+        message: data.success ? '密码修改成功 ！' : data.message,
+        type: data.success ? "success" : "error"
+      });
+    },
+    dataListState(data) {
+      this.loading = false;
+      if (data.success) {
+        this.defaultData();
+      }
+    },
+    dealState(data) {
+      this.loading = false
+      if (data.success) {
+        let param = this.checkedCities, param1 = this.pageList2, sendArr1 = [], sendArr2 = []
+
+        for(var i in param){
+          sendArr1.push({
+            BrandId: param[i].ID,
+            Brand: param[i].NAME
+          })
+        }
+
+        for (let j in param1) {
+          if (param1[j].IsPurview) {
+            sendArr2.push({ ShopID: param1[j].SHOPID });
+          }
+        }
+
+        if(data.type == 'add' || data.type == 'edit'){
+          this.$store.dispatch('setPermissionStore', { uid: this.uid == '' ? data.data.id : this.uid, sarr: sendArr2  }).then(()=>{
+            this.saveStoreState = 0
+            this.$store.dispatch("setPermissionList", { uid: this.uid == '' ? data.data.id : this.uid, parr:this.userPermission, BrandList: JSON.stringify(sendArr1) })
+          })
+        }
+
+        this.dialogVisible = false;
+        // this.getNewData();
+      }
+      this.$message({
+        message: data.message,
+        type: data.success ? "success" : "error"
+      });
+    },
+    permissionListState(data) {
+      this.loading = false;
+      if (data.success) {
+        if(this.viewPermission == 0){
+          this.isShowPermission = true;
+        }else if(this.viewPermission == 1){
+          this.dialogVisible = true;
+        }
+
+        this.pageList = Object.assign({}, this.permissionList);
+
+        let sendArr = []
+        for (let key in this.pageList) {
+          let list = this.pageList[key].list;
+          for (let i = 0; i < list.length; i++) {
+            if (list[i].IsPurview) {
+              sendArr.push(list[i])
+            }
+          }
+        }
+
+        this.userPermission = sendArr
+        this.userPermissionNum = sendArr.length
+
+        let arr = [];
+        for (let i = 0; i < this.dataStore.length; i++) {
+          arr.push(
+            Object.assign({}, this.dataStore[i], {
+              IsPurview: this.dataStore[i].ISPURVIEW == 1 ? true : false
+            })
+          );
+        }
+
+        this.pageList2 = [...arr];
+
+        let arr1 = []
+        for(let j = 0; j < this.dataBrand.length; j++){
+          arr1.push(
+            Object.assign({}, this.dataBrand[j], {
+              IsPurview: this.dataBrand[j].ISPURVIEW == 1 ? true : false
+            })
+          )
+        }
+
+        let arr2 = [...arr1].filter(item => item.ISPURVIEW == 1)
+        console.log(arr2.length , arr1.length)
+        this.checkedCities = arr2
+        this.checkAll = arr2.length == arr1.length
+        this.isIndeterminate = arr2.length == arr1.length
+
+        this.pageList3 = [...arr1]
+      } else {
+        this.$message({
+          message: data.message,
+          type: "error"
+        });
+      }
+    }
+  },
+  methods: {
+    setPermission() {
+      let sendArr = []
+      for (let key in this.pageList) {
+        let list = this.pageList[key].list;
+        for (let i = 0; i < list.length; i++) {
+          if (list[i].IsPurview) {
+            sendArr.push(list[i])
+          }
+        }
+      }
+
+      if(this.uid != ''){
+        let param = this.pageList3, BrandList = []
+        for(var j in param){
+          BrandList.push({
+            BrandId: param[j].ID,
+            Brand: param[j].NAME
+          })
+        }
+
+        this.$store.dispatch("setPermissionList", { uid: this.uid, parr:sendArr, BrandList: JSON.stringify(BrandList) }).then(() => {
+          this.loading = true;
+        })
+
+        this.userPermission = sendArr
+        this.userPermissionNum = sendArr.length
+      }else{
+        this.userPermission = sendArr
+        this.userPermissionNum = sendArr.length
+        this.isShowPermission = false
+      }
+    },
+    openPermission(){
+      this.isShowPermission = true
+      this.viewPermission = 0
+    },
+    handleCheckAllChange(val) {
+      this.checkedCities = val ? this.pageList3 : [];
+      this.isIndeterminate = false;
+    },
+    handleCheckedCitiesChange(value) {
+      let checkedCount = value.length;
+      this.checkAll = checkedCount === this.pageList3.length;
+      this.isIndeterminate = checkedCount > 0 && checkedCount < this.pageList3.length;
+    },
+
+    handleDelUser(row){
+      this.$confirm('确认删除 【 '+ row.USERNAME +'】 用户?', '删除用户', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('delUser', { UserID: row.USERID })
+        }).catch(() => {
+
+        });
+    },
+    handlePassW(row){
+      this.$prompt('', '重置密码', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder:'请输入新密码（ 只能输入数字或字母 ）',
+        inputPattern:  /^[0-9a-zA-Z]+$/,
+        inputType:"password",
+        inputErrorMessage: '只能输入数字或字母',
+      }).then(({ value }) => {
+        this.$store.dispatch('resetUserPassWord', { UserID : row.USERID, Password: CRYPTO.MD5(value).toString() })
+      }).catch(() => {
+
+      })
+    },
+    getNewData() {
+      this.$store.dispatch("getUserList", {PN:1}).then(() => {
+        this.loading = true;
+      });
+    },
+    handleDeal(type, item) {
+      this.$store.dispatch("getPermissionList", item.USERID).then(() => {
+        this.dealType = type;
+        if (this.dealType == "add") {
+          delete this.ruleForm.IsStop;
+          this.closeModal()
+          this.uid = '';
+        }
+        if (this.dealType == "edit") {
+          delete this.ruleForm.password;
+          this.ruleForm.UserID = item.ID;
+          for (let key in this.ruleForm) {
+            let UCkey = key.toUpperCase();
+            this.ruleForm[key] = item[UCkey];
+          }
+          this.uid = item.USERID;
+          this.userPermissionNum = item.PURVIEWCOUNT
+        }
+        this.viewPermission = 1
+
+      })
+    },
+    handlePageChange: function(currentPage) {
+      if (this.pageData.PN == currentPage || this.loading) {
+        return;
+      }
+      this.pageData.PN = parseInt(currentPage);
+      this.$store.dispatch("getUserList", this.pageData).then(() => {
+        this.loading = true;
+      });
+    },
+    closeModal() {
+      this.dialogVisible = false;
+      this.ruleForm = {
+        username: "",
+        password: "",
+        usercode: "",
+        isadmin: false,
+        IsStop: false
+      };
+    },
+    submitForm() {
+      let sendData = Object.assign({}, this.ruleForm);
+      let method = "";
+      if (this.dealType == "add") {
+        method = "addUserItem";
+      }
+      if (this.dealType == "edit") {
+        method = "editUserItem";
+      }
+
+      this.$refs.ruleForm.validate(valid => {
+        if(valid){
+          this.$store.dispatch(method, sendData).then(() => {
+            this.loading = true
+          })
+        }
+      })
+    },
+    handlePer(idx, item) {
+      this.$store.dispatch("getPermissionList", item.USERID).then(() => {
+        this.loading = true;
+        this.uid = item.USERID;
+        this.viewPermission = 0
+      })
+    },
+    defaultData() {
+      this.tableData = [...this.dataList];
+      this.pagination = {
+        TotalNumber: this.dataListState.paying.TotalNumber,
+        PageNumber: this.dataListState.paying.PageNumber,
+        PageSize: this.dataListState.paying.PageSize,
+        PN: this.dataListState.paying.PN
+      };
+      this.pageData.PN = this.dataListState.paying.PN;
+    }
+  },
+  components: {
+    permissionPage: () => import("@/components/setup/setPermission.vue"),
+    headerPage: () => import("@/components/header")
+  },
+  mounted() {
+    if (this.dataList.length == 0) {
+      this.getNewData();
+    } else {
+      this.defaultData();
+    }
+
+    if (Object.keys(this.permissionList).length == 0) {
+      this.$store.dispatch("getPermissionList").then(()=>{
+        this.viewPermission = 2
+      });
+    } else {
+      let arr1 = []
+      for(let j = 0; j < this.dataBrand.length; j++){
+        arr1.push(
+          Object.assign({}, this.dataBrand[j], {
+            IsPurview: this.dataBrand[j].ISPURVIEW == 1 ? true : false
+          })
+        )
+      }
+
+      this.pageList3 = [...arr1]
+      this.pageList = Object.assign({}, this.permissionList);
+    }
+
+  }
+};
+</script>
+
+
+<style scoped>
+.el-header{
+  padding: 0 !important;
+}
+.el-aside {
+  background-color: #D3DCE6;
+  color: #333;
+  text-align: center;
+  line-height: 200px;
+}
+</style>

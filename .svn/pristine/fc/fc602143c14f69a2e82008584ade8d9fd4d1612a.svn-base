@@ -1,0 +1,7 @@
+.el-upload--picture-card{
+    width:80px !important; height:80px !important; line-height: 80px !important
+}
+
+.el-upload-list--picture-card .el-upload-list__item{
+    width:80px !important; height:80px !important; line-height: 80px !important
+}

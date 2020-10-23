@@ -1,0 +1,1025 @@
+<template>
+    <el-container>
+        <input type="file" ref="upload" accept=".xls, .xlsx" class="outputlist_upload hide">
+        <el-header style="height:50px;">
+            <headerPage></headerPage>
+        </el-header>
+
+        <el-container>
+            <el-aside width="100px">
+                <section style="min-width:100px;">
+                    <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+                </section>
+            </el-aside>
+
+            <el-container>
+                <div class="content-new-fex" style="margin-bottom: 0">
+                    <div class="content-eightys">
+                        <div class="content-center" style="width:100%; padding-top: 0; margin-left:0; margin-right:0">
+                            <div class="member-main-top">
+                                <div class="content-center">
+                                    <div class="member-main-top-buttom">
+                                        <div class="btn">
+                                            <el-button type="primary" size="small" @click="showAddNewChange()">添加会员</el-button>
+
+                                            <el-popover
+                                                placement="bottom"
+                                                width="250"
+                                                trigger="click">
+                                                <el-button plain size="small" slot="reference" style="margin-left: 20px">微信快速注册</el-button>
+                                                <div style="margin:0 auto; width:100%; text-align:center">
+                                                    <span class="full-width m-bottom-sm" style="display:table; color: #868686; font-size:10px" >客户扫一扫 , 即可注册并完善资料</span>
+                                                    <img id="codeImgID" :src="codeImg" width="160px" height="160px">
+                                                    <div style="font-size:12px;color:#7188FD;">
+                                                        <el-button size="small" type="text" @click="downloadImg">下载二维码</el-button>
+                                                    </div>
+                                                </div>
+                                            </el-popover>
+
+                                            <el-button-group style="margin-left: 20px">
+                                                <el-button type="default" size="small" >
+                                                    <a href="static/images/会员导入模板.xls" class="producttemplate">下载模板</a>
+                                                </el-button>
+                                                <el-button type="default" size="small" for="input" :loading="importLoading"  @click="$refs.upload.click()">会员导入</el-button>
+                                            </el-button-group>
+
+                                            <el-button size="small"
+                                                type="default"
+                                                style="margin-left: 20px"
+                                                @click="ExportMemberData"
+                                                :loading="exportLoading"
+                                            >会员导出</el-button>
+                                        </div>
+
+                                        <div class="ipt">
+                                            <el-input v-model="searchText" placeholder="请输入会员姓名、卡号或手机号" style="width:52%" size="small">
+                                            <template slot="append" @click="searchfun2(1)"><span style="font-size:12px;">搜索</span></template>
+                                            </el-input>
+                                        </div>
+                                    </div>
+
+                                    <div class="top-input">
+                                        <div class="top-input-conts">
+                                            <div>
+                                                <span style="font-size:12px;">归属店铺&nbsp;&nbsp;&nbsp;</span>
+                                                <el-select size='small' v-model="value2" placeholder="请选择店铺" @change="selectShop" clearable>
+                                                    <el-option v-for="item in shopList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
+                                                </el-select>
+                                            </div>
+                                            <div class="top-input-list">
+                                                <span style="font-size:12px;">会员状态&nbsp;&nbsp;&nbsp;</span>
+                                                <el-select v-model="value4" placeholder="请选择" size="small" style="width:200px" @change="selectShop" clearable>
+                                                    <el-option
+                                                    v-for="item in statusList"
+                                                    :key="item.id"
+                                                    :label="item.value"
+                                                    :value="item.id">
+                                                    </el-option>
+                                                </el-select>
+                                            </div>
+                                        </div>
+                                        <div class="bottom">
+                                            <span @click="changeTaller"><span style="font-size:12px;">更多筛选</span>&nbsp;&nbsp;<i :class="tallerShow==true ? 'el-icon-arrow-up' : 'el-icon-arrow-down'"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 高级搜索 -->
+                                <transition name="fade">
+                                    <div class="collaps-from" v-show="tallerShow" transiton="fade">
+                                        <div>
+                                            <el-form label-width="100px">
+                                                <el-form-item label="会员等级:">
+                                                    <ul class="memberType">
+                                                        <li
+                                                        v-for="(item,index) in datamemberLevelList"
+                                                        :key="index"
+                                                        @click="secltListLevel(index,item)" :class="item.isSelect==true?'memberType-secect':''"
+                                                        >{{item.NAME}}</li>
+                                                    </ul>
+                                                </el-form-item>
+
+                                                <el-form-item label="会员标签:">
+                                                    <ul class="memberType">
+                                                        <li
+                                                        v-for="(item,index) in datamemberFlagList"
+                                                        :key="index"
+                                                        @click="secltListCont(index,item)" :class="item.isSelect==true?'memberType-secect':''"
+                                                        >{{item.VIPFLAG}}</li>
+                                                    </ul>
+                                                </el-form-item>
+
+                                                <el-form-item label="会员生日:">
+                                                    <ul class="memberType">
+                                                        <li
+                                                        v-for="(item,index) in birthdayDate"
+                                                        :key="index"
+                                                        @click="secltListBirthday(index,item)" :class="item.isSelect==true?'memberType-secect':''"
+                                                        >{{item.name}}</li>
+                                                    </ul>
+                                                </el-form-item>
+
+                                                <el-form-item label="消费次数:">
+                                                    <ul class="memberType">
+                                                        <li
+                                                        v-for="(item,index) in PayCount"
+                                                        :key="index"
+                                                        @click="secltListConsume(index,item)" :class="item.isSelect==true?'memberType-secect':''"
+                                                        >{{item.name}}</li>
+                                                    </ul>
+                                                </el-form-item>
+
+                                                <el-form-item label="流失客户:">
+                                                    <ul class="memberType">
+                                                        <li
+                                                        v-for="(item,index) in memberWastage"
+                                                        :key="index"
+                                                        @click="secltListWastage(index,item)" :class="item.isSelect==true?'memberType-secect':''"
+                                                        >{{item.name}}</li>
+                                                    </ul>
+                                                </el-form-item>
+
+                                            </el-form>
+                                        </div>
+                                        <div style="text-align: center; margin: 0">
+                                            <el-button type="primary" size="mini" @click="screenChange" :loading="loading">确定筛选</el-button>
+                                            <el-button size="mini" type="info" @click="clearChange">清空筛选</el-button>
+                                        </div>
+                                    </div>
+                                </transition>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-table m-top-sm" style="background:#fff">
+                        <div class="content-table-center" style="width:100%; padding-top: 0; margin-left:0; margin-right:0">
+                            <el-table
+                                size='small'
+                                :data="pagelist"
+                                ref="Table"
+                                v-loading="loading"
+                                @selection-change="handleSelectionChange"
+                                style="width: 100%;"
+                                :height="tablename"
+                                header-row-class-name="bg-f1f2f3"
+                            >
+                                <el-table-column type="selection" width="45" fixed="left"></el-table-column>
+                                <el-table-column prop="NAME" label="会员信息" width="160">
+                                    <template slot-scope="scope">
+                                        <img :src="scope.row.IMAGEURL" alt="" style='float:left; border-radius:8px; width:40px; height:40px; margin-right:8px'>
+                                        <span style='height:40px;width:102px'>
+                                            <i class="text-3399ff pull-left inline-block" style="color:#2589FF;width:92px;overflow: hidden; text-overflow:ellipsis;white-space: nowrap;">
+                                                {{scope.row.NAME ? scope.row.NAME : ' '}}
+                                                &nbsp;&nbsp;<img :src="scope.row.SEX == 0 ? 'static/images/icon_man.png' : 'static/images/icon_woman.png'" style="width:13px;height:13px; vertical-align: middle">
+                                                </i>
+                                            <i class="text-3399ff pull-left inline-block" style="width:92px;overflow: hidden; text-overflow:ellipsis;white-space: nowrap ">{{scope.row.CODE}}</i>
+                                        </span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="SHOPNAME" label="归属店铺" align="center"></el-table-column>
+                                <el-table-column prop="LEVELNAME" label="等级" align="center"></el-table-column>
+                                <el-table-column prop="VIPFLAG" label="标签" width="100" align="center"></el-table-column>
+                                <el-table-column label="生日时间" align="center">
+                                    <template slot-scope="scope">
+                                        <span v-if="scope.row.BIRTHDATE != undefined">{{new Date(scope.row.BIRTHDATE) | time}}</span>
+                                        <span v-else>- -</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="INTEGRAL" label="积分" width="100" align="center"></el-table-column>
+                                <el-table-column prop="MONEY" label="余额" align="center"></el-table-column>
+                                <el-table-column prop="OWEMONEY" label="欠款" align="center"></el-table-column>
+                                <el-table-column prop="STATUS" label="状态" :formatter="formatStatus" width='90' align="center"></el-table-column>
+                                <el-table-column label="操作" width="70" fixed="right" align=right>
+                                    <template slot-scope="scope">
+                                        <el-button size="small" type="text" @click="handleEdit(scope.$index, scope.row)" style="color:#2589FF">详情</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <!-- 分页 -->
+                            <div v-show="pagelist.length>0" class="m-top-sm clearfix elpagination overall-font">
+                                <div>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-button size="small" @click="delMember">删除会员</el-button>
+                                            <el-button size="small" @click="reportLossfun"> {{reportLossTitle}} </el-button>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-pagination
+                                                background
+                                                @size-change="handlePageChange"
+                                                @current-change="handlePageChange"
+                                                :current-page.sync="pagination.PN"
+                                                :pager-count="5"
+                                                :page-size="pagination.PageSize"
+                                                layout="total, prev, pager, next, jumper"
+                                                :total="pagination.TotalNumber"
+                                                class="text-right"
+                                            ></el-pagination>
+                                        </el-col>
+                                    </el-row>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 新增会员 -->
+                <el-dialog v-if="showAddNew" title="新增会员" :visible.sync="showAddNew" width="800px" style="max-width:100%">
+                    <add-new-member @closeModal="showAddNew=false" :dataType="{state:false,type:'add'}" @resetList="showAddNew=false;getNewData();"></add-new-member>
+                </el-dialog>
+
+                <div class="member-detailed">
+                    <el-dialog title="会员详情" :visible.sync="showItem" width="800px" style="max-width:100%;">
+                        <item-page @closeModal="showItem=false" :dataProfile='dataProfile' :pageState="showItem"></item-page>
+                    </el-dialog>
+                </div>
+            </el-container>
+        </el-container>
+    </el-container>
+</template>
+<script>
+
+import { mapState, mapGetters } from "vuex";
+import { getUserInfo, getHomeData} from '@/api/index'
+import MIXNINS_EXPORT from "@/mixins/exportData.js";
+let _ = require("lodash");
+import MIXINS_MEMBER from "@/mixins/member";
+import QRCode from 'qrcode'
+export default {
+  mixins: [MIXINS_MEMBER.MEMBER_MENU,MIXNINS_EXPORT.TOEXCEL, MIXNINS_EXPORT.TODATA],
+    data() {
+        return {
+            activeName: "first",
+            reportLossTitle: '挂失',
+            height:window.innerHeight - 60,
+            pagelist: [],
+            selectlist:[],
+            selectLevelList: [],
+            selectlistBirthdayDate:[],
+            secltListConsumeDate:[],
+            secltListWastageDate:[],
+            selectlistType:[],
+            tallerShow:false,
+            value2:"",
+            value3:"",
+            value4:"",
+            activeNames: 1,
+            tableUploadData:[],
+            birthdayDate:[{id:'-1',name:'全部',isSelect:true},{id:'0',name:'今天',isSelect:false},{id:'1',name:'明天',isSelect:false},{id:'30',name:'近30天',isSelect:false}],
+            PayCount:[{id:'-1',name:'全部',isSelect:true},{id:'0',name:'有过消费',isSelect:false},{id:'10',name:'消费前10',isSelect:false},{id:'50',name:'消费前50',isSelect:false},{id:'100',name:'消费前100',isSelect:false}],
+            memberWastage:[{id:'-1',name:'全部',isSelect:true},{id:'30',name:'近30天',isSelect:false},{id:'90',name:'近3个月',isSelect:false},{id:'180',name:'近6个月',isSelect:false}],
+            statusList:[{id:0, value: '正常'},{id:2, value: '挂失'}],
+            datamemberFlagList:[],
+            datamemberLevelList:[],
+            value1:"",
+            options1:"",
+            loading: false,
+            pagination: {
+                TotalNumber: 0,
+                PageNumber: 0,
+                PageSize: 20,
+                PN: 0
+            },
+            searchText: "",
+            isFilter: false,
+            pageData: {
+                PN: 1,
+                Filter: "",
+                Status: -1,
+                LevelName: "",
+                ShopId: "",
+                VipFlag:"",
+                birthday:'',
+                PayCount:'',
+                LossVip:'',
+                Name:''
+            },
+            multipleSelection: [],
+            reportLoss: { loading: false, num: 0 },
+            showAddNew: false,
+            showItem: false,
+            exportLoading: false,
+            tablename:document.body.clientHeight-240,
+            codeImg:'',
+            Membercode:"",
+            dealType: "add",
+            dataProfile:{
+                obj:{},
+                total:{}
+            }
+        }
+    },
+    computed: {
+        ...mapGetters({
+            dataList: "memberList",
+            dataListState: "memberListState",
+            dataState: "memberState",
+            dataState2: 'memberState2',
+            reportLossState: "reportLossState",
+            exportMemberState: "exportMemberState",
+            memberLevelList: "memberLevelList",
+            importState: "importMemberState",
+            memberItemInfo: "memberItemInfo",
+            shopList: "shopList",
+            memberFlagList:"memberFlagList",
+            delMemberState:"delMember",
+            memberListAllState: "memberListAllState",
+            memberQRcodeurlstate:"memberQRcodeurlstate"
+        })
+    },
+    watch: {
+        memberListAllState(data) {
+            this.exportLoading = false;
+            if (data.success) {
+                this.exportExcel(data.data.List);
+            }
+        },
+        memberQRcodeurlstate(data){
+            QRCode.toDataURL(data.data.BarCode).then(url => {
+                this.codeImg = url;
+            }).catch(err => {
+                console.error(err);
+            })
+        },
+        searchText() {
+            this.searchfun();
+        },
+        memberLevelList(data){
+            let msl=[];
+            msl=data;
+            this.datamemberLevelList=[];
+            msl.forEach(item => {
+                this.$set(item, 'isSelect', false)
+                this.datamemberLevelList.push(item)
+            })
+            this.datamemberLevelList.unshift({
+                NAME: "全部",
+                isSelect: true
+            })
+        },
+        memberFlagList(data){
+            let msl=[];
+            msl=data;
+            this.datamemberFlagList=[];
+            msl.forEach(item => {
+                this.$set(item, "isSelect" , false)
+                this.datamemberFlagList.push(item)
+            })
+            this.datamemberFlagList.unshift({
+                VIPFLAG: "全部",
+                isSelect: true
+            })
+            console.log(this.datamemberFlagList)
+        },
+        dataListState(data) {
+            this.loading = false;
+            this.isFilter = false;
+            this.pagelist = [...this.dataList];
+            if (data.success) {
+                this.pagination = {
+                    TotalNumber: data.paying.TotalNumber,
+                    PageNumber: data.paying.PageNumber,
+                    PageSize: data.paying.PageSize,
+                    PN: data.paying.PN
+                }
+            }
+        },
+        searchText() {
+            this.searchfun();
+        },
+        reportLossState(data) {
+            this.multipleSelection = []
+            if (data.success) {
+                this.$message({
+                    message: "操作成功",
+                    type: "success"
+                })
+                this.pageData.PN = 1
+                this.pageData.Filter = ''
+                this.getNewData();
+            } else {
+                this.$message({ message: data.message, type: "error" })
+            }
+        },
+        delMemberState(data){
+            this.multipleSelection = []
+            if (data.success) {
+                this.$message({
+                    message: "操作成功",
+                    type: "success"
+                })
+                this.getNewData();
+            } else {
+                this.$message({ message: data.message, type: "error" })
+            }
+        },
+        exportMemberState(data) {
+            this.exportLoading = false;
+            this.exportExcel(data.data.PageData)
+        },
+        dataState(data) {
+            if (data.success) {
+                this.showItem = true;
+                this.dataProfile.obj = data.data.obj
+            }
+        },
+        dataState2(data){
+            if(data.success){
+                this.dataProfile.total = data.data
+            }
+        },
+        outputsState(data) {
+            // 导入 mixins
+            if (data.state) {
+                this.importExcel(this.outputs)
+            } else {
+                this.$message({ showClose: true, message: "数据为空", type: "error" })
+            }
+        },
+        importState(data) {
+            if (data.success) {
+                this.$message("导入成功")
+                this.getNewData();
+            } else {
+                this.$message(data.message)
+            }
+        }
+    },
+    methods: {
+        showAddNewChange(){
+            this.showAddNew=true;
+        },
+        downloadImg(){
+            var a = document.createElement('a')
+            var event = new MouseEvent('click')
+            a.download = '店铺二维码'
+            a.href = this.codeImg
+            a.dispatchEvent(event)
+        },
+        secltListCont(e,items) {
+            if(e==0){
+               this.datamemberFlagList[e].isSelect = ! this.datamemberFlagList[e].isSelect;
+               if(this.datamemberFlagList[e].isSelect==true){
+                    for(var i in this.datamemberFlagList){
+                        if(i>0){
+                            this.datamemberFlagList[i].isSelect=false;
+                            this.selectlist=[];
+                        }
+                    }
+               }
+            }else if(e>0){
+                this.datamemberFlagList[0].isSelect=false;
+                this.datamemberFlagList[e].isSelect = ! this.datamemberFlagList[e].isSelect;
+                this.selectlist = this.datamemberFlagList.filter((item) => {
+                    return item.isSelect != false
+                })
+            }
+        },
+        secltListLevel(e,items) {
+            if(e==0){
+               this.datamemberLevelList[e].isSelect = ! this.datamemberLevelList[e].isSelect;
+               if(this.datamemberLevelList[e].isSelect==true){
+                    for(var i in this.datamemberLevelList){
+                        if(i>0){
+                         this.datamemberLevelList[i].isSelect=false;
+                         this.selectLevelList=[];
+                        }
+                    }
+               }
+            }else if(e>0){
+                this.datamemberLevelList[0].isSelect=false;
+                this.datamemberLevelList[e].isSelect = ! this.datamemberLevelList[e].isSelect;
+                this.selectLevelList = this.datamemberLevelList.filter((item) => {
+                    return item.isSelect != false
+                })
+            }
+        },
+
+        secltListBirthday(e,items){
+            for(var i in this.birthdayDate){
+                if(e==i){
+                    this.birthdayDate[i].isSelect =!this.birthdayDate[i].isSelect
+                    if(this.birthdayDate[i].isSelect==true){
+                        this.selectlistBirthdayDate=items
+                    }
+                }else{
+                    this.birthdayDate[i].isSelect=false;
+                }
+            }
+            console.log(this.selectlistBirthdayDate.id)
+        },
+        secltListConsume(e,items){
+            for(var i in this.PayCount){
+                if(e==i){
+                    this.PayCount[i].isSelect =!this.PayCount[i].isSelect
+                    if(this.PayCount[i].isSelect==true){
+                        this.secltListConsumeDate=items
+                    }
+                }else{
+                    this.PayCount[i].isSelect=false;
+                }
+            }
+            console.log(this.secltListConsumeDate.id)
+        },
+        secltListWastage(e,items){
+            for(var i in this.memberWastage){
+                if(e==i){
+                    this.memberWastage[i].isSelect =!this.memberWastage[i].isSelect
+                    if(this.memberWastage[i].isSelect==true){
+                        this.secltListWastageDate=items
+                    }
+                }else{
+                    this.memberWastage[i].isSelect=false;
+                }
+            }
+            console.log(this.secltListWastageDate.id)
+        },
+        //确定筛选
+        screenChange(){
+            // 会员标识
+            let selectlistId=''
+            for(var i in this.selectlist){
+                selectlistId += "'"+this.selectlist[i].VIPFLAG+"',"
+            }
+            selectlistId=selectlistId.substring(0,selectlistId.length-1)
+            this.pageData.VipFlag = selectlistId
+
+            // 会员等级
+            let selectLevelList=''
+            for(var i in this.selectLevelList){
+                selectLevelList += "'"+this.selectLevelList[i].NAME+"',"
+            }
+            selectLevelList=selectLevelList.substring(0,selectLevelList.length-1)
+            this.pageData.LevelName = selectLevelList
+            console.log(selectLevelList)
+
+            this.pageData.birthday=this.selectlistBirthdayDate.id;
+            this.pageData.PayCount=this.secltListConsumeDate.id
+            this.pageData.LossVip=this.secltListWastageDate.id
+            this.getNewData();
+            this.tallerShow=false;
+        },
+        //清空高级筛选
+        clearChange(){
+            this.tallerShow=false;
+            for(var i in this.datamemberLevelList){
+                if(i>0){
+                   this.datamemberLevelList[i].isSelect=false;
+                }else{
+                   this.datamemberLevelList[i].isSelect=true;
+                }
+            }
+
+            for(var i in this.datamemberFlagList){
+                if(i>0){
+                   this.datamemberFlagList[i].isSelect=false;
+                }else{
+                   this.datamemberFlagList[i].isSelect=true;
+                }
+            }
+
+            for(var t in this.birthdayDate){
+                if(t==0){
+                  this.birthdayDate[t].isSelect=true;
+                }else{
+                  this.birthdayDate[t].isSelect=false;
+                }
+            }
+            for(var g in this.PayCount){
+                if(g==0){
+                  this.PayCount[g].isSelect=true;
+                }else{
+                  this.PayCount[g].isSelect=false;
+                }
+            }
+            for(var y in this.birthdayDate){
+                if(y==0){
+                  this.memberWastage[y].isSelect=true;
+                }else{
+                  this.memberWastage[y].isSelect=false;
+                }
+            }
+
+            this.pageData = {
+                LevelName: '',
+                VipFlag: '',
+                birthday: '',
+                LossVip: '',
+                PayCount: ''
+            }
+            this.getNewData()
+
+        },
+        changeTaller(){
+            this.tallerShow =! this.tallerShow;
+        },
+        //选择会员等级
+        selectMember(e){
+            console.log(e)
+        },
+        //选择门店
+        selectShop(){
+            this.pageData={
+                PN: 1,
+                Filter: "",
+                Status: this.value4,
+                LevelName: "",
+                ShopId: this.value2,
+                SaleEmpId:"'" + this.value3 + "'",
+                VipFlag:"",
+                birthday:'',
+                PayCount:'',
+                LossVip:''
+            }
+            this.getNewData();
+        },
+        formatSex: function(row, column) {
+            //性别显示转换
+            return row.SEX == 0 ? "男" : row.SEX == 1 ? "女" : "未知";
+        },
+        formatStatus: function(row, column) {
+            //-1=全部,0=正常，2=挂失
+            return row.STATUS == 0 ? "正常" : row.STATUS == 2 ? "挂失" : "未知";
+        },
+        getNewData() {
+            this.$store.dispatch("getMemberList", this.pageData).then(() => {
+                this.loading = true;
+            })
+        },
+        //单选会员操作
+        handleSelectionChange(val) {
+            if (val.length > 1) {
+                this.$refs.Table.clearSelection()
+                this.$refs.Table.toggleRowSelection(val.pop())
+            } else if(val.length == 1){
+                this.multipleSelection = val;
+                this.reportLossTitle = val[0].STATUS == 0 ? '挂失' : '取消挂失'
+            }
+        },
+        delMember(){
+            if(this.multipleSelection.length==0){
+                this.$message({ message: "请选择会员", type: 'warning'});
+                return;
+            }
+
+            let item = this.multipleSelection[0]
+
+            if(item.INTEGRAL != 0 || item.MONEY != 0 || item.OWEMONEY > 0){
+                this.$message("会员有余额或积分或存在欠款，不能删除 ！");
+                return
+            }
+
+            this.$confirm('确认删除会员 【'+ item.NAME +' 】?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+            }).then(() => {
+                this.$store.dispatch("getMemberDel",{ ID: item.ID })
+            }).catch(() => { })
+        },
+        currentChange(currentRow, oldCurrentRow) {
+            this.$refs.Table.toggleRowSelection(currentRow)
+        },
+        handleEdit(idx, item) {
+            // if (
+            //     Object.keys(this.memberItemInfo).length > 0 &&
+            //     this.memberItemInfo.ID != item.ID
+            // ) {
+            //     this.$store.dispatch("clearMember", 3);
+            //     this.$store.dispatch("clearMember", 4);
+            //     this.$store.dispatch("clearMember", 5);
+            //     this.$store.dispatch("clearMember", 6);
+            // }
+            this.$store.dispatch("getMemberItem", item).then(() => {
+                this.$store.dispatch("getMemberItem2", item);
+            });
+        },
+        handlePageChange: function(currentPage) {
+            if (this.pageData.PN == currentPage || this.loading) {
+                return;
+            }
+            this.pageData.PN = parseInt(currentPage);
+            this.getNewData();
+        },
+        searchfun: _.debounce(function() {
+            this.searchfun2(0);
+        }, 1000),
+        searchfun2(type) {
+            if (type == 1 && !this.searchText) {
+                return;
+            }
+            this.pageData.Filter = this.searchText;
+            this.pageData.PN = 1
+            this.getNewData();
+        },
+        reportLossfun() {
+            if (this.multipleSelection.length == 0) {
+                this.$message({
+                    message: "请选择会员",
+                    type: "warning"
+                });
+                return;
+            }
+
+            let item = {}
+            if(this.multipleSelection.length>0){
+                item = this.multipleSelection[0]
+            }
+            this.reportLoss.num = 0;
+            this.$confirm("您确认"+this.reportLossTitle+"已选会员?", "提示", {
+                confirmButtonText: "确定",
+                cancelButtonText: "取消",
+                type: "warning"
+            }).then(() => {
+               let type = item.STATUS == 2 ? 1 : 0
+                this.$store.dispatch("setReportLoss", { id : item.ID,  Type: type } );
+            }).catch(() => { });
+        },
+        dealStringnull(str) {
+            if (str == undefined) {
+                return "";
+            } else {
+                return str.toString().replace(/\s*/g, "");
+            }
+        },
+
+        ExportMemberData() {
+            // 获取导出数据
+            let LevelName = this.pageData.LevelName != '' ? `'${this.pageData.LevelName}'` : ''
+            let VipFlag = this.pageData.VipFlag != '' ? `'${this.pageData.VipFlag}'` : ''
+            let sendData = {
+                Filter: this.pageData.Filter,
+                Status : this.pageData.Status,
+                LevelName : LevelName,
+                VipFlag: VipFlag,
+                ShopId: getHomeData().shop.ID
+            }
+            this.$store.dispatch("getMemberListAll", sendData).then(() => {
+            this.exportLoading = true;
+            });
+        },
+        exportExcel(arr) {
+          // 导出到excel
+          var list = [...arr];
+          for (var i = 0; i < list.length; i++) {
+            list[i].SEX = list[i].SEX == 0 ? '男' : '女';
+            list[i].STATUS = list[i].STATUS == 0 ? '正常' : '挂失'
+            list[i].CREATEDATE = this.filterTime(new Date(list[i].CREATEDATE));
+            list[i].INVALIDDATE = this.filterTime(new Date(list[i].INVALIDDATE));
+            list[i].LASTTIME = this.filterTime(new Date(list[i].LASTTIME));
+            list[i].BIRTHDATE =
+              list[i].BIRTHDATE > 0 && list[i].BIRTHDATE
+                ? this.filterTime(new Date(list[i].BIRTHDATE))
+                : "";
+          }
+          var head = [
+            "名称", "卡号", "性别", "生日", "手机号", "余额",
+            "等级","标签", "积分",
+            "次卡","地址","店铺","创建日期","有效日期","最后登录日期",
+            "状态", "备注"
+          ];
+          var val = [
+            "NAME",
+            "CODE",
+            "SEX",
+            "BIRTHDATE",
+            "MOBILENO",
+            "MONEY",
+            "LEVELNAME",
+            "VIPFLAG",
+            "INTEGRAL",
+            "PAYCOUNT",
+            "ADDRESS",
+            "SHOPNAME",
+            "CREATEDATE",
+            "INVALIDDATE",
+            "LASTTIME",
+            "STATUS",
+            "REMARK"
+          ];
+          var title = "会员导出" + this.getNowDateTime();
+          this.export2Excel(head, val, list, title);
+        },
+
+        importExcel(arr) {
+          // 导入数据
+          let newData = [];
+          let tableObj = {}
+          let that=this;
+          for (let i = 1; i < arr.length; i++) {
+            let strCode;
+            for (var index in arr[i]) {
+              let strlen = index.replace(/\s*/g, "").length;
+              if (strlen > 40) {
+                strCode = arr[i][index];
+              }
+            }
+
+            let returnBirthDate = arr[i].__EMPTY_3==undefined || arr[i].__EMPTY_3==null || arr[i].__EMPTY_3=='' ? 0 : new Date(arr[i].__EMPTY_3.replace(/\s*/g, "").split(".").join("-")).getTime()
+            let item = {
+              Code: strCode.toString().replace(/\s*/g, ""),
+              Name:that.dealStringnull(arr[i].__EMPTY),
+              Sex:that.dealStringnull(arr[i].__EMPTY_1),
+              MobileNo:arr[i].__EMPTY_2 == undefined ? "" : Number(arr[i].__EMPTY_2),
+              BirthDate: returnBirthDate,
+              DiscountTypeName:that.dealStringnull(arr[i].__EMPTY_4),
+              VipFlag:that.dealStringnull(arr[i].__EMPTY_5),
+              QQ:that.dealStringnull(arr[i].__EMPTY_6),
+              Wechat:that.dealStringnull(arr[i].__EMPTY_7),
+              DepositMoney: arr[i].__EMPTY_8 == undefined ? "" : arr[i].__EMPTY_8,
+              Address:that.dealStringnull(arr[i].__EMPTY_9),
+              Remark:that.dealStringnull(arr[i].__EMPTY_10),
+              Money: arr[i].__EMPTY_11 == undefined ? "" : arr[i].__EMPTY_11,
+              Integral: arr[i].__EMPTY_12 == undefined ? "" : arr[i].__EMPTY_12
+            };
+            newData.push(item)
+          }
+
+          this.$store.dispatch("getImportMemberData", JSON.stringify(newData)).then(() => {
+            // this.importLoading = true;
+          });
+        },
+        okUpload(){
+          this.$store.dispatch("getImportMemberData", this.tableUploadData)
+        }
+    },
+    mounted() {
+        this.$store.dispatch("getparameterstate");
+        this.pagination = {
+            TotalNumber: this.dataListState.paying.TotalNumber,
+            PageNumber: this.dataListState.paying.PageNumber,
+            PageSize: this.dataListState.paying.PageSize,
+            PN: this.dataListState.paying.PN
+        };
+        this.pagelist = [...this.dataList];
+        // if (this.shopList.length == 0) {
+        //   this.$store.dispatch("getShopList")
+        // }
+
+        this.$store.dispatch("getMemberLevel");
+        this.$store.dispatch("getMemberFlag");
+    },
+    components: {
+        addNewMember: () => import("@/components/member/add"),
+        itemPage: () => import("./item"),
+        headerPage: () => import("@/components/header")
+    },
+    beforeCreate() {
+        this.$store.dispatch("getMemberList", {PN:1});
+        this.$store.dispatch("getmemberQRcodeurlstate", {});
+    },
+};
+</script>
+
+<style scoped>
+.el-container{
+    background: #fff;
+}
+.member-header{
+  display: flex;
+  align-items: center;
+  height: 50px;
+}
+.center-title{
+  width: 100px;
+  text-align: center;
+  height: 50px;
+  line-height: 50px;
+  border: solid 1px #d7d7d7;
+}
+.center-cont{
+  width: 100px;
+  text-align: center;
+  height: 50px;
+  line-height: 50px;
+}
+.el-header{
+  padding: 0 !important;
+}
+.shop{
+  display: flex;
+  align-items: center;
+  height: 50px;
+  position: relative;
+}
+.el-header, .el-footer {
+  background-color: #fff;
+  color: #333;
+}
+
+.el-aside {
+    background-color: #D3DCE6;
+    color: #333;
+    text-align: center;
+    line-height: 200px;
+    border-right:  solid 1px #F366D7!important;
+}
+.member-main-top{
+    background: #fff;
+}
+.member-main-table{
+    margin-top: 10px;
+    /* width: 99%;
+    margin-left: 0.5%;
+    margin-right: 0.5%; */
+    height: 550px;
+    width: 100%;
+    background: #fff;
+}
+.el-main{
+    padding: 10px !important;
+}
+.member-center{
+    width: 96%;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+.member-main-top-buttom{
+    /* margin-top: 5px; */
+    display: flex;
+    height: 60px;
+    width: 100%;
+    align-items: center;
+    /* margin-left: 28px; */
+}
+.member-main-top-buttom .btn{
+    width: 50%;
+    display: flex;
+    align-items: center;
+    padding-top: 7px
+}
+.member-main-top-buttom .ipt{
+    width: 50%;
+    text-align: right;
+    padding-top:7px
+}
+.btm-list{
+    margin-right: 25px;
+}
+.member-main-top-type{
+    width: 100%;
+    /* margin-left: 28px; */
+}
+.top-input-conts{
+    display: flex;
+    width: 60%;
+    padding-bottom: 7px;
+}
+.top-input{
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 60px;
+    /* margin-left: 28px; */
+}
+.top-input .bottom{
+   text-align:right;
+   color:#409EFF;
+   width:40%;
+   padding-bottom: 7px;
+}
+.top-input-list{
+    margin-left: 30px;
+}
+.collaps-from {
+    width: 100%;
+    height: 500px;
+    margin-top: 10px;
+}
+.fade-enter-active, .fade-leave-active {
+    transition: opacity .2s
+}
+.fade-enter, .fade-leave-active {
+    opacity: 0
+}
+.memberType li{
+    float: left;
+    margin-right: 20px;
+    width: 80px;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-top: 5px;
+    border: solid 1px #E5E5E5;
+    font-size: 12px;
+    line-height: 28px;
+    cursor: pointer;
+}
+.memberType-secect{
+    background: #3399FF;
+    color: #fff;
+}
+input::-webkit-input-placeholder{
+    color: #C0C4CC;
+    font-size: 12px;
+}
+.content-table-center  >>>thead .el-table-column--selection .cell{
+    /* display: none!important; */
+}
+.member-detailed >>> .el-dialog__body{
+    padding: 0px 20px 30px 20px !important;
+}
+</style>
+

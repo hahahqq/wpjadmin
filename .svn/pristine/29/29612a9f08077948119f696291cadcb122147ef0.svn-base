@@ -1,0 +1,498 @@
+<template>
+    <div>
+        <!-- 基本信息 -->
+        <el-row>
+            <el-col :span="24">
+                <div class="rechargeTop">
+                    <el-row>
+                        <el-col class="rechargeTop-title">基本信息</el-col>
+                        <el-col class="rechargeTop-bacse">
+                            <el-form ref="ruleForm" :model="ruleForm" :rules="rules" label-width="80px" :hide-required-asterisk='true' :inline-message='true'>
+                                <el-form-item label="活动名称" prop="Name" >
+                                    <el-input v-model="ruleForm.Name" placeholder="如: 充值满100送20" style="width:80%;" size="small"></el-input>
+                                </el-form-item>
+                                <el-form-item label="活动时间" prop="dateBE">
+                                    <el-date-picker
+                                        v-model="ruleForm.dateBE"
+                                        type="daterange"
+                                        value-format="timestamp"
+                                        range-separator="至"
+                                        start-placeholder="开始日期"
+                                        end-placeholder="结束日期"
+                                        style="width:80%"
+                                        size="small"
+                                        class="inline-block"
+                                    ></el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="参与店铺" prop="region">
+                                    <el-radio-group v-model="ruleForm.region" @change="selectShop(ruleForm.region)">
+                                        <el-radio :label="-1">全部店铺</el-radio>
+                                        <el-radio :label="1">部分店铺</el-radio>
+                                    </el-radio-group>
+                                    <el-button v-if="goodshop" type="primary" size="small" style="margin-left:15px;" @click="selctShopList">选择店铺</el-button>
+                                </el-form-item>
+                                <el-form-item v-if="goodshoplist == true && ruleForm.region == 1">
+                                    <el-checkbox-group v-model="checkboxGroup1" @change="checkGroup" size="small">
+                                        <el-checkbox border v-for="city in shopList" :label="city.NAME" :key="city.NAME" >{{city.NAME}}</el-checkbox>
+                                    </el-checkbox-group>
+                                </el-form-item>
+                                <el-form-item label="是否启用">
+                                    <span style='width:20px; height:10px; float:left'> </span>
+                                    <el-switch v-model="ruleForm.IsStart" inactive-color="#999999" @change="changeIsStart"></el-switch>
+                                </el-form-item>
+                                <el-form-item label="是否翻倍">
+                                    <el-tooltip effect="dark" content="启用后按基础充值方案的倍数赠送金额，未启用自定义设置每个等级的赠送金额" placement="top-start">
+                                        <el-button type="text" style='color:#999' icon='el-icon-question'></el-button>
+                                    </el-tooltip>
+                                    <el-switch v-model='ruleForm.IsDouble' inactive-color="#999999" @change='changeIsDouble'></el-switch>
+                                </el-form-item>
+                            </el-form>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-col>
+        </el-row>
+
+        <!-- 营销内容 -->
+        <el-row>
+            <el-col :span="24">
+                <div class="rechargeTop m-top-sm">
+                    <el-row>
+                        <el-col class="rechargeTop-title">营销内容</el-col>
+                        <el-col class="rechargeTop-bacse" style="max-height:300px;overflow:auto" >
+                            <el-row v-for="(itemlist,indexs) in RechargeList" :key="indexs" v-show="itemlist.showRules">
+                                <el-col :span="3" style="text-align:right">规则{{itemlist.title}}</el-col>
+                                <el-col :span="20" class="rulesStyleBg">
+                                    <div class="rulesStyleBg-money">
+                                        充值
+                                        <el-input v-model.number="itemlist.Addmoney" style="width:100px" size="mini" @change="inputMoney(itemlist)"></el-input> 元 ,
+                                        送 
+                                        <el-input v-model.number="itemlist.Money" style="width:100px" size="mini"></el-input> 余额
+                                    </div>
+                                    <span class="del" @click="delRule(itemlist,indexs)">删除</span>
+                                </el-col>
+                            </el-row>
+                        </el-col>
+                    </el-row>
+                    <el-row style="height:36px;width:100%; margin-top:10px">
+                        <el-col :span="12" style="text-align:center"><el-button @click="addButtom" v-if='!ruleForm.IsDouble' icon="el-icon-plus" type="primary" size="small">添加规则</el-button></el-col>
+                        <el-col :span="12" style="text-align:center">注:最多可设置10个规则</el-col>
+                    </el-row>
+                </div>
+            </el-col>
+        </el-row>
+
+        <div class="full-width text-center m-top-md" >
+            <el-button type="primary" size="small" @click="addRechargeSave" :loading="loading">保 存</el-button>
+            <el-button size="small" @click="closeModals('closeModal')">取 消</el-button>
+        </div>
+    </div>
+</template>
+
+<script>
+import { GOODS_IMGURL } from "@/util/define";
+import { mapState, mapGetters } from "vuex";
+import { getHomeData, getUserInfo } from "@/api/index";
+export default {
+    props: {
+        dealType: {
+            type: Object,
+            default: function() {
+                return {
+                    type: "add",
+                    state: false,
+                    itemData:{}
+                }
+            }
+        }
+    },
+    data() {
+        return {
+            rules:{
+                Name: [{ required: true, message: '请输入活动名称', trigger: 'blur' ,}],
+                dateBE: [{ required: true, message: '请选择时间', trigger: 'change' }],
+                region: [{ required: true, message: '请选择参与店铺', trigger: 'blur' }]
+            },
+            loading:false,
+            ShopNameList:[],
+            delList:[],
+            goodshop: false,
+            goodshoplist:false,
+            checkboxGroup1:[],
+            ruleForm: {
+                Name: '',
+                region: -1,
+                IsStart:true,
+                IsDouble: false,
+                checkboxGroup1:'',
+                dateBE: [
+                    new Date().getTime(),
+                    new Date(this.getCustomDay(7)).getTime(),
+                ],
+                GiftList:[],
+                ShopName:[],
+                ShopList:[],
+                Id:''
+            },
+            RechargeList:[
+                {
+                    Id: '',
+                    title: '一',
+                    Addmoney: '',
+                    Money: '',
+                    showRules: true,
+                    IsCancel:0
+                }
+            ]
+        }
+    },
+    computed: {
+        ...mapGetters({
+            shopList: "shopList",
+            marketingRechargeAdd:"marketingRechargeAdd",
+            dealState:"marketingRechargeeit",
+            marketingRechargedetailed:"marketingRechargedetailed"
+        })
+    },
+    watch:{
+        dealType(data){
+            if(data.type == 'add'){
+                this.ruleForm={
+                    Name: '',
+                    region: '',
+                    IsStart:true,
+                    IsDouble:false,
+                    checkboxGroup1:'',
+                    dateBE: [
+                        new Date().getTime(),
+                        new Date(this.getCustomDay(7)).getTime(),
+                    ],
+                    GiftList:[],
+                    ShopName:[],
+                    ShopList:[],
+                    Id:'',
+                }
+                this.RechargeList=[{
+                    Id: '',
+                    title: '一',
+                    Addmoney: '',
+                    Money: '',
+                    showRules: true,
+                    IsCancel:0
+                }]
+                this.checkboxGroup1=[];
+            }else if(data.type == 'edit'){
+                this.ruleForm={
+                    Name: data.itemData.Obj.NAME,
+                    IsStart:data.itemData.Obj.ISSTART,
+                    IsDouble:data.itemData.Obj.ISDOUBLE,
+                    checkboxGroup1:data.itemData.Obj.SHOPNAME,
+                    dateBE: [data.itemData.Obj.BEGINDATE, data.itemData.Obj.ENDDATE],
+                    GiftList:[],
+                    Id: data.itemData.Obj.ID,
+                    ShopName: data.itemData.Obj.SHOPNAME.split(','),
+                    ShopList: data.itemData.Obj.SHOPLIST.split(',')
+                }
+
+                this.checkboxGroup1 = data.itemData.Obj.SHOPNAME.split(',')
+
+                if(this.shopList.length==this.checkboxGroup1.length){
+                    this.ruleForm.region=-1;
+                    this.goodshop=false;
+                    this.goodshoplist=false;
+                }else{
+                    this.ruleForm.region=1;
+                    this.goodshop=true;
+                    this.goodshoplist=true;
+                }
+                let RechargeList = data.itemData.GiftList, newRechargeList = []
+                for(var i in RechargeList){
+                    if(i==0){
+                        RechargeList[i].title = "一"
+                    }else if(i==1){
+                        RechargeList[i].title = "二"
+                    }else if(i==2){
+                        RechargeList[i].title = "三"
+                    }else if(i==3){
+                        RechargeList[i].title = "四"
+                    }else if(i==4){
+                        RechargeList[i].title = "五"
+                    }else if(i==5){
+                        RechargeList[i].title = "六"
+                    }else if(i==6){
+                        RechargeList[i].title = "七"
+                    }else if(i==7){
+                        RechargeList[i].title = "八"
+                    }else if(i==8){
+                        RechargeList[i].title = "九"
+                    }else if(i==9){
+                        RechargeList[i].title = "十"
+                    }
+                    newRechargeList.push({
+                        Id: RechargeList[i].ID,
+                        title: RechargeList[i].title,
+                        Addmoney: RechargeList[i].ADDMONEY,
+                        Money: RechargeList[i].MONEY,
+                        showRules: true,
+                        IsCancel: RechargeList[i].ISCANCEL
+                    })
+                }
+                this.RechargeList = newRechargeList
+            }
+        },
+        dealState(data){
+            console.log(data)
+            if(data.success){
+                this.closeModals('resetList')
+            }
+            this.$message({
+                type: data.success ? 'success' : 'error',
+                message: data.message
+            })
+        },
+        marketingRechargeAdd(data){
+            if(data.success){
+                this.closeModals('resetList')
+            }
+            this.$message({
+                type: data.success ? 'success' : 'error',
+                message: data.message
+            })
+        }
+    },
+    mounted(){
+        this.$store.dispatch("getShopList");
+    },
+    methods:{
+        closeModals(type) {
+            this.ruleForm={
+                Name: '',
+                region: '',
+                IsStart:true,
+                IsDouble: false,
+                checkboxGroup1:'',
+                dateBE: [
+                    new Date().getTime(),
+                    new Date(this.getCustomDay(7)).getTime(),
+                ],
+                GiftList:[],
+                ShopName:[],
+                ShopList:[],
+                Id:''
+            }
+            if (type == "resetList") {
+                this.$emit("resetList")
+            } else {
+                this.$emit("closeModal")
+            }
+        },
+        changeIsDouble(e){
+            if(e==true){
+                if(this.RechargeList.length > 1){
+                    this.$confirm('启用后，新增规则将自动删除只保留第一条规则', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.RechargeList = [this.RechargeList[0]]
+                    }).catch(() => {
+                        this.ruleForm.IsDouble = false
+                    })
+                }
+            }
+        },
+        selctShopList(){
+           this.goodshoplist=!this.goodshoplist;
+        },
+        addRechargeSave(){
+            console.log(this.ruleForm)
+            let sendData = {
+                Id: this.ruleForm.Id,
+                Name: this.ruleForm.Name,
+                GiftList : JSON.stringify(this.RechargeList),
+                BeginDate: this.ruleForm.dateBE[0],
+                EndDate: this.ruleForm.dateBE[1],
+                IsStart: this.ruleForm.IsStart ? 1 : 0,
+                IsDouble: this.ruleForm.IsDouble ? 1 : 0,
+                ShopList: this.ruleForm.ShopList,
+                ShopName: this.ruleForm.ShopName
+            }
+
+            if(this.dealType.type == 'add'){
+                this.$store.dispatch("getMarketingRechargeAdd",{data: sendData})
+            }else{
+                this.$store.dispatch("getMarketingRechargeEit",{data: sendData})
+            }
+        },
+        //删除规则
+        delRule(item,idx){
+            let IsCancel
+            if(this.RechargeList.length == 1){
+                this.$message.warning('至少要有一条规则 !');
+            }else{
+                for(var i in this.RechargeList){
+                   if(item.title==this.RechargeList[i].title){
+                        this.RechargeList[i].showRules=false;
+                        this.RechargeList[i].IsCancel=1;
+                        if(item.Id != ''){
+                            if(this.RechargeList[i].Id==item.Id){
+                                this.delList.push(this.RechargeList[i])
+                                this.RechargeList.splice(i,1)
+                            }
+                        }else{
+                            this.RechargeList.splice(i,1)
+                        }
+                   }
+               }
+            }
+            this.titleIdxName()
+        },
+        inputMoney(itemList){
+            let haveSameMoney = this.RechargeList.filter(item => item.Addmoney == itemList.Addmoney)
+            if(haveSameMoney.length > 1){
+                this.$message({
+                    message: '规则充值金额不可重复,请重新输入充值金额!', type: 'warning'
+                })
+                itemList.Addmoney = ''
+            }
+        },
+        checkGroup(e) {
+            let arrS = this.shopList, arr1 = e, new3 = [], new4 = []
+            for(var i in arrS){
+                for(var j in arr1){
+                    if(arrS[i].NAME == arr1[j]){
+                        new3.push(arrS[i].NAME)
+                        new4.push(arrS[i].ID)
+                    }
+                }
+            }
+            this.ruleForm.ShopName=new3;
+            this.ruleForm.ShopList=new4;
+            let str = '', id = '', new1 = this.ruleForm.ShopName, 
+            new2 = this.ruleForm.ShopList
+            for(let i in new1){
+                str += new1[i] + ','
+            }
+            if(str.length>0){  //去掉最后一个逗号
+                str=str.substring(0,str.length-1) 
+            }
+            this.ruleForm.ShopName=str;
+
+            for(let i in new2){
+                id += new2[i] + ','
+            }
+            if(id.length>0){  //去掉最后一个逗号
+                id=id.substring(0,id.length-1);
+            }
+            this.ruleForm.ShopList=id;
+        },
+        //选择门店事件
+        selectShop(index) { 
+            if(index==1){
+                this.checkboxGroup1=[]
+                this.goodshop=true;
+                this.goodshoplist = true
+            }else{
+                this.goodshop = false
+                this.goodshoplist = false
+                let shopName = [], shopList = []
+                for(var i in this.shopList){
+                    shopName.push(this.shopList[i].NAME)
+                    shopList.push(this.shopList[i].ID)
+                }
+                this.ruleForm.ShopName = shopName
+                this.ruleForm.ShopList = shopList
+                this.checkboxGroup1 = shopName
+            }
+            this.ruleForm.region = index
+        },
+        //启用不启用事件
+        changeIsStart(index) {
+            this.ruleForm.IsStart=index;
+        },
+        titleIdxName(){
+            let RechargeList = []
+            for(var i in this.RechargeList){
+                if(i==0){
+                    this.RechargeList[i].title = "一"
+                }else if(i==1){
+                    this.RechargeList[i].title = "二"
+                }else if(i==2){
+                    this.RechargeList[i].title = "三"
+                }else if(i==3){
+                    this.RechargeList[i].title = "四"
+                }else if(i==4){
+                    this.RechargeList[i].title = "五"
+                }else if(i==5){
+                    this.RechargeList[i].title = "六"
+                }else if(i==6){
+                    this.RechargeList[i].title = "七"
+                }else if(i==7){
+                    this.RechargeList[i].title = "八"
+                }else if(i==8){
+                    this.RechargeList[i].title = "九"
+                }else if(i==9){
+                    this.RechargeList[i].title = "十"
+                }
+                RechargeList.push(this.RechargeList[i])
+            }
+            this.RechargeList = RechargeList
+        },
+        addButtom() {
+            if(this.RechargeList.length < 10){
+                let Obj = {
+                    "Id":"",
+                    "title":"一",
+                    "Addmoney":'',
+                    "Integral":'',
+                    "Money":'',
+                    GoodsCountList:[],
+                    showRules:true,
+                    IsCancel:0
+                }
+                this.RechargeList.push(Obj)
+                this.titleIdxName()
+            }else{
+                this.$message.warning('最多只能添加10个规则');
+            }
+        },
+    }
+}
+</script>
+
+
+<style scoped>
+.rechargeTop-bacse >>>.el-form-item{
+    margin-bottom: 6px !important;
+}
+.rechargeTop{
+    width: 100%;
+    padding: 0 2% 10px;
+    background: #f2f2f6;
+    border-radius: 4px;
+    border:1px solid #cccccc;
+}
+.rechargeTop-title{
+    margin: 15px 0 0 5px;
+    font-weight: bold;
+}
+.rechargeTop-bacse{
+    margin-top: 10px;
+}
+.rulesStyleBg{
+    position: relative;
+    display: flex;
+    background: #ffffff;
+    border:1px solid #e4e4e4;
+    border-radius: 4px;
+    margin: 0 0 10px 15px;
+    padding: 10px 10px;
+}
+
+.del{
+    position: absolute;
+    right: 25px;
+    top: 16px;
+    color: #FE825E;
+}
+</style>

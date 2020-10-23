@@ -1,0 +1,79 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import App from './App'
+import store from './store/index'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+import Vuex from 'vuex'
+import VueRouter from 'vue-router'
+import routes from './router/index'
+
+import babelpolyfill from 'babel-polyfill'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import directive from './directive'
+import filter from './filter'
+import VueCropper from 'vue-cropper'
+
+// import Print from 'vue-print-nb'
+
+import '../static/css/fonts/elDialogCss.css'
+Vue.use(Vuex);
+Vue.use(VueRouter)
+Vue.use(VueAxios, axios)
+Vue.use(ElementUI);
+Vue.use(babelpolyfill)
+Vue.use(directive)
+Vue.use(filter)
+Vue.use(VueCropper)
+
+// Vue.use(Print);  //注册
+
+import { isPurViewFun } from "@/util/com/common.js";
+Vue.prototype.isPurViewFun = isPurViewFun
+
+// Vue.config.debug = true;
+Vue.config.productionTip = false;
+axios.defaults.headers.post['Content-Type'] = 'application/json;charset=UTF-8';
+axios.defaults.withCredentials = true; //让ajax携带cookie
+
+const router = new VueRouter({ routes })
+router.beforeEach((to, from, next) => {
+  let user = JSON.parse(sessionStorage.getItem('userFZBInfo'));
+  if (!user && to.path != '/login') {
+    next({ path: '/login' })
+  } else {
+    next()
+  }
+})
+
+Vue.directive('integerNum', {
+  bind: function (el) {
+    el.handler = function () {
+      let value = el.value
+      let reg = /^[1-9]\d*$/;
+      if (reg.test(value)) {
+        return;
+      } else {
+        value = 0;
+      }
+      el.value = value
+    }
+    el.addEventListener('change', el.handler)
+  },
+  unbind: function (el) {
+    el.removeEventListener('change', el.handler)
+  }
+})
+
+
+/* eslint-disable no-new */
+const app = new Vue({
+  el: '#app',
+  store,
+  render: h => h(App),
+  template: '<App/>',
+  components: { App },
+  router
+}).$mount('#app')

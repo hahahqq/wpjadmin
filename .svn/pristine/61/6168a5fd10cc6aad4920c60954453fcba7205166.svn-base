@@ -1,0 +1,412 @@
+<template>
+  <div>
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="会员概况" name="first">
+        <div style="width:760px;height:320px;">
+          <el-row v-if="dataProfile.obj" :gutter="10">
+            <el-col :xs="9" :sm="9" :md="9" :lg="9" :xl="9">
+              <!-- <div class="row-flex- flex-items-stretch- text-center">
+                <div class>
+                  <div class="hide">{{dataProfile}}</div>
+                  <img :src="dataProfile.obj.IMAGEURL ? dataProfile.obj.IMAGEURL:'static/images/header.png'"
+                    class="inline-block" style="width: 60px; border-radius:5%; max-width: 70px">
+                </div>
+                <div class="col-flex flex-between- full-width p-left-sm-">
+                  <span>{{dataProfile.obj.NAME}}</span>
+                  <span>电话：{{dataProfile.obj.MOBILENO}}</span>
+                </div>
+              </div> -->
+              <div class="memberGeneral">
+                  <div>
+                    <div class="hide">{{dataProfile}}</div>
+                    <img
+                      :src="dataProfile.obj.IMAGEURL?dataProfile.obj.IMAGEURL:'static/images/header.png'"
+                      class="inline-block memberImg"
+                      style="width: 60px; max-width: 70px;"
+                    >
+                  </div>
+                  <div class="col-flex flex-between- full-width p-left-sm- memberGeneral-name">
+                    <span class="membername">{{dataProfile.obj.NAME}}</span>
+                    <span>电话：{{dataProfile.obj.MOBILENO}}</span>
+                  </div>
+                </div>
+
+              <ul class="text-right clearfix m-top-sm vipSet">
+                <li class="paddingTB-sm">
+                  <span class="pull-left">余额：<span class="text-theme">{{dataProfile.obj.MONEY}}</span></span>
+                  <a @click="adjustFun('balanceAdjust')">调整</a>
+                  <a @click="activeName='fourth';">详情</a>
+                </li>
+                <li class="paddingTB-sm">
+                  <span class="pull-left">积分：<span class="text-theme">{{dataProfile.obj.INTEGRAL}}</span></span>
+                  <a @click="adjustFun('integralAdjust')">调整</a>
+                  <a @click="activeName='fifth';">详情</a>
+                </li>
+                <li class="paddingTB-sm">
+                  <span class="pull-left">欠款：<span class="text-theme">{{dataProfile.obj.OWEMONEY}}</span></span>
+                  <a @click="adjustFun('repayArrears')">还款</a>
+                  <a @click="activeName='six';">详情</a>
+                </li>
+                <li class="paddingTB-sm">
+                  <span class="pull-left">密码：{{dataProfile.obj.ISUSEPASSWD?'启用':'未开启'}}</span>
+                  <a @click="activeName='second';toEdit=true">设置</a>
+                  <!-- <a @click="showModifyPW = true">设置</a> -->
+                </li>
+              </ul>
+            </el-col>
+            <el-col :xs="15" :sm="15" :md="15" :lg="15" :xl="15">
+              <div class="paddingLR-sm">
+                <div class="row-flex text-center p-bottom-sm">
+                  <div class="right-line relative full-width">
+                    <div class="font-2x text-theme">{{dataProfile.obj.PAYCOUNT}}</div>
+                    <div>消费次数</div>
+                  </div>
+                  <div class="right-line relative full-width">
+                    <div class="font-2x text-theme">{{dataProfile.obj.PAYMONEY}}</div>
+                    <div>消费金额</div>
+                  </div>
+                  <div class="right-line- relative full-width">
+                    <div class="font-2x text-theme">{{dataProfile.obj.COUPONNUM}}</div>
+                    <div>优惠券</div>
+                  </div>
+                </div>
+                <ul class="p-left-lg paddingTB-sm ">
+                  <li class="paddingTB-sm">
+                    <span>最近一次消费：</span>
+                    <!-- <span v-if="dataProfile.total&&dataProfile.total.LastPaymeny.BILLDATE">
+                      {{new Date(dataProfile.total.LastPaymeny.BILLDATE) | time}}
+                      <i style='margin-left:20px'> 距今 [ {{dataProfile.total.LastPaymeny.BILLDATE | dateBetweenDay}} ] 天</i>
+                    </span> -->
+                    <!-- <span v-else>无</span> -->
+                  </li>
+                  <li class="paddingTB-sm">
+                    <span>单次最高消费：</span>
+                    <span
+                      v-if="dataProfile.total&&dataProfile.total.MaxPaymoney"
+                    >{{dataProfile.total.MaxPaymoney}}</span>
+                    <span v-else>0</span>
+                  </li>
+                  <li class="paddingTB-sm">
+                    <span>单次平均消费：</span>
+                    <span
+                      v-if="dataProfile.total&&dataProfile.total.AvgPaymoney"
+                    >{{dataProfile.total.AvgPaymoney}}</span>
+                    <span v-else>0</span>
+                  </li>
+                </ul>
+                <div
+                  v-if="dataProfile.objCount && dataProfile.objCount.length>0"
+                  class="m-left-lg m-top-md m-bottom-sm border-top"
+                >
+                  <div>消费最多</div>
+                  <div class="row-flex full-width m-top-sm">
+                    <div v-for="(item,i) in dataProfile.objCount" :key="i" v-if="i<3" class="full-width">
+                      <img :src="item.IMGURL" alt="" class="pull-left m-right-sm" width="36px" height="36px" onerror="this.src='static/images/shopmore.png'">
+                      <div>{{item.GOODSNAME}}</div>
+                      <div>{{item.CALCCOUNT}}次</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="详细信息" name="second" @click="xfjl(1)">
+        <div style="width:760px;height:320px;">
+          <el-row :gutter="20" v-if="!toEdit" class="relative">
+            <el-col :span="4">
+              <div class="hide">{{dataInfo}}</div>
+              <img :src="dataProfile.obj.IMAGEURL ? dataProfile.obj.IMAGEURL:'static/images/header.png'" class="inline-block" style="width: 60px; border-radius:10px; max-width: 70px;" >
+              <el-tooltip content="会员编辑" placement="top">
+                <el-button
+                  type="primary"
+                  icon="el-icon-edit"
+                  circle
+                  @click="toEdit=true"
+                  style="position:absolute; bottom:0; left:10px;"
+                ></el-button>
+              </el-tooltip>
+            </el-col>
+            <el-col :span="20">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <div class="infoText">
+                    
+                    <!-- <span>姓名</span><span>{{dataInfo.NAME}}</span> -->
+                    <span>姓名</span><span>{{dataProfile.obj.NAME}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <!-- <span>电话</span><span>{{dataInfo.MOBILENO}}</span> -->
+                    <span>电话</span><span>{{dataProfile.obj.MOBILENO}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <!-- <span>等级</span><span>{{dataInfo.LEVELNAME}}</span> -->
+                    <span>等级</span><span>{{dataProfile.obj.LEVELNAME}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <!-- <span>卡号</span><span>{{dataInfo.CODE}}</span> -->
+                    <span>卡号</span><span>{{dataProfile.obj.CODE}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <!-- <span>性别</span><span>{{dataInfo.SEX==0?'男':'女'}}</span> -->
+                    <span>性别</span><span>{{dataProfile.obj.SEX==0?'男':'女'}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <span>生日</span>
+                    <!-- <span v-if="dataInfo.BIRTHDATE">{{new Date(dataInfo.BIRTHDATE) | time }}</span> -->
+                    <span v-if="dataProfile.obj.BIRTHDATE">{{new Date(dataProfile.obj.BIRTHDATE) | time }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <span>密码</span>
+                    <!-- <span>{{dataInfo.ISUSEPASSWD?'会员已开启':'未启用'}}</span> -->
+                    <span>{{dataProfile.obj.ISUSEPASSWD?'会员已开启':'未启用'}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="12">
+                  <div class="infoText">
+                    <!-- <span>标签</span><span>{{dataInfo.VIPFLAG}}</span> -->
+                    <span>标签</span><span>{{dataProfile.obj.VIPFLAG}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="24">
+                  <div class='infoText'>
+                    <!-- <span>地址</span><span>{{dataInfo.ADDRESS}}</span> -->
+                    <span>地址</span><span>{{dataProfile.obj.ADDRESS}}</span>
+                  </div>
+                </el-col>
+                <el-col :span="24">
+                  <div class="infoText bg-gw">
+                    <!-- <span>备注</span><span>{{dataInfo.REMARK}}</span> -->
+                    <span>备注</span><span>{{dataProfile.obj.REMARK}}</span>
+                  </div>
+                </el-col>
+              </el-row>
+            </el-col>
+          </el-row>
+          <div v-if="toEdit">
+            <edit-member
+              @closeModal="toEdit=false"
+              @resetList="toEdit=false;getNewData();"
+              :dealType="{type:'edit',state:toEdit}"
+            ></edit-member>
+          </div>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="消费记录" name="third" @click='xfjl(2)'>
+        <div style="width:760px;height:320px;">
+          <spendingPage :pageState="activeName=='third'"></spendingPage>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="储值记录" name="fourth">
+        <div style="width:760px;height:320px;">
+          <balancePage :pageState="activeName=='fourth'"></balancePage>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="积分记录" name="fifth">
+        <div style="width:760px;height:320px;">
+          <integralPage :pageState="activeName=='fifth'"></integralPage>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="欠款记录" name="six">
+        <div style="width:760px;height:320px;">
+          <arrearsPage :pageState="activeName=='six'"></arrearsPage>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+    <el-dialog :width="width" :title="title" :visible.sync="isShowDeal" append-to-body>
+      <components
+        :is="componentName"
+        @closeModal="isShowDeal=false"
+        @resetData="getNewData();isShowDeal=false"
+        :theState="isShowDeal"
+        :theData="dataInfo"
+      ></components>
+    </el-dialog>
+
+    <el-dialog title="修改密码" :visible.sync="showModifyPW" append-to-body width="400px">
+      <el-form>
+        <el-form-item label="密码使用 :" style="margin-bottom:10px">
+          <el-switch v-model="isusePassWord"></el-switch>
+        </el-form-item>
+        <el-form-item label="会员密码 :">
+          <el-input v-model="passWord" style="width:200px" size="small" show-password='true' placeholder="请输入六位数字密码"></el-input>
+        </el-form-item>
+
+        <el-form-item style="margin-top:30px; text-align:center">
+          <el-button size="small" type="primary" @click="onSubmit">确认</el-button>
+          <el-button size="small" @click="showModifyPW = false">取消</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { mapState, mapGetters } from "vuex";
+import img from "@/assets/userdefault.png";
+import dayjs from 'dayjs'
+export default {
+  props: {
+    pageState: { type: Boolean, default: false },
+    isReport: { type: Boolean, default: false },
+    dataProfile : { type: Object, defalut:{} }
+  },
+  data() {
+    return {
+      passWord:'',
+      isusePassWord: false,
+      showModifyPW: false,
+      img: img,
+      activeName: "first",
+      activeName2: "",
+      toEdit: false,
+      componentName: "",
+      isShowDeal: false,
+      title: "",
+      width: "50%",
+      dateBeforeDay:0,
+      prevPayDate:''
+    };
+  },
+  computed: {
+    ...mapGetters({
+      dataInfo: "memberItemInfo"
+    })
+  },
+  watch: {
+    dataProfile(data){
+      console.log(data)
+    },
+    pageState(value) {
+      this.activeName = "first";
+      this.activeName2 = "first";
+      this.toEdit = false;
+    }
+  },
+  mounted(){
+    
+    // console.log(this.dataProfile)
+  },
+  methods: {
+    xfjl(value){
+      console.log(value)
+    },
+    onSubmit(){
+      var reg = /^\d{6}$/
+      if(reg.test(this.passWord)){
+        let sendData = {}
+        this.$store.dispatch('modifyPassWord', sendData)
+      }else{
+        this.$message.error('请输入6位数字密码')
+      }
+    },
+    dateBeforeDiff(todayDate, beforeDate){
+      var diff = todayDate - beforeDate
+      var days=Math.floor(diff/(24*3600*1000));
+      this.dateBeforeDay = days
+    },
+    handleClick(tab, event) {
+      if (this.activeName2 != this.activeName) {
+        this.toEdit = false;
+        this.activeName2 = tab.paneName;
+      }
+    },
+    getNewData() {
+      this.$store.dispatch("getMemberItem", this.dataInfo).then(() => {
+        this.$store.dispatch("getMemberItem2", this.dataInfo);
+      });
+    },
+    adjustFun(name) {
+      this.componentName = name;
+      this.width = "500px";
+      switch (name) {
+        case "repayArrears":
+          if(!this.isPurViewFun(91040117)){
+            this.$message.warning('没有此功能权限，请联系管理员授权!')
+            return 
+          }
+          this.title = "会员还款";
+          break;
+        case "balanceAdjust":
+          if(!this.isPurViewFun(91040118)){
+            this.$message.warning('没有此功能权限，请联系管理员授权!')
+            return 
+          }
+          this.title = "余额调整";
+          break;
+        case "integralAdjust":
+          if(!this.isPurViewFun(91040119)){
+            this.$message.warning('没有此功能权限，请联系管理员授权!')
+            return
+          }
+          this.title = "积分调整";
+          break;
+      }
+      this.isShowDeal = true;
+    }
+  },
+  components: {
+    editMember: () => import("@/components/member/add"),
+    spendingPage: () => import("@/components/member/spending"),
+    balancePage: () => import("@/components/member/balance"),
+    integralPage: () => import("@/components/member/integral"),
+    arrearsPage: () => import("@/components/member/arrears"),
+    repayArrears: () => import("@/components/member/repayArrears.vue"),
+    balanceAdjust: () => import("@/components/member/balanceAdjust.vue"),
+    integralAdjust: () => import("@/components/member/integralAdjust.vue")
+  }
+};
+</script>
+<style scoped>
+.infoText {
+  height: 46px;
+  line-height: 46px;
+  padding: 0 10px;
+}
+.infoText span:first-child {
+  display: inline-block;
+  width: 60px;
+}
+.right-line:after{
+  content: '';
+  position: absolute;
+  right:0;
+  top:20%;
+  width:1px;
+  height: 66%;
+  background: #ddd;
+}
+.vipSet li{
+  border-bottom: 1px solid #f2f2f2;
+}
+.vipSet li a{
+  display: inline-block; padding-left: 10px; cursor: pointer; color: #f00
+}
+.memberGeneral{
+  display: flex;
+}
+.memberGeneral .memberImg{
+  border-radius: 10px;
+}
+.memberGeneral-name{
+  margin-left: 20px;
+}
+.memberGeneral-name .membername{
+  font-weight: bold;
+  font-size: 18px;
+}
+</style>
+

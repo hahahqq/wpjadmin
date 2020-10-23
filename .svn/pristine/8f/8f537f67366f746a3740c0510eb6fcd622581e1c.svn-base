@@ -1,0 +1,135 @@
+<template>
+	<div id="user-mall" v-loading="loading">
+		<el-container>
+			<el-header style="padding: 0; height: 50px">
+				<headerPage></headerPage>
+			</el-header>
+
+			<el-container v-if="isRegister">
+				<div
+					class="text-center overflow-hidden relative"
+					style="width: 350px; margin: auto"
+					:style="{ height: height + 'px' }"
+				>
+					<img src="static/images/mall/weishangdian.png" alt class="inline-block" />
+					<div class="absolute full-width paddingLR-md" style="bottom: 3%; left: 0">
+						<el-button type="primary" round @click="registerFun" class="full-width">
+							免费体验
+						</el-button>
+					</div>
+				</div>
+			</el-container>
+			<el-container v-else>
+				<el-aside width="100px">
+					<section style="min-width: 100px">
+						<subMenu
+							:activePath="activePath"
+							:routesList="routesList"
+							:width="100"
+						></subMenu>
+					</section>
+				</el-aside>
+				<el-main :style="{ height: height + 'px' }" style="padding: 10px !important">
+					<router-view></router-view>
+				</el-main>
+			</el-container>
+		</el-container>
+	</div>
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+import { getUserInfo, getHomeData } from "@/api/index";
+export default {
+	data() {
+		return {
+			activePath: "",
+			routesList: [],
+			height: window.innerHeight - 50,
+			loading: false,
+			isRegister: false
+		};
+	},
+	computed: {
+		...mapGetters({
+			mallState: "mallState",
+			dataData: "mallData",
+			settingMallState: "settingMallState"
+		})
+	},
+	watch: {
+		mallState(data) {
+			if (data.success && this.loading) {
+				if (data.data.Obj && data.data.Obj.STOCKSHOPID) {
+					this.defaultData();
+				} else {
+					this.isRegister = true;
+				}
+			}
+			if (!data.success && this.loading) {
+				this.$message.error(data.message);
+			}
+			this.loading = false;
+		},
+		settingMallState(data) {
+			if (this.loading) {
+				if (data.success) {
+					this.getNewData();
+					this.defaultData();
+				} else this.$message.error(data.message);
+			}
+			this.loading = false;
+		},
+		$route(to, from) {
+			this.activePath = to.meta.name;
+			this.height = window.innerHeight - 50;
+		}
+	},
+	methods: {
+		registerFun() {
+			let sendData = {
+				NAME: "微商城",
+				MOBILENO: "",
+				PROVINCE: "",
+				CITY: "",
+				DISTRICT: "",
+				ADDRESS: "",
+				STOCKSHOPID: getHomeData().shop.ID
+			};
+			this.$store.dispatch("settingMall", sendData).then(() => {
+				this.loading = true;
+			});
+		},
+		getNewData() {
+			this.$store.dispatch("getSettingMall").then(() => {
+				this.loading = true;
+			});
+		},
+		defaultData() {
+			let rr = this.$router.options.routes;
+			let reportObj = rr.filter((item) => item.name === "mall");
+			this.routesList = [...reportObj[0].children[1].children];
+
+			this.$nextTick(() => {
+				this.activePath = this.$route.meta.name;
+			});
+			this.isRegister = false;
+		}
+	},
+	mounted() {
+		if (this.dataData.STOCKSHOPID) {
+			this.defaultData();
+		} else {
+			this.getNewData();
+		}
+	},
+	components: {
+		headerPage: () => import("@/components/header/header"),
+		subMenu: () => import("@/components/other/subMenu")
+	}
+};
+</script>
+<style>
+.bg-elMain {
+	background-color: #f4f5fa;
+}
+</style>

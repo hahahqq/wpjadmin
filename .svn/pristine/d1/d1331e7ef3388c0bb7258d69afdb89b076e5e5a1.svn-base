@@ -1,0 +1,275 @@
+<template>
+  <el-container>
+        <el-header style="height:50px; padding: 0">
+            <headerPage></headerPage>
+        </el-header>
+        <el-container>
+            <el-aside width="100px">
+                <section style="min-width:100px;">
+                <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+                </section>
+            </el-aside>
+            <el-container>
+                <el-main :style="{height:height+'px'}">
+                  <div class="parameter bg-white padding-sm full-width" style="display:table">
+                    <div class="setparametersock font-12">
+                      <ul>
+                        <li>
+                          <span> <i></i> 货号自动生成</span>
+
+                          <span v-if="ruleForm.IsAutoGoodsCode" style="margin-left: 20px">
+                              货号前缀 : <el-input size="small" v-model="ruleForm.AutoGoodsCode" style="width:70px;"></el-input>
+                              货号长度 : <el-input size="small" v-model="ruleForm.AutoGoodsNumber" style="width:70px;" type="number" @input="isOverLength(ruleForm.AutoGoodsNumber)"></el-input>
+                          </span>
+
+                          <el-switch v-model="ruleForm.IsAutoGoodsCode" active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right">
+                          </el-switch>
+                        </li>
+                        
+                        <li>
+                          <span> <i></i> 会员卡号自动生成</span>
+                          <el-switch v-model="ruleForm.autogenvipcode" active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right">
+                          </el-switch>
+                        </li>
+                        
+                        <li>
+                          <span> <i></i> 销售员必选</span>
+                          <el-switch v-model="ruleForm.isneedsaler" active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right">
+                          </el-switch>
+                        </li>
+
+                        <li>
+                          <span> <i></i> 消费结账允许选择销售日期 </span>
+                          <el-switch v-model="ruleForm.AllowSaleDate" active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right"></el-switch>
+                        </li>
+
+                        <li>
+                          <span> <i></i> 自动发送短信</span>
+                          <span style="color:#999; margin-left: 20px">启用后对应充值、消费、调整单据将发送相应短信通知</span>
+
+                          <el-switch v-model="autosendsms" @change='isshowautosendsms' active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right">
+                          </el-switch>
+
+                          <span v-if='autosendsms' style="width:100%; padding-left: 3%; margin-top: 10px; display:table" >
+                            <el-checkbox v-model="ruleForm.autosendaddsms">充值短信</el-checkbox>
+                            <el-checkbox v-model="ruleForm.autosendpaysms">消费短信</el-checkbox>
+                            <el-checkbox v-model="ruleForm.autosendchanagesms">调整短信</el-checkbox>
+                          </span>
+                        </li>
+
+                        <li>
+                          <span> <i></i> 默认积分倍率</span>
+                          <el-select size="small" style="margin-left:20px; width: 150px" v-model="ruleForm.integraltypeid" placeholder="请选择积分">
+                            <el-option v-for="item in pagelist" :key="item.ID" :label="item.NAME" :value="item.ID">
+                            </el-option>
+                          </el-select>
+                        </li>
+
+                        <li>
+                          <span> <i></i> 积分抵现设置</span>
+
+                          <span v-if="ruleForm.IsPayIntegral" style="margin-left: 20px">
+                            <el-input size="small" v-model="Integralsval" style="width:70px;border:none;" type="number"></el-input> 积分 = 1 元
+                          </span>
+
+                          <span style="color:#999; margin-left: 20px ">启用后会员结账时积分可按比例抵现</span>
+                          <el-switch v-model="ruleForm.IsPayIntegral" active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right">
+                          </el-switch>  
+                        </li>
+                        
+                        <li>
+                          <span> <i></i> 销售抹零设置 </span>
+                          <el-select size="small" style="margin-left:20px; width: 150px" v-model='ruleForm.ZeroType' placeholder="请选择抹零方式">
+                            <el-option v-for='item in zeroTypeList' :key='item.ID' :label="item.NAME" :value="item.ID"></el-option>
+                          </el-select>
+                        </li>
+
+                        <li>
+                          <span> <i></i>条码生成规则</span>
+                          <el-select size="small" style="margin-left: 20px; width:200px;" v-model="ruleForm.AutoBarcodeType">
+                            <el-option v-for="(item,index) in rulesBarCode" :key="index" :label="item.name" :value="item.value"></el-option>
+                          </el-select>
+                          <span style="color:#999; margin-left: 20px ">按系统规则生成13位数字条码，长度统一便于打印</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div class="tm-top-lg pull-left" style="margin:10px auto; text-align:right" >
+                      <el-button type="primary" @click="handleSubmit" :loading="loading" >保 存</el-button>
+                    </div>
+                  </div>
+              </el-main>
+            </el-container>
+        </el-container>
+    </el-container>
+</template>
+<script>
+import { mapState, mapGetters } from "vuex";
+import { getUserInfo } from '@/api/index'
+import MIXINS_SETUP from "@/mixins/setup";
+export default {
+  mixins: [MIXINS_SETUP.SIDERBAR_MENU],
+  data() {
+    return {
+      height:window.innerHeight -60,
+      ruleForm: {
+        IsAutoGoodsCode:false,
+        autogenvipcode: false,
+        isneedsaler: false,
+        autosendaddsms: false,
+        autosendpaysms: false,
+        autosendchanagesms: false,
+        IsPayIntegral: false,
+        AllowSaleDate: false,
+        integraltypeid: '',
+        IntegralRate: '',
+        AutoGoodsNumber:0,
+        AutoGoodsCode:0,
+        ZeroType:0,
+        AutoBarcodeType: 0
+      },
+      autosendsms: false,
+      Integralsval: '',
+      loading: false,
+      pagelist:[],
+      rulesBarCode:[{ name: '条码默认规则', value: 0 }, { name: '货号+颜色条码+尺码条码', value: 1 }],
+      zeroTypeList:[
+        { ID: 0, NAME: '不抹零' },
+        { ID: 1, NAME: '尾数抹零到元' },
+        { ID: 2, NAME: '尾数抹零到角' },
+        { ID: 3, NAME: '四舍五入到元' },
+        { ID: 4, NAME: '四舍五入到角' },  
+      ]
+    };
+  },
+  computed: {
+    ...mapGetters({
+      gparameterstate:'gparameterstate',
+      sparameterstate:'sparameterstate',
+      dataList: "integralList",
+      dataListState: "integralListState"
+    })
+  },
+  watch: {
+    gparameterstate(data){
+      let CompanyConfig=data.data.CompanyConfig;
+       if (Object.keys(CompanyConfig).length > 0) {
+        for (let key in this.ruleForm) {
+          let UCkey = key.toUpperCase();
+          this.ruleForm[key] = CompanyConfig[UCkey];
+        }
+        this.Integralsval=CompanyConfig.INTEGRALRATE;
+        if(CompanyConfig.AUTOSENDADDSMS || CompanyConfig.AUTOSENDCHANAGESMS || CompanyConfig.AUTOSENDPAYSMS){
+          this.autosendsms = true;
+        }else{
+          this.autosendsms = false;
+        }
+      }
+      
+    },
+    sparameterstate(data){
+      this.loading=false;
+      if(data.success){
+        this.$message.success("参数设置成功！");
+        
+        let userInfo = getUserInfo();
+        let sendData = {
+            AuthCode: userInfo.CompanyCode,
+            UserCode: userInfo.CODE2,
+            Password: userInfo.PPWW.slice(6, userInfo.PPWW.length),
+            AppType: 0,
+            VersionText: '',
+            IMEI: "",
+            platform: 0
+        }
+
+        this.$store.dispatch("toLogin", sendData)
+      }else{
+        this.$message(data.message);
+      }
+    },
+    dataListState(data) {
+      this.loading = false;
+      if (data.success) {
+        this.pagelist = [...this.dataList];
+      }
+    }
+  },
+  components: {
+    headerPage: () => import("@/components/header")
+  },
+  methods: {
+    isOverLength(num){
+      if(num > 25){
+        this.$message.warning('商品货号长度不能超过25位');
+        this.ruleForm.AutoGoodsNumber = 1
+      }
+    },
+    isshowautosendsms(){
+      if (this.autosendsms) {
+        this.ruleForm.autosendaddsms = true;
+        this.ruleForm.autosendpaysms = true;
+        this.ruleForm.autosendchanagesms = true;
+      }
+    },
+    defaultData() {
+      this.$store.dispatch("getparameterstate",{});
+    },
+    handleSubmit(){
+      this.loading=true;
+      this.ruleForm.IntegralRate=this.Integralsval;
+      if(this.autosendsms==false){
+        this.ruleForm.autosendaddsms = false;
+        this.ruleForm.autosendpaysms = false;
+        this.ruleForm.autosendchanagesms = false;
+      }
+      if(this.ruleForm.IsAutoGoodsCode == false){
+        this.ruleForm.AutoGoodsNumber = ''
+        this.ruleForm.AutoGoodsCode = ''
+      }
+      this.$store.dispatch("setparameterstate", this.ruleForm);
+    },
+  },
+  mounted() {
+    this.defaultData();
+    this.$store.dispatch("getIntegralList",{})
+  }
+};
+
+</script>
+
+<style scoped>
+.el-header{
+  padding: 0 !important;
+}
+.el-aside {
+  background-color: #D3DCE6;
+  color: #333;
+  text-align: center;
+  line-height: 200px;
+}
+.el-main{
+  padding: 10px
+}
+.parameter .el-radio-button__inner {
+  background: transparent;
+  border: 1px solid #dcdfe6;
+  width: 100%;
+}
+
+.setparametersock,
+.tm-top-lg {
+  width: 100%
+}
+
+.setparametersock ul li {
+  padding: 12px 0 12px 12px;
+  border-bottom: 1px dashed #ddd 
+}
+
+.IntegralRate input.el-input__inner {
+  border: none;
+  border-bottom: 1px solid #ff92ae;
+  text-align: center;
+}
+
+</style>

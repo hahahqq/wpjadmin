@@ -1,0 +1,1188 @@
+<template>
+  <div class="goodsAdd">
+    <el-form :inline="false" :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px">
+      <el-row :gutter="10">
+        <el-col :xs="24" :span="12">
+          <el-form-item label="商品名称" prop="Name">
+            <el-input v-model="ruleForm.Name" size='small' autocomplete="on" clearable placeholder="请输入名称"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12"> 
+          <el-form-item label="商品货号" prop="Code">
+            <el-input v-model="ruleForm.Code" size='small' autocomplete="off" clearable placeholder="请输入货号"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="颜色">
+            <el-input v-model="ruleForm.ColorList" size='small' autocomplete="off" placeholder="请选择颜色" @click.native="showsetcolorclick"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="尺码">
+            <el-input v-model="ruleForm.SizeList" size='small' autocomplete="off" placeholder="请选择尺码" @click.native='showsetSizeClick'></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="零售价" style="clear:left">
+            <el-input v-model.number="ruleForm.Price" size='small' @focus='delCurZero("LSJ")' @blur='showCurZero("LSJ")' type="number" min="0" clearable placeholder="请输入零售价格"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12" v-if='isPurViewFun(91040112)'>
+          <el-form-item label="采购价">
+            <el-input
+              size='small'
+              v-model.number="ruleForm.PurPrice"
+              @focus='delCurZero("CGJ")' @blur='showCurZero("CGJ")'
+              type="number"
+              clearable
+              min='0'
+              placeholder="请输入采购价格"
+            ></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="会员价">
+            <el-input v-model.number="ruleForm.VipPrice" size="small" @focus='delCurZero("HYJ")' @blur='showCurZero("HYJ")' type="number" min="0" clearable placeholder="请输入会员价"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="10">
+          <el-form-item label="分类">
+            <el-select v-model="ruleForm.TypeId" size='small' placeholder="请选择分类" class="full-width">
+              <el-option v-for="(item,i) in categoryList" :key="i" :label="item.NAME" :value="item.ID"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="2">
+          <el-button class='el-icon-plus marginTop4' type='primary' size="small" @click='showDialog("category","新增分类")'></el-button>
+        </el-col>
+        <el-col :xs="24" :sm="10">
+           <el-form-item label="供应商">
+            <el-select v-model="ruleForm.SupplierId" size='small' clearable placeholder="请选择供应商" class="full-width" >
+              <el-option v-for="(item,i) in datasupplierList" :key="i" :label="item.NAME" :value="item.ID"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="2">
+          <el-button class='el-icon-plus marginTop4' type='primary' size="small" @click='showAddSupplier = true'></el-button>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="商品条码">
+            <el-input v-model="ruleForm.Barcode" size='small' clearable placeholder="请输入条码"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="排序">
+            <el-input size='small' v-model.number="ruleForm.DescNo" type="number" clearable placeholder="请输入排序值"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="24">
+          <el-form-item label="库存预警" class="inline-block" style="width:49%;">
+            <el-switch v-model="ruleForm.Isstocktips" active-color="#409eff" inactive-color="#cccccc" active-text="开启" inactive-text="关闭" ></el-switch>
+          </el-form-item>
+          
+          <el-form-item v-if="ruleForm.Isstocktips" label="下限" class="inline-block pull-right" style="width:25%;">
+            <el-input size='small' v-model.number="ruleForm.Minstocknumber" @focus='delCurZero("KZXX")' @blur='showCurZero("KZXX")' type="number" min="1" clearable placeholder="下限"></el-input>
+          </el-form-item>
+          <el-form-item v-if="ruleForm.Isstocktips" label="上限" class="inline-block pull-right" style="width:25%;" >
+            <el-input size='small' v-model.number="ruleForm.Maxstocknumber" @focus='delCurZero("KZSX")' @blur='showCurZero("KZSX")' type="number" min="1" clearable placeholder="上限"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="24">
+          <el-form-item label="积分兑换" class="inline-block" style="width:49%;">
+            <el-switch size='small' v-model="ruleForm.IsGift" active-color="#409eff" inactive-color="#cccccc" active-text="开启" inactive-text="关闭"></el-switch>
+          </el-form-item>
+          <el-form-item v-if="ruleForm.IsGift" label="所需积分" class="inline-block pull-right" style="width:49.3%;">
+            <el-input size='small' v-model.number="ruleForm.GiftIntegral" @focus='delCurZero("JFDH")' @blur='showCurZero("JFDH")' type="number" min="1" clearable placeholder="请输入所需积分"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="24">
+          <el-form-item label="启用状态" class="inline-block" style="width:49%;">
+            <el-switch size='small' v-model="ruleForm.Status" active-color="#409eff" inactive-color="#cccccc" active-text="开启" inactive-text="关闭"></el-switch>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs='24' :sm="24" v-if='dataType.dealState == "add"'>
+          <el-form-item label="初始库存">
+            <el-button type="primary" size="small" @click='showAddStock' >添加</el-button>
+          </el-form-item>
+        </el-col>
+
+      </el-row>
+      <el-row>
+        <el-col :xs='24' :sm='24' style='border:1px solid #ccc; margin-bottom:6px; height:6px;border-radius:8px; background:#f2f2f2; '></el-col>
+      </el-row>
+      
+      <el-row :gutter="10">
+        <el-col :xs="24" :sm="10">  
+          <el-form-item label="品牌">
+            <el-select v-model="ruleForm.Brand" size='small' @change='getBrandId(ruleForm.Brand)' placeholder="请选择品牌" filterable class="full-width">
+              <el-option v-for="(item,i) in brandList" :key="i" :label="item.NAME" :value="item.NAME"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="2">
+          <el-button class='el-icon-plus marginTop4' type='primary' size="small" @click='showDialog("brand","新增品牌")'></el-button>
+        </el-col>
+
+        <el-col :xs="24" :sm="10">
+           <el-form-item label="单位">
+              <el-select v-model="ruleForm.UnitId" size='small' placeholder="请选择单位" class="full-width">
+                <el-option v-for="(item,i) in unitList" :key="i" :label="item.NAME" :value="item.ID"></el-option>
+              </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :xs="24" :sm="2">
+          <el-button class='el-icon-plus marginTop4' type='primary' size="small" @click='showDialog("unit","新增单位")'></el-button>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="年份">
+            <!-- <el-select v-model="ruleForm.Pyear" :loading="loadingGroup" size='small' placeholder="请选择年份" class="full-width">
+              <el-option v-for="(item,i) in PyearArr1" :key="i" :label="item" :value="item"></el-option>
+            </el-select> -->
+            <el-date-picker
+              style="width:100%"
+              v-model="ruleForm.Pyear"
+              type="year" size='small'
+              placeholder="选择年">
+            </el-date-picker>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="季节">
+           <el-select v-model="ruleForm.Season" size='small' placeholder="请选择季节" class="full-width">
+              <el-option v-for="(item,i) in Season" :key="i" :label="item.name" :value="item.name"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12"> 
+          <el-form-item label="材质">
+            <el-select allow-create filterable v-model="ruleForm.Material" :loading="loadingGroup" size='small' placeholder="请选择材质" @click.native="getattributeStatus(6)" class="full-width">
+              <el-option size='small' v-for="(item,i) in PyearArr6" :key="i" :label="item.NAMELIST" :value="item.NAMELIST"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="风格">
+            <el-select allow-create filterable v-model="ruleForm.Style" :loading="loadingGroup" size='small' placeholder="请选择风格" @click.native="getattributeStatus(7)" class="full-width">
+              <el-option size='small' v-for="(item,i) in PyearArr7" :key="i" :label="item.NAMELIST" :value="item.NAMELIST"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="款式">
+            <el-select allow-create filterable v-model="ruleForm.Style1" :loading="loadingGroup" size='small' placeholder="请选择款式" @click.native="getattributeStatus(8)" class="full-width">
+              <el-option size='small' v-for="(item,i) in PyearArr8" :key="i" :label="item.NAMELIST" :value="item.NAMELIST"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="产地">
+            <el-select allow-create filterable v-model="ruleForm.Provenance" :loading="loadingGroup" size='small' placeholder="请选择产地" @click.native="getattributeStatus(9)" class="full-width">
+              <el-option v-for="(item,i) in PyearArr9" :key="i" :label="item.NAMELIST" :value="item.NAMELIST"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="安全类别">
+            <el-select allow-create filterable v-model="ruleForm.SafetyCategory" :loading="loadingGroup" size='small' placeholder="请选择安全类别" @click.native="getattributeStatus(10)" class="full-width">
+              <el-option v-for="(item,i) in PyearArr10" :key="i" :label="item.NAMELIST" :value="item.NAMELIST"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="12">
+          <el-form-item label="执行标准">
+            <el-select allow-create filterable v-model="ruleForm.Standard" :loading="loadingGroup" size='small' placeholder="请选择执行标准" @click.native="getattributeStatus(11)" class="full-width">
+              <el-option v-for="(item,i) in PyearArr11" :key="i" :label="item.NAMELIST" :value="item.NAMELIST"></el-option>
+            </el-select>
+          </el-form-item>
+        </el-col>
+
+
+        <!-- <el-col :xs="24" :sm="24">
+          <el-form-item label="商品描述" class="clearfix">
+            <el-input v-model="ruleForm.Remark" size='small' clearable placeholder="商品描述不可超过 40 字" maxlength="40"></el-input>
+          </el-form-item>
+        </el-col> -->
+
+        <el-col :xs="24" :sm="24">
+          <el-form-item label="图片" class="clearfix">
+            <el-upload class="avatar-uploader"
+              action
+              ref="upload"
+              list-type="picture-card"
+              :on-remove="handleRemove"
+              :show-file-list="true"
+              :auto-upload="false"
+              :multiple="true"
+              :limit='6'
+              :file-list="fileList"
+              :on-exceed='exceedHandle'
+              :on-change="changeFile"
+            >
+              <i class="el-icon-plus"></i>
+            </el-upload>
+          </el-form-item>
+        </el-col>
+
+        <el-col :xs="24" :sm="24">
+          <el-form-item class="fformFooter text-left">
+            <el-button type="primary" @click="submitForm">保 存</el-button>
+            <el-button type='info' @click="closeModal">取 消</el-button>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+
+    <el-dialog title="设置颜色" width="770px" :close-on-click-modal="false" :visible.sync="showsetcolor" append-to-body>
+      <set-color @closeModal="showsetcolor=false" :colorData='colorData' @getColorDateclick="getColorDate" ref="modifyColor"></set-color>
+    </el-dialog>
+  
+    <el-dialog title='设置尺码' width='770px' :close-on-click-modal="false" :visible.sync='showsetSize' append-to-body :before-close="closeSizeDialog">
+      <set-size @closeModal='showsetSize=false' :sizeData='sizeData' @getSizeGroupID='getSizeGID' @getSizeDateclick='getSizeDate' ref='modifySize'></set-size>
+    </el-dialog>
+    
+    <el-dialog title='新增供应商' width="770px" :visible.sync='showAddSupplier' append-to-body>
+      <add-new-supplier @closeModal='showAddSupplier=false' @resetList='showAddSupplier=false' @resultSupplierArr='pullSupplierList' :dealSupplier="{value:1,dealState:'add'}"></add-new-supplier>
+    </el-dialog>
+
+    <!-- 新增分类、品牌、单位 -->
+    <el-dialog :title='addTitle' width="30%" :visible.sync='showAddCategory' append-to-body :before-close='closeAndReset'>
+      <el-form label-width="50px" :model="addCategoryInfo" ref='addCategoryInfo'>
+        <el-form-item label='名 称'>
+          <el-input type="text" size="small" v-model="addCategoryInfo.Name" placeholder="请输入名称"></el-input>
+        </el-form-item>
+        <el-form-item label='备 注'>
+          <el-input type="text" size="small" v-model="addCategoryInfo.Remark" placeholder="请输入备注"></el-input>
+        </el-form-item>
+      </el-form>
+      <div class="foote r_b text-center">
+        <el-button @click='closeAndReset'>取 消</el-button>
+        <el-button type="primary" @click='saveCategory'>保 存</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog title="初始库存" :visible.sync="showAddStockDialog" width="70%" append-to-body >
+      <section class="bg-whitepaddingLR-md full-width">
+        <el-row class="tac">
+          <el-col :span="5">
+            <div class="leftconent">
+              <ul>
+                <li>全部店铺</li>
+                <li v-for="(item,i) in newShopList" :key='i' @click="handleTabsEdit(item, i)" :class="{active:curtab==i}">
+                  <el-badge v-if='curtab == i' type='primary' is-dot></el-badge>
+                  <span v-else style="width:12px; height:10px; float:left "></span>
+                  <span>{{item.NAME}}</span>
+                  <span>( {{item.num}} )</span>
+                </li>
+              </ul>
+            </div>
+          </el-col>
+          <el-col :span="19" style="padding-left: 10px">
+            <span>点击颜色可批量设置该颜色的数量</span>
+            <div v-for='(item,index) in allShopColorSizeData' :key='index' >
+              <table class='tableStock m-top-sm' border='0' cellspacing='0' cellpadding='0' width='100%' v-if='curtab == index'>
+                <thead>
+                  <tr>
+                    <th style="width:100px">颜色</th> 
+                    <th v-for="(size,indexS) in item.currentSizes" :key="indexS">{{size.name}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(color, indexC) in item.currentColors" :key='indexC'>
+                    <td @click='batchAddNum(color, indexC)' class="namehover">
+                      {{color.NAME}}
+                    </td>
+                    <td v-for="(size,indexS) in item.currentSizes" :key="indexS" >
+                      <el-input type="number" v-model.number="color[size.SIZEID]" :min='1' @input="curShopTotalNum(curtab)"></el-input>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row style="width:100%; margin: 0 auto; text-align:center">
+          <el-button @click="showAddStockDialog = false">取 消</el-button>
+          <el-button type="primary" @click='submitSetStock'>确 定</el-button>
+        </el-row>
+      </section>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+import { mapState, mapGetters } from "vuex";
+import { CityInfo } from "@/assets/js/area.js";
+import { getUserInfo, getHomeData} from '@/api/index'
+import CRYPTO from "crypto-js";
+import dayjs from 'dayjs'
+const imageConversion = require("image-conversion")
+export default {
+  props: {
+    dataType: {
+      type: Object, 
+      default: function() {
+        return { value: 1, dealState: "add" }
+      }
+    }
+  },
+  data() {
+    let checkNumber = (rule, value, callback) => {
+      let myreg = /^[1-9]\d*\,\d*|[1-9]\d*$/;
+      if (!myreg.test(value)) {
+        callback(new Error("请输入正确的数值"))
+      } else {
+        callback()
+      }
+    }
+    return {
+      curSelect:'',
+      colorData:[],
+      sizeData:[],
+      showsetcolor: false,
+      showsetSize: false,
+      loadingGroup: false,
+      addType: '',
+      addTitle:'',
+      Season:[ { name:'春' },{ name:'夏' },{ name:'秋' },{ name:'冬' } ],
+      PyearArr1:[
+        dayjs().year(), dayjs().year() -1, dayjs().year() -2, dayjs().year() -3, dayjs().year() -4, dayjs().year() -5, dayjs().year() -6
+      ],
+      PyearArr6: [],
+      PyearArr7: [],
+      PyearArr8: [],
+      PyearArr9: [],
+      PyearArr10:[],
+      PyearArr11:[],
+      typeListStatu: '',
+      ruleForm: {
+        Code: "", Name: "", Price: 0, Status: true, PurPrice: 1,
+        Remark: "", UnitId: "", TypeId: "", Barcode: "", Brand:'',
+        IsGift: false, GiftIntegral: 0,
+        GoodsMode: 0, // 0=商品   1=服务项目
+        DescNo: 0, Material:'',
+        Minstocknumber: 0, Maxstocknumber: 0,
+        VipPrice: 0, ServiceMinute: 0,
+        IsReturnVisit: false, IsCycle: false,
+        SupplierId:'', ReturnVisitDay: 0, CycleDay: 0,
+        Pyear: JSON.stringify(dayjs().year()),
+        Season:'', Style:'', Style1:'',
+        Isstocktips:false, Provenance:'', Standard:'', SafetyCategory:'',
+        BrandId: ''
+      },
+      rules: {
+        Name: [{ required: true, message: "请输入名称",  trigger: "blur"}],
+        Code: [{ required: true, message: "请输入货号", trigger: "blur"}],
+        ColorList: [{required: true, message: "请选择颜色", trigger: "blur"}],
+        SizeList: [{ required: true, message: "请选择尺码", trigger: "blur"}]
+      },
+      addCategoryInfo:{ Name: '', Remark:''},
+      loading: false,
+      imgName: "",
+      isUpload: false,
+      showImg:false,
+      showAddCategory: false,
+      showAddSupplier: false,
+      showAddStockDialog: false,
+      colorChooseList:[],
+      sizeChooseList:[],
+      fileList:[],
+      defaultBarCode:[],
+      defaultImgList:[],
+      imgListData:[],
+      curGoodsID:'',
+      SizeGroupId:'',
+      curtab: 0,
+      curtabItem:{},
+      newShopList:[],
+      allShopColorSizeData:[],
+      GoodsStock:[],
+      CompanyCode:''
+    };
+  },
+  computed: {
+    ...mapGetters({
+      shopList: "shopList",
+      employeeList: "employeeList",
+      memberLevelList: "memberLevelList",
+      dataState: "goodsState",
+      dataList: "goodsList",
+      unitList: "unitList",
+      categoryList: "categoryList",
+      dataItem: "goodsItem",
+      uploadState: "goodsImgUploadState",
+      brandList:"goodsbrandList",
+      dataattributeState:"goodsattributeState",
+      datasupplierList:"goodssupplierList",
+      addGoodsCategoryState:'addGoodsCategoryState',
+      addGoodsBrandState:'addGoodsBrandState',
+      addGoodsUnitState:'addGoodsUnitState',
+      addImageState: 'addImageState',
+      AutoGoodCode:'getAutoGoodCodeState'
+    })
+  },
+  watch: {
+    AutoGoodCode(data){
+      if(data.success){
+        this.ruleForm.Code = data.data.Code
+      }else{
+        this.$message.error(data.message)
+      }
+    },
+    shopList(data){
+      let newArr = []
+      for(var i in data){
+        data[i].num = 0
+        newArr.push(data[i])
+      }
+      this.newShopList = newArr
+    },
+    addImageState(data){ },
+    addGoodsUnitState(data){  //保存单位状态
+      if(data.success){
+        this.showAddCategory = false
+        this.addCategoryInfo = { Name: '', Remark:''}
+        this.$store.dispatch("getUnitList", {})
+      }
+      this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+    },
+    addGoodsBrandState(data){  //保存品牌状态
+      if(data.success){
+        this.showAddCategory = false
+        this.addCategoryInfo = { Name: '', Remark:''}
+        this.$store.dispatch("getGoodsbrandList",{})
+      }
+      this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+    },
+    addGoodsCategoryState(data){  //保存分类状态
+      if(data.success){
+        this.showAddCategory = false
+        this.addCategoryInfo = { Name: '', Remark:''}
+        this.$store.dispatch("getCategoryList",{})
+      }
+      this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+    },
+    dataState(data) {  //获取商品列表数据
+      this.$message({ type: data.success ? 'success' : 'error', message: data.message })
+      this.loading = false;
+      if (data.success) {
+        let goodsID = data.data.OutId, imgList = this.fileList
+        let alreadyNum = imgList.filter(item => item.name =='')
+        let needAddList = imgList.filter(item => item.name !='')
+        this.curGoodsID = data.data.OutId
+        if(needAddList.length > 0){
+          for(let m=0; m<needAddList.length; m++){
+            let index = parseInt(m) + parseInt(alreadyNum.length)
+            let str = index > 0 ? '__'+ index : ''
+
+            let p = new Promise(function(resolve, reject){
+                let isLt2M = needAddList[m].size / 1024 / 1024 < 1 // 判定图片大小是否小于1MB
+                if (isLt2M) {
+                    resolve(needAddList[m].raw)
+                }
+                // 压缩到100KB,这里的100就是要压缩的大小,可自定义
+                imageConversion.compressAccurately(needAddList[m].raw, {
+                    size: 100,
+                    scale: 0.4
+                }).then(res => {
+                    resolve(res)
+                })
+            })
+
+            p.then((data)=>{
+                let that = this
+                this.blobToBase64(data, function(dataUrl){
+                    that.$store.dispatch("uploadGoodsImg", { 
+                        name: goodsID + `${str}.png`, 
+                        filePath: 'goodsimage',
+                        file: dataUrl
+                    })
+                })
+            })
+
+
+          }
+        }
+        else if( this.defaultImgList.length != alreadyNum.length && needAddList.length == 0){
+          let haveImgList = []
+          for(let i=0; i< imgList.length; i++){
+            let str = i == 0 ? '' : '__'+i
+            haveImgList.push(imgList[i].url)
+          }
+
+          for(let m =0; m< 6-imgList.length; m++){
+            haveImgList.push('')
+          }
+          let imgObj = { Image: haveImgList[0], Image1: haveImgList[1], Image2: haveImgList[2], Image3: haveImgList[3], Image4: haveImgList[4], Image5: haveImgList[5] }
+          imgObj.GoodsId = this.curGoodsID
+          this.$store.dispatch('addGoodsImg', imgObj).then(()=>{
+            this.closeModal('resetList')
+          })
+        } else{
+          this.closeModal('resetList')
+        }
+        let sendData = {
+          PN: 1,
+          Filter: "",
+          Status: 1,
+          TypeID: '', //商品类别ID
+          DescType: 0,
+          IsGift: -1,
+          YearList: '',
+          SeasonList: '',
+          BrandList: '',
+          CategoryList: '',
+          SexNameList: '',
+        }
+        this.$store.dispatch("getGoodsList3", sendData)
+      }else{
+        this.$message.warning(data.message)
+      }
+    },
+    uploadState(data) {
+      let ip = JSON.parse(sessionStorage.getItem('serverIP'))
+      let imgList = this.fileList
+      let alreadyNum = imgList.filter(item => item.name =='')
+      let needAddList = imgList.filter(item => item.name !='')
+      if(needAddList.length > 0){
+        let haveImgList = []
+        for(let i in alreadyNum){
+          haveImgList.push(alreadyNum[i].url)
+        }
+        for(let j = 0; j< needAddList.length; j++){
+          let index = parseInt(j) + parseInt(alreadyNum.length)
+          let str = index > 0 ? '__'+ index : ''
+          haveImgList.push( ip + '/resources/goodsimage/' + this.curGoodsID + `${str}.png`)
+        }
+
+        for(let i =0; i< 6-imgList.length; i++){
+          haveImgList.push('')
+        }
+
+        let imgObj = { Image: haveImgList[0], Image1: haveImgList[1], Image2: haveImgList[2], Image3: haveImgList[3], Image4: haveImgList[4], Image5: haveImgList[5] }
+        imgObj.GoodsId = this.curGoodsID
+        this.$store.dispatch('addGoodsImg', imgObj).then(()=>{
+          this.closeModal('resetList')
+        })
+      }
+    },
+    dataattributeState(data){ //6材质  7风格  8款式  9产地
+      if(data.success){
+        this.loadingGroup = false
+        if(this.typeListStatu == 6){
+          this.PyearArr6 = [...data.data.List]
+        }else if(this.typeListStatu == 7){
+          this.PyearArr7 = [...data.data.List]
+        }else if(this.typeListStatu == 8){
+          this.PyearArr8 = [...data.data.List]
+        }else if(this.typeListStatu == 9){
+          this.PyearArr9 = [...data.data.List]
+        }else if(this.typeListStatu == 10){
+          this.PyearArr10 = [...data.data.List]
+        }else if(this.typeListStatu == 11){
+          this.PyearArr11 = [...data.data.List]
+        }
+      }else{
+        this.$message.error(data.message)
+      }
+    },
+  },
+  methods: {
+    getBrandId(name){
+      let BrandObj = this.brandList.filter(item => item.NAME == name)
+      this.ruleForm.BrandId = BrandObj[0].ID
+    },
+    submitSetStock(){
+      let param = this.allShopColorSizeData, insertModels = [];
+      for(let m = 0; m <param.length; m++){
+        for(let i=0; i< param[m].currentColors.length; i++)	{
+          let color = param[m].currentColors[i];
+          for(let j=0; j< param[m].currentSizes.length; j++){
+            let size = param[m].currentSizes[j]
+            if(color[size.SIZEID] != undefined && color[size.SIZEID] != ''){
+              insertModels.push({
+                Qty: color[size.SIZEID],
+                SizeId: size.SIZEID,
+                ShopId: param[m].shopList.ID,
+                ColorId: color.COLORID
+              })
+            }
+          }
+        }
+      }
+      this.GoodsStock = insertModels
+      this.showAddStockDialog = false
+    },
+    batchAddNum(color, idx){
+      this.$prompt(`批量录入 ( ${color.NAME}  )`, '', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder:'请输入数字',
+        inputPattern: /[!^0-9.]/,
+        inputErrorMessage:'只能为数字'
+      }).then(({ value }) => {
+        let param = this.allShopColorSizeData,totalNum = 0;
+        for(var i =0; i< param.length; i++){
+          for(var j =0; j< param[this.curtab].currentSizes.length; j++ ){
+            param[this.curtab].currentColors[idx][param[this.curtab].currentSizes[j].SIZEID] = value
+          }
+
+          for(let n=0; n< param[i].currentColors.length; n++)	{
+
+            let color = param[i].currentColors[n];
+            for(let j=0; j< param[i].currentSizes.length; j++){
+              let size = param[i].currentSizes[j]
+              if(color[size.SIZEID] != undefined && color[size.SIZEID] != ''){
+                if(this.curtab == i){
+                  totalNum += Number(color[size.SIZEID])
+                }
+              }
+            }
+          }
+
+        }
+
+        this.newShopList[this.curtab].num = totalNum
+        this.$forceUpdate()
+      }).catch(()=>{ })
+    },
+    curShopTotalNum(i){
+      let param = this.allShopColorSizeData, totalNum = 0;
+      for(let m=0; m< param[i].currentColors.length; m++)	{
+        let color = param[i].currentColors[m];
+        for(let n=0; n< param[i].currentSizes.length; n++){
+          let size = param[i].currentSizes[n]
+          if(color[size.SIZEID] != undefined && color[size.SIZEID] != ''){
+            totalNum += Number(color[size.SIZEID])
+          }
+        }
+      }
+      this.newShopList[i].num = totalNum
+    },
+    handleTabsEdit(item, i) {
+      this.curtab = i;
+      this.curtabItem = item
+    },
+    showAddStock(){
+      if(this.ruleForm.ColorList == undefined || this.ruleForm.ColorList == ''){
+        this.$message.warning('请选择颜色 ！')
+      }else if(this.ruleForm.SizeList == undefined || this.ruleForm.SizeList == ''){
+        this.$message.warning('请选择尺码 ！')
+      }else{
+        this.showAddStockDialog = true
+      }
+    },
+    delCurZero(val){   //输入框获焦为 0 时，自动清除
+      if(val == 'LSJ'){
+        if(this.ruleForm.Price == 0){
+          this.ruleForm.Price = ''
+        }
+      }else if( val == 'CGJ'){
+        if(this.ruleForm.PurPrice == 0){
+          this.ruleForm.PurPrice = ''
+        }
+      }else if( val == 'KZXX'){
+        if(this.ruleForm.Minstocknumber == 0){
+          this.ruleForm.Minstocknumber = ''
+        }
+      }else if( val == 'KZSX'){
+        if(this.ruleForm.Maxstocknumber == 0){
+          this.ruleForm.Maxstocknumber = ''
+        }
+      }else if( val == 'JFDH'){
+        if(this.ruleForm.GiftIntegral == 0){
+          this.ruleForm.GiftIntegral = ''
+        }
+      }
+    },
+    showCurZero(val){  //输入框失焦为空 时，自动显示0
+      if(val == 'LSJ'){
+        if(this.ruleForm.Price == ''){
+          this.ruleForm.Price = 0
+        }
+      }else if( val == 'CGJ'){
+        if(this.ruleForm.PurPrice == ''){
+          this.ruleForm.PurPrice = 0
+        }
+      }else if( val == 'KZXX'){
+        if(this.ruleForm.Minstocknumber == ''){
+          this.ruleForm.Minstocknumber = 0
+        }
+      }else if( val == 'KZSX'){
+        if(this.ruleForm.Maxstocknumber == ''){
+          this.ruleForm.Maxstocknumber = 0
+        }
+      }else if( val == 'JFDH'){
+        if(this.ruleForm.GiftIntegral == ''){
+          this.ruleForm.GiftIntegral = 0
+        }
+      }
+    },
+    closeSizeDialog(){
+      this.showsetSize = false
+    },
+    getSizeGID(data){
+      if(data != '' && data != undefined){
+        this.SizeGroupId = data
+      }
+    },
+    exceedHandle(){
+      this.$message.warning('最多只能上传 6 张图片')
+    },
+    handleRemove(file, fileList) {
+      this.fileList = fileList
+    },
+    blobToBase64(blob, callback) { // Blob对象转Base64
+      let reader = new FileReader()
+      reader.readAsDataURL(blob);
+      reader.onload = function(e){
+        callback(e.target.result)
+      }
+    },
+    changeFile(file, fileList) {
+      const isPNG = file.name.substring(file.name.lastIndexOf('.')+1) === 'png' || file.name.substring(file.name.lastIndexOf('.')+1) === 'jpg' || file.name.substring(file.name.lastIndexOf('.')+1) === 'jpeg'
+      if (!isPNG) {
+        this.$message.error('上传头像图片只能是 PNG、jpg、jpeg 格式!');
+        fileList.pop()
+      }
+      let existFile = fileList.slice(0, fileList.length - 1).find(f => f.name === file.name)
+      if(existFile){
+        this.$message.error('当前文件已经存在!')
+        fileList.pop()
+      }
+      
+      this.fileList = fileList
+    },
+    imgList(data){
+      this.imgListData = data
+    },
+    showDialog(type, name){
+      this.addType = type
+      this.addTitle = name
+      this.showAddCategory = true
+    },
+    pullSupplierList(arr){
+      this.datasupplierList = [...arr]
+    },
+    saveCategory(){
+      if(this.addCategoryInfo.Name == ''){
+        this.$message.warning('名称不能为空 ！')
+        return
+      }
+
+      if(this.addType === 'category'){
+        this.$store.dispatch('addGoodsCategory',{ Name: this.addCategoryInfo.Name, Remark: this.addCategoryInfo.Remark })
+      }else if(this.addType === 'brand'){
+        this.$store.dispatch('addGoodsBrand', { Name: this.addCategoryInfo.Name, Remark: this.addCategoryInfo.Remark })
+      }else if(this.addType === 'unit'){
+        this.$store.dispatch('addGoodsUnit', { Name: this.addCategoryInfo.Name, Remark: this.addCategoryInfo.Remark })
+      }
+    },
+    closeAndReset(){
+      this.showAddCategory = false
+      this.addCategoryInfo = { Name: '', Remark: '' }
+    },
+    showsetcolorclick(){
+      this.showsetcolor = true;
+      this.$nextTick(() => {
+         this.$refs.modifyColor.showColorclick();
+      })
+    },
+    showsetSizeClick(){
+      this.showsetSize = true
+      this.$nextTick(() =>{
+        this.$refs.modifySize.showSizeClick()
+      })
+    },
+    getColorDate(data){
+      this.showsetcolor=false;
+      let str = ''
+      for(let i in data){
+        str += data[i].NAME + ','
+        data[i].Id = ''
+        data[i].COLORID = data[i].ID
+      }
+      if(str.length>0){  //去掉最后一个逗号
+        str=str.substring(0,str.length-1);
+      }
+      this.ruleForm.ColorList=str;
+      this.colorChooseList = data
+      this.colorSizeDataFun(data, this.sizeChooseList)
+      // this.currentColors = data
+    },
+    getSizeDate(data){
+      this.showsetSize = false
+      let str = ''
+      for(let i in data){
+        str += data[i].name + ','
+        data[i].SIZEID = data[i].id
+        data[i].SIZEBARCODENO = data[i].SIZEBARCODENO
+      }
+      if(str.length>0){  //去掉最后一个逗号
+        str=str.substring(0,str.length-1);
+      }
+      this.ruleForm.SizeList = str
+      this.sizeChooseList = data
+      this.colorSizeDataFun(this.colorChooseList, data)
+    },
+    colorSizeDataFun(data, data1){
+      let param = this.newShopList, newParam = []
+      for(var i in param){
+        newParam.push({
+          shopList: param[i],
+          currentColors: JSON.parse(JSON.stringify(data)),
+          currentSizes: JSON.parse(JSON.stringify(data1)),
+        })
+      }
+      this.allShopColorSizeData = newParam
+    },
+    closeModal(type) {
+      Object.assign(this.$data, this.$options.data());
+      if (type == "resetList") {
+        this.$emit("resetList")
+      } else {
+        this.$emit("closeModal");
+      }
+    },
+    submitForm() {
+      if(getUserInfo().CompanyCode.length < 11){
+        const h = this.$createElement;
+        this.$msgbox({
+          title: '提示',
+          message: h('p', null, [
+            h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ '),
+            h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+          ]),
+          showCancelButton: false,
+          confirmButtonText: '我知道了',
+          confirmButtonClass: 'btnFalses'
+        })
+
+        return
+      }
+      
+      let _this = this;
+      this.$refs.ruleForm.validate(valid => {
+        if (valid) {
+          _this.sendDataFun();
+        } else {
+          return false
+        }
+      })
+      
+    },
+    sendDataFun() {
+      if(this.colorChooseList.length == 0 || this.sizeChooseList.length == 0 ){
+        this.$message.warning('颜色和尺码不能为空 ！')
+        return
+      }
+      
+      let sendData = Object.assign({}, this.ruleForm, { GoodsMode: this.dataType.value - 1 })
+      let colorList = [], sizeList = []
+      for(let i=0;i<this.colorChooseList.length;i++){
+        colorList.push({ Id : '', ColorId : this.colorChooseList[i].ID })
+      }
+      this.ruleForm.ColorList = colorList
+
+      for(let j=0;j<this.sizeChooseList.length;j++){
+        sizeList.push({ Id : '', SizeId : this.sizeChooseList[j].id })
+      }
+      this.ruleForm.SizeList = sizeList
+
+      let colorListBeans = this.colorChooseList, sizeListBeans = this.sizeChooseList, singleBarBeans = []
+      for (var i = 0; i < colorListBeans.length; i++) {
+        let colorListBean = colorListBeans[i];
+        let barCodeList = []
+        for (let j = 0; j < sizeListBeans.length; j++) {
+          let cmBean = sizeListBeans[j]
+          barCodeList.push({
+            'ColorBarCodeNo' : colorListBean.COLORBARCODENO,
+            'ColorId' : colorListBean.COLORID,
+            'SizeBarCodeNo' : cmBean.SIZEBARCODENO,
+            'SizeId' : cmBean.SIZEID,
+            'BarCode' : this.ruleForm.Barcode == undefined ? this.ruleForm.Barcode : ""
+          })
+        }
+        singleBarBeans.push(barCodeList)
+      }
+
+      let newarr=[]
+      for(var i=0;i<singleBarBeans.length;i++){
+        newarr=newarr.concat(singleBarBeans[i])
+      }
+
+      let arr1 = newarr, arr2 = this.defaultBarCode, arr3 = [], arr4 = [], arr5 = []
+      if(arr2.length > 0){
+        for(var i=0; i< arr1.length; i++){
+          for(var j =0; j< arr2.length;j++){
+            if(arr1[i].SizeId == arr2[j].SizeId && arr1[i].ColorId == arr2[j].ColorId){
+              arr3.push(arr1[i])
+              arr4.push(arr2[j])
+            }
+          }
+        }
+        arr5 = arr1.filter(item=>!arr3.some(ele=>ele.ColorId==item.ColorId && ele.SizeId == item.SizeId))
+      }else{
+        arr5 = newarr
+      }
+
+      let arr6 = arr4.concat(arr5)
+      sendData.IsReturnVisit = false;
+      sendData.ReturnVisitDay = 0;
+      sendData.IsCycle = false;
+      sendData.CycleDay = 0;
+      sendData.ServiceMinute = 0;
+      sendData.ColorList = JSON.stringify(colorList)  //颜色明细
+      sendData.SizeList = JSON.stringify(sizeList) //尺码明细
+      sendData.BarCodeList = JSON.stringify(arr6) //条码明细
+      sendData.SizeGroupId = this.SizeGroupId
+
+      if(this.dataType.dealState == 'add'){
+        sendData.GoodsStock = JSON.stringify(this.GoodsStock)   // 商品初始库存
+      }
+      
+      if (this.dataType.dealState == "edit") {
+        sendData.Id = this.dataItem.obj.ID;
+        sendData.GoodsMode = this.ruleForm.GoodsMode
+      }
+
+      sendData.Pyear = this.ruleForm.Pyear != null ? dayjs(this.ruleForm.Pyear).year() : ''
+
+      this.$store.dispatch('dealGoods', {
+        type: this.dataType.dealState, data: sendData
+      })
+    },
+    defaultData() {
+      this.imgName = '';
+      if (this.dataType.dealState == "edit") {
+        let item = this.dataItem.obj
+        for (let key in this.ruleForm) {
+          let kk = key.toUpperCase();
+          this.ruleForm[key] = item[kk];
+        }
+        this.ruleForm.Pyear = JSON.stringify(item.PYEAR)
+        this.ruleForm.Status = item.STATUS == 1 ? true : false;
+        this.ruleForm.BrandId = item.BRANDID != undefined ? item.BRANDID : ''
+        this.ruleForm.Provenance = item.PROVENANCE != undefined ? item.PROVENANCE : ''
+        this.ruleForm.SafetyCategory = item.SAFETYCATEGORY != undefined ? item.SAFETYCATEGORY : ''
+        this.ruleForm.Season = item.SEASON != undefined ? item.SEASON : ''
+        this.ruleForm.Material = item.MATERIAL != undefined ? item.MATERIAL : ''
+        this.ruleForm.Style = item.STYLE != undefined ? item.STYLE : ''
+        this.ruleForm.Style1 = item.STYLE1 != undefined ? item.STYLE1 : ''
+
+        this.imgListDefault()
+        this.barCodeDefault()
+        this.colorListDefault()
+        this.sizeListDefault()
+        this.imgName = this.dataItem.obj.ID;
+      }else{
+        if(getUserInfo().CompanyConfig.ISAUTOGOODSCODE ){
+          this.$store.dispatch('getAutoGoodCode',{})
+        }
+      }
+      this.showImg = !this.showImg;
+    },
+    getattributeStatus(status){
+      this.loadingGroup = true
+      this.typeListStatu = status
+      this.getAttributeDateFun(status);
+    },
+    getAttributeDateFun(FieldId){
+      this.$store.dispatch("getGoodsattributeList", { FieldId : FieldId })
+    },
+    barCodeDefault(){
+      let barCodeList = this.dataItem.BarCodeList, defaultBarCode = []
+      for(var i in barCodeList){
+        defaultBarCode.push({
+          'ColorBarCodeNo' : barCodeList[i].COLORBARCODENO,
+          'ColorId' : barCodeList[i].COLORID,
+          'SizeBarCodeNo' : barCodeList[i].SIZEBARCODENO,
+          'SizeId' : barCodeList[i].SIZEID,
+          'BarCode' : barCodeList[i].BARCODE
+        })
+      }
+      this.defaultBarCode = defaultBarCode
+    },
+    imgListDefault(){
+      let fileList = this.dataItem.ImgList, newFileList = []
+      for(let i in fileList){
+        fileList[i].name = ''
+        fileList[i].row = {}
+        fileList[i].url = fileList[i].IMAGE
+        newFileList.push(fileList[i])
+      }
+      this.defaultImgList = newFileList
+      this.fileList = newFileList
+    },
+    colorListDefault(){
+      let colorList = this.dataItem.ColorList, str = '', newArr = []
+      this.colorData = colorList
+      for(let i in colorList){
+        str += colorList[i].COLORNAME + ','
+        newArr.push({
+          Id:'', ID:colorList[i].COLORID, COLORBARCODENO: colorList[i].COLORBARCODENO, COLORID: colorList[i].COLORID, GOODSID: this.dataItem.obj.ID
+        })
+      }
+      this.colorChooseList = newArr
+      if(str.length>0){  //去掉最后一个逗号
+        str=str.substring(0,str.length-1);
+      }
+      this.ruleForm.ColorList=str
+    },
+    sizeListDefault(){
+      let sizeList = this.dataItem.SizeList, str = '',newArr = []
+      this.SizeGroupId = this.dataItem.obj.SIZEGROUPID
+      this.sizeData = sizeList
+      for(let i in sizeList){
+        str += sizeList[i].SIZENAME + ','
+        newArr.push({
+          Id:'', id: sizeList[i].SIZEID, SIZEBARCODENO: sizeList[i].SIZEBARCODENO, SIZEID: sizeList[i].SIZEID, GOODSID: this.dataItem.obj.ID
+        })
+      }
+      this.sizeChooseList = newArr
+
+      if(str.length>0){  //去掉最后一个逗号
+        str=str.substring(0,str.length-1)
+      }
+      this.ruleForm.SizeList = str
+    }
+  },
+  mounted() {
+    this.$store.dispatch("getShopList")
+    this.defaultData()
+  },
+  beforeCreate() {
+    this.$store.dispatch("getUnitList", {})
+    this.$store.dispatch("getCategoryList",{})
+    this.$store.dispatch("getGoodsbrandList",{})
+    this.$store.dispatch("getGoodssupplierList",{})
+  },
+  components: {
+    uploadImg: () => import("@/components/other/uploadImg.vue"),
+    dropDown :() => import("@/components/dropdown.vue"),
+    setColor :() => import("@/components/goods/setColor.vue"),
+    setSize :() => import('@/components/goods/setSize.vue'),
+    addNewSupplier :()=> import('@/components/goods/addNewSupplier.vue'),
+    imgUpload:() => import("@/components/goods/addImg.vue")
+  }
+}
+</script>
+  
+<style>
+.btnFalses{
+    background-color: white !important;
+    color: #409eff !important;
+    border: 0
+  }
+</style>
+
+<style lang="scss" scoped>
+  .el-upload-list--picture-card .el-upload-list__item{ width:80px;height: 80px;}
+  .el-upload-list--picture-card .el-upload-list__item-thumbnail{
+    width:70px; height: 70px; padding: 5px;
+  }
+  .input_el_cursor .el-input__inner {
+    cursor: pointer !important;
+  }
+.goodsAdd .half {
+  width: 50%;
+  margin-right: 0;
+  float: left
+}
+.goodsAdd .el-form-item{
+  margin-bottom: 20px;
+}
+.goodsAdd .half .el-date-editor.el-input {
+  width: 100% !important;
+}
+.goodsAdd .el-form-item__content {
+  line-height: 40px;
+}
+.selectactivea{
+  width: 100%;
+  display: inline-block;
+  height: 39px;
+  border-radius: 3px;
+  border: 1px solid #C7C7C7;
+  line-height: 332px;
+  outline: none;
+  padding-left: 15px;
+  -webkit-appearance: menulist;
+}
+.inputactivea{
+  width: 90%;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  display: inline-block;
+  height: 39px;
+  border-radius: 3px;
+  border: 1px solid #C7C7C7;
+  outline: none;
+  padding-left: 15px;
+}
+.marginTop4{ margin-top: 4px}
+.leftconent{
+  height: 320px;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+}
+
+.leftconent ul li {
+  position: relative;
+  padding: 6px 12px;
+  color: #333;
+  cursor: pointer;
+}
+.leftconent ul li:hover{ 
+  color:#333
+}
+.leftconent ul li.active {
+  color:#0066FF;
+}
+.leftconent ul li span {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.tableStock{
+  text-align: center;
+  thead{
+    background:#409eff; color:#fff; height:36px; line-height:36px;
+    tr{
+      th{
+        border-right:1px solid #fff
+      }
+    }
+  }
+  tbody{
+    tr{
+      height: 36px; line-height: 36px;
+      td{
+        border:1px solid #ebeef5;
+        input{
+          border:none; height: 36px; line-height: 36px; width: 100%; text-align: center
+        }
+        input:hover{
+          outline: 1px solid #409eff;
+        }
+      }
+    }
+  }
+}
+.namehover{
+  text-decoration: underline; color:#409eff;
+}
+.namehover:hover{
+  color:#333; cursor: pointer;
+}
+
+</style>
