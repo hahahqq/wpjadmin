@@ -487,7 +487,7 @@ textarea{ width: 100%; }
 .font-600 {
   font-weight: 600;
 }
-.text-red { 
+.text-red {
   color: red
 }
 .text-white {
@@ -572,7 +572,7 @@ textarea{ width: 100%; }
   background-color: #e36159;
 }
 .bg-f5f5f5{
-  background: #f5f5f5; 
+  background: #f5f5f5;
 }
 .bg-f2f2f2{
   background-color: #f2f2f2;
@@ -738,11 +738,11 @@ textarea{ width: 100%; }
   content:'';
   clear: both;
 }
-.clear-left{ 
-  clear: left; 
+.clear-left{
+  clear: left;
 }
-.clear-right{ 
-  clear: right; 
+.clear-right{
+  clear: right;
 }
 .pointer{
   cursor: pointer;
@@ -755,7 +755,7 @@ textarea{ width: 100%; }
 }
 
 /*文字内容溢出*/
-.text-overflow-fag{ 
+.text-overflow-fag{
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -790,51 +790,51 @@ textarea{ width: 100%; }
   -moz-flex-direction: row;
   flex-direction: row;
   -webkit-justify-content: space-around;
-  -ms-justify-content: space-around; 
-  -moz-justify-content: space-around; 
-  justify-content: space-around; 
+  -ms-justify-content: space-around;
+  -moz-justify-content: space-around;
+  justify-content: space-around;
 
 }
 .col-flex {
   display: -webkit-box;
-  display: -moz-box; 
-  display: -webkit-flex; 
+  display: -moz-box;
+  display: -webkit-flex;
   display: -moz-flex;
-  display: -ms-flexbox; 
-  display: flex; 
+  display: -ms-flexbox;
+  display: flex;
   -webkit-flex-direction: column;
   -ms-flex-direction: column;
   -moz-flex-direction: column;
   flex-direction: column;
   -webkit-justify-content: space-around;
-  -ms-justify-content: space-around; 
-  -moz-justify-content: space-around; 
-  justify-content: space-around; 
+  -ms-justify-content: space-around;
+  -moz-justify-content: space-around;
+  justify-content: space-around;
 }
 /*justify-content 用于设置或检索弹性盒子元素在主轴（横轴）方向上的对齐方式。*/
 .flex-start{
-  -webkit-justify-content:flex-start; 
-  -ms-justify-content:flex-start; 
-  -moz-justify-content:flex-start; 
-  justify-content:flex-start; 
+  -webkit-justify-content:flex-start;
+  -ms-justify-content:flex-start;
+  -moz-justify-content:flex-start;
+  justify-content:flex-start;
 }
 .flex-end{
-  -webkit-justify-content:flex-end; 
-  -ms-justify-content:flex-end; 
-  -moz-justify-content:flex-end; 
-  justify-content:flex-end; 
+  -webkit-justify-content:flex-end;
+  -ms-justify-content:flex-end;
+  -moz-justify-content:flex-end;
+  justify-content:flex-end;
 }
 .flex-center{
-  -webkit-justify-content:center; 
-  -ms-justify-content:center; 
-  -moz-justify-content:center; 
-  justify-content:center; 
+  -webkit-justify-content:center;
+  -ms-justify-content:center;
+  -moz-justify-content:center;
+  justify-content:center;
 }
 .flex-between{
-  -webkit-justify-content:space-between; 
-  -ms-justify-content:space-between; 
-  -moz-justify-content:space-between; 
-  justify-content:space-between; 
+  -webkit-justify-content:space-between;
+  -ms-justify-content:space-between;
+  -moz-justify-content:space-between;
+  justify-content:space-between;
 }
 
 /*align-items 属性定义flex子项在flex容器的当前行的侧轴（纵轴）方向上的对齐方式。*/
@@ -842,7 +842,7 @@ textarea{ width: 100%; }
   -webkit-align-items:flex-start;
   -ms-align-items:flex-start;
   -moz-align-items:flex-start;
-  align-items:flex-start; 
+  align-items:flex-start;
 }
 .flex-items-end{
   -webkit-align-items:flex-end;
@@ -875,10 +875,10 @@ textarea{ width: 100%; }
  * flex子项
 */
 .align-self-start {
-  -webkit-align-self: flex-start; 
-  -ms-align-self: flex-start; 
-  align-self: flex-start; 
-  align-self: flex-start; 
+  -webkit-align-self: flex-start;
+  -ms-align-self: flex-start;
+  align-self: flex-start;
+  align-self: flex-start;
 }
 .align-self-end {
   -webkit-align-self: flex-end;
@@ -894,7 +894,7 @@ textarea{ width: 100%; }
 }
 
 /*
- * flex-grow 属性用于设置或检索弹性盒子的扩展比率 
+ * flex-grow 属性用于设置或检索弹性盒子的扩展比率
  * flex子项
  */
 .flex-grow-1{  flex-grow:1; }
@@ -942,7 +942,7 @@ textarea{ width: 100%; }
   -webkit-order: 4;
   -ms-order: 4;
   -moz-order: 4;
-  order: 4; 
+  order: 4;
 }
 .flex-order-5 {
   -webkit-order: 5;
@@ -1041,6 +1041,7 @@ textarea{ width: 100%; }
   left: 10px;
   right: 10px;
   background: #fff!important;
+  font-size: 12px
 }
 
 .useIntegral1{
@@ -1060,4 +1061,7 @@ textarea{ width: 100%; }
 
 .el-dialog{
   margin-top: 10vh !important
+}
+.bbb{
+
 }
