@@ -1041,7 +1041,6 @@ textarea{ width: 100%; }
   left: 10px;
   right: 10px;
   background: #fff!important;
-  font-size: 12px
 }
 
 .useIntegral1{
@@ -1061,7 +1060,4 @@ textarea{ width: 100%; }
 
 .el-dialog{
   margin-top: 10vh !important
-}
-.bbb{
-
 }
