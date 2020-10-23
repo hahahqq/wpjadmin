@@ -478,8 +478,5 @@ export default {
 .exportRowStyle:hover{
   background: #ecf5ff
 }
-.bbb{
-   margin-top: 10px
-}
 </style>
 
