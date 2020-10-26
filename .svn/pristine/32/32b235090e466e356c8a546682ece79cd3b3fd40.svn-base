@@ -1,0 +1,304 @@
+body {
+   font: normal normal 14px/1.3 "Microsoft YaHei", "FontAwesome";
+   -webkit-font-smoothing: antialiased;
+   -moz-osx-font-smoothing: grayscale;
+   background-color: #eee;
+   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+   -webkit-user-drag: none;
+   touch-action: manipulation;
+   box-sizing: border-box;
+   vertical-align: middle;
+   text-align: left;
+}
+
+.text-999 {
+   color: #999;
+}
+.text-a9 {
+   color: #a9a9a9;
+}
+
+.text-theme {
+   color: #409eff !important;
+}
+
+.bg-theme {
+   /* background-color: #409EFF !important; */
+   background-color: #32404c !important;
+   color: #e4e7eb;
+}
+
+.bg-default {
+   background-color: #f5f5f5 !important;
+}
+
+.bg-gw {
+   background-color: #eef3f6 !important;
+}
+
+.bg-f5 {
+   background-color: #f5f5f5 !important;
+}
+
+.border-color {
+   border-color: #409eff !important;
+}
+
+.font-13 {
+   font-size: 13px;
+}
+.font-15 {
+   font-size: 15px;
+}
+.header {
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   background-color: white;
+   height: 54px;
+}
+
+.has-header {
+   padding-top: 54px;
+}
+
+/* -----------[ ui el ]----------- */
+.el-table th {
+   background-color: inherit !important;
+}
+.el-menu-item i,
+.el-submenu__title i {
+   color: #fff !important;
+   width: 20px;
+   display: inline-block;
+}
+.el-submenu__icon-arrow {
+   margin-top: -4px !important;
+}
+
+.el-button--primary.is-plain.isActive,
+.el-button--primary.is-plain:focus,
+.el-button--primary.is-plain:hover {
+   background: #409eff !important;
+   border-color: #409eff !important;
+   color: #fff;
+}
+.el-dialog__header {
+   text-align: center;
+   padding: 10px 20px !important;
+}
+.el-dialog .el-dialog__body {
+   border-top: 1px solid #ddd !important;
+   padding: 20px 20px !important;
+}
+
+.recharge1 .el-dialog .el-dialog__body {
+   /* border-top: 1px solid #ddd !important;  */
+   border-top: 6px solid #e0dcdc !important;
+   padding: 0 0 10px 0 !important;
+}
+/* -----------/[ ui el ]----------- */
+
+/* login */
+.login.login-container_sock {
+   /* background-image: url("../images/login_A.jpg"); */
+   background-image: url("../images/login_A.jpg@3x.png");
+   background-repeat: no-repeat;
+   background-size: 100% 100%;
+   position: fixed;
+   left: 0;
+   right: 0;
+   top: 0;
+   bottom: 0;
+}
+
+/* 21.8 */
+
+.login .el-form-item {
+   margin-bottom: 20px;
+}
+
+.login .el-input__inner {
+   height: 35px !important;
+   line-height: 35px;
+}
+
+.login .el-form-item__content {
+   line-height: 20px;
+}
+
+.login .login-container {
+   box-sizing: border-box;
+   background: rgb(237, 241, 250);
+   overflow: hidden;
+   width: 350px;
+   padding: 20px;
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   -webkit-border-radius: 5px;
+   border-radius: 5px;
+   box-shadow: 0 0 25px #cac6c6;
+}
+
+.login #logo {
+   margin-bottom: 20px;
+}
+
+.login .rounded-sm {
+   width: 85px;
+   height: 85px;
+   margin: 0 auto;
+}
+
+.login .Zhuce {
+   background: #999999;
+   border-color: #999999;
+}
+
+/*店铺列表*/
+.login .el-dialog__header {
+   padding: 8px 16px 10px;
+   background: #ededed;
+   color: #989898;
+}
+
+.login .el-dialog__title {
+   line-height: 24px;
+   font-size: 14px;
+   color: #999;
+}
+
+.login .el-dialog__headerbtn {
+   top: 13px;
+}
+.el-dialog__headerbtn {
+   top: 13px !important;
+}
+
+.login .el-dialog__body {
+   padding: 20px;
+}
+
+/*会员选择颜色*/
+.sm_color {
+   cursor: pointer;
+   color: #e91e63;
+}
+.com_color {
+   color: #ff5722;
+}
+.com_fontsize {
+   font-size: 16px;
+   font-weight: bold;
+}
+
+/* print */
+.printEG {
+   width: 300px;
+   text-align: left;
+   font-size: 12px;
+}
+.printEG > .top {
+   background-image: url("../images/print/SmallTicketTop.png");
+   background-size: 100% 100%;
+   background-position: top;
+   background-repeat: no-repeat;
+   padding: 45px 40px 0 40px;
+}
+.printEG > .center {
+   background-image: url("../images/print/SmallTicketCenter.png");
+   background-size: contain;
+   background-position: center;
+   background-repeat: repeat-y;
+   padding: 0 40px;
+}
+.printEG > .bottom {
+   background-image: url("../images/print/SmallTicketBottom.png");
+   background-size: cover;
+   background-position: center;
+   background-repeat: no-repeat;
+   height: 40px;
+   padding: 0 40px;
+}
+
+/* shop */
+.shopListClass {
+   width: 100%;
+   max-height: 245px;
+   overflow: auto;
+}
+
+.shopListClass ul li {
+   height: 36px;
+   line-height: 36px;
+   border-bottom: 1px solid #ccc;
+   cursor: pointer;
+   background: #409eff;
+   color: #ffffff;
+   text-align: center;
+   border-radius: 5px;
+   margin: 8px 0;
+   font-size: 14px;
+   font-family: "微软雅黑";
+}
+.jiajianbtn {
+   color: #e91e63;
+   cursor: pointer;
+   font-size: 18px;
+}
+.overflowehide {
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
+}
+.overflowscroll {
+   overflow: hidden;
+   overflow-y: auto;
+}
+
+.fformFooter {
+   position: relative;
+}
+
+.discountTag .el-tag .el-icon-close {
+   float: right;
+}
+
+.Recharge .paytypeMoney .el-input__inner {
+   color: #ff5722 !important;
+}
+
+.content-new-fex {
+   padding: 10px !important;
+   margin-left: 1px;
+   background-color: #f4f5fa;
+   color: #333;
+   margin-bottom: 10px;
+   font-size: 12px;
+   position: absolute;
+   top: 50px;
+   bottom: 0px;
+   left: 100px;
+   right: 0px;
+}
+
+.showEit-center-money-tt {
+   border-bottom: solid 1px #e3e3e3;
+   height: 60px;
+   line-height: 60px;
+}
+.showEit-input {
+   border: none !important;
+   margin-left: 20px;
+}
+
+.login-container-title-lord {
+   font-size: 10px;
+   color: #a1a2a3;
+   position: absolute;
+   right: 0px;
+   cursor: pointer;
+}

@@ -1002,6 +1002,9 @@ export default {
       this.getpullBillList = {};
       this.$refs.okSubmit.isShowLoading();
     },
+    isShowDialog  ({
+
+    }),
     isShowGuaDan() {
       if (this.guadancxlistBillCount == 0) {
         this.$message.warning("暂无可取单数据 ！");
