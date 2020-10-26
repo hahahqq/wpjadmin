@@ -3,44 +3,48 @@
     <div class="com_header">
       <div class="selectmemberid">
         <i class="icon-search iconfont com_search"></i>
-        <el-input type="text" v-model="couponval" placeholder='输入优惠券号码直接使用' >
+        <el-input type="text" v-model="couponval" placeholder="输入优惠券号码直接使用">
           <i slot="prefix" class="el-input__icon el-icon-search"></i>
         </el-input>
       </div>
     </div>
-    <div class="discountCouponList" :loading="mainloading" >
+    <div class="discountCouponList" :loading="mainloading">
       <ul>
-        <li v-for="(item,index) in CouponListsock" :key="index" >
-            <div @click="selectonecoupon(index,item)" class="rounded-xs pointer margin-sm padding-sm" :class="item.LIMITMONEY <= dealData.money?'bg-theme':'bg-gw text-999'">
-                <div class="m-bottom-sm">
-                    <div class="inline-block">
-                        <em>&yen;</em>
-                        <span class="font-20">{{item.MONEY}}</span>
-                    </div>
-                    <span class="pull-right">满{{item.LIMITMONEY}}元可用</span>
-                </div>
-                <div>
-                    <span>No : {{item.COUPONCODE}}</span>
-                </div>
-                <div>
-                    <span>有效期：{{item.ENDDATE}}</span>
-                </div>
+        <li v-for="(item, index) in CouponListsock" :key="index">
+          <div
+            @click="selectonecoupon(index, item)"
+            class="rounded-xs pointer margin-sm padding-sm"
+            :class="item.LIMITMONEY <= dealData.money ? 'bg-theme' : 'bg-gw text-999'"
+          >
+            <div class="m-bottom-sm">
+              <div class="inline-block">
+                <em>&yen;</em>
+                <span class="font-20">{{ item.MONEY }}</span>
+              </div>
+              <span class="pull-right">满{{ item.LIMITMONEY }}元可用</span>
             </div>
+            <div>
+              <span>No : {{ item.COUPONCODE }}</span>
+            </div>
+            <div>
+              <span>有效期：{{ item.ENDDATE }}</span>
+            </div>
+          </div>
         </li>
       </ul>
     </div>
-    <div v-show="pagination.TotalNumber>20" class="m-top-sm clearfix elpagination">
-        <el-pagination
-            @size-change="handlePageChange"
-            @current-change="handlePageChange"
-            :current-page.sync="pagination.PN"
-            :page-size="pagination.PageSize"
-            layout="total, prev, pager, next, jumper"
-            :total="pagination.TotalNumber"
-            class="text-center"
-        ></el-pagination>
+    <div v-show="pagination.TotalNumber > 20" class="m-top-sm clearfix elpagination">
+      <el-pagination
+        @size-change="handlePageChange"
+        @current-change="handlePageChange"
+        :current-page.sync="pagination.PN"
+        :page-size="pagination.PageSize"
+        layout="total, prev, pager, next, jumper"
+        :total="pagination.TotalNumber"
+        class="text-center"
+      ></el-pagination>
     </div>
-    <div class="commodityfooter el-dialog__header" >
+    <div class="commodityfooter el-dialog__header">
       <el-button type="info" @click="closeModal">取消</el-button>
       <el-button type="primary" @click="selectcouponok">确认</el-button>
     </div>
@@ -50,54 +54,54 @@
 import { mapState, mapGetters } from "vuex";
 export default {
   name: "barCodePay",
-  props:{
-    dealData:{
+  props: {
+    dealData: {
       type: Object,
-      default: function(){
-        return { money: '', vipID: '' }
+      default: function () {
+        return { money: "", vipID: "" };
       }
     }
   },
   data() {
     return {
       mainloading: false,
-      couponval: '',
-      couponcodemoney: '',
-      couponcode: '',
+      couponval: "",
+      couponcodemoney: "",
+      couponcode: "",
       CouponListsock: [],
       pagination: {
-          TotalNumber: 0,
-          PageNumber: 0,
-          PageSize: 20,
-          PN: 1
+        TotalNumber: 0,
+        PageNumber: 0,
+        PageSize: 20,
+        PN: 1
       },
       pageData: {
-          openID: "",
-          Type: 0,
-          PN: 1
+        openID: "",
+        Type: 0,
+        PN: 1
       }
     };
   },
   computed: {
     ...mapGetters({
       couponlistState: "couponlistState",
-      couponcheckState: "couponcheckState",
+      couponcheckState: "couponcheckState"
     })
   },
   watch: {
-    dealData(data){
-      let openID = data.vipID 
-      if(openID != ''){
+    dealData(data) {
+      let openID = data.vipID;
+      if (openID != "") {
         this.mainloading = true;
-        this.$store.dispatch("getcouponlistState", { openID: openID, PN: 1 })
-      }else{
-        this.CouponListsock = []
-        this.pagination= {
+        this.$store.dispatch("getcouponlistState", { openID: openID, PN: 1 });
+      } else {
+        this.CouponListsock = [];
+        this.pagination = {
           TotalNumber: 0,
           PageNumber: 0,
           PageSize: 20,
           PN: 1
-        }
+        };
       }
     },
     couponlistState(data) {
@@ -105,85 +109,83 @@ export default {
         this.mainloading = false;
         this.CouponListsock = data.data.PageData.DataArr;
         this.pagination = {
-            TotalNumber: data.data.PageData.TotalNumber,
-            PageNumber: data.data.PageData.PageNumber,
-            PageSize: data.data.PageData.PageSize,
-            PN: data.data.PageData.PN
-        }
+          TotalNumber: data.data.PageData.TotalNumber,
+          PageNumber: data.data.PageData.PageNumber,
+          PageSize: data.data.PageData.PageSize,
+          PN: data.data.PageData.PN
+        };
       }
     },
-    couponcheckState(data){
-      if(data.success){
+    couponcheckState(data) {
+      if (data.success) {
         if (data.data.StatusName == "未使用") {
           let combackdata = {
-              couponcode: this.couponval,
-              couponcodemoney: data.data.Money,
-              LimitMoney: data.data.LimitMoney
+            couponcode: this.couponval,
+            couponcodemoney: data.data.Money,
+            LimitMoney: data.data.LimitMoney
           };
-          if(combackdata.LimitMoney > this.dealData.money){
-              this.$message.error('此优惠券需满'+ combackdata.LimitMoney +'元使用')
-              return;
-          }else{
-              this.$emit("CouponListclick", combackdata);
+          if (combackdata.LimitMoney > this.dealData.money) {
+            this.$message.error("此优惠券需满" + combackdata.LimitMoney + "元使用");
+            return;
+          } else {
+            this.$emit("CouponListclick", combackdata);
           }
         } else if (data.data.StatusName == null) {
-            this.$message("输入正确的卡券优惠码");
-            return;
+          this.$message("输入正确的卡券优惠码");
+          return;
         } else {
-            this.$message("已失效");
-            return;
+          this.$message("已失效");
+          return;
         }
-      }else{
+      } else {
         this.$message.warning(data.message);
       }
     }
   },
   methods: {
-    handlePageChange: function(currentPage) {
-        this.pagination.PN = parseInt(currentPage);
-        this.getNewData();
+    handlePageChange: function (currentPage) {
+      this.pagination.PN = parseInt(currentPage);
+      this.getNewData();
     },
     selectonecoupon(index, item) {
       if (item.LIMITMONEY > this.dealData.money) {
-          this.$message.error('此优惠券需满'+ item.LIMITMONEY +'元使用')
-          return;
+        this.$message.error("此优惠券需满" + item.LIMITMONEY + "元使用");
+        return;
       }
 
       this.couponcode = item.COUPONCODE;
       this.couponcodemoney = item.MONEY;
       this.$emit("CouponListclick", {
-          couponcode: this.couponcode,
-          couponcodemoney: this.couponcodemoney
+        couponcode: this.couponcode,
+        couponcodemoney: this.couponcodemoney
       });
     },
     closeModal(type) {
-      this.CouponListsock = []
+      this.CouponListsock = [];
       this.$emit("CouponListclick", {});
     },
     selectcouponok() {
-      if (this.couponcode != '') {
+      if (this.couponcode != "") {
         let combackdata = {
           couponcode: this.couponcode,
           couponcodemoney: this.couponcodemoney
-        }
-        this.CouponListsock = []
+        };
+        this.CouponListsock = [];
         this.$emit("CouponListclick", combackdata);
-      }else{
-        if(this.couponval!=''){
-          this.$store.dispatch("getcouponcheckState", {Code:this.couponval})
+      } else {
+        if (this.couponval != "") {
+          this.$store.dispatch("getcouponcheckState", { Code: this.couponval });
         }
       }
     },
-    getNewData(){
-      this.pageData.openID = this.dealData.vipID
+    getNewData() {
+      this.pageData.openID = this.dealData.vipID;
       this.$store.dispatch("getcouponListState", this.pageData).then(() => {
         this.mainloading = true;
-      })
+      });
     }
-  },
-
+  }
 };
-
 </script>
 <style scoped>
 .com_header {
@@ -250,7 +252,7 @@ export default {
 
 .isselectcoupon {
   position: absolute;
-  color: #E91E63;
+  color: #e91e63;
   font-size: 18px;
   right: 10px;
   top: -4px;

@@ -2,21 +2,34 @@
   <div class="vue-dropdown default-theme">
     <div class="search-module clearfix">
       <span class="select_member" @click="select_member">选择</span>
-      <input class="search-text" v-model="searchText" @keyup="search_mb" placeholder="输入会员手机号/卡号">
+      <input
+        class="search-text"
+        v-model="searchText"
+        @keyup="search_mb"
+        placeholder="输入会员手机号/卡号"
+      />
     </div>
-    <ul class="list-module" v-loading="loading" v-show="datalist.length>0">
-      <li v-for="(item,index) in datalist" @click="appClick(item)" :key="index">
-        <img :src="item.showgoodsimg" onerror="this.src='static/images/merberpic.png'">
+    <ul class="list-module" v-loading="loading" v-show="datalist.length > 0">
+      <li v-for="(item, index) in datalist" @click="appClick(item)" :key="index">
+        <img :src="item.showgoodsimg" onerror="this.src='static/images/merberpic.png'" />
         <div class="itmeright">
           <div class="item_dright">
             <span
-              style="text-overflow:ellipsis;white-space: nowrap;width: 50%;overflow: hidden;display: inline-block;"
-            >{{item.NAME}}({{item.CODE}})</span>
-            <span class="pull-right">余额：{{item.MONEY}}</span>
+              style="
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 50%;
+                overflow: hidden;
+                display: inline-block;
+              "
+            >
+              {{ item.NAME }}({{ item.CODE }})
+            </span>
+            <span class="pull-right">余额：{{ item.MONEY }}</span>
           </div>
           <div class="item_dright">
-            <span>{{item.MOBILENO}}</span>
-            <span class="pull-right">积分：{{item.INTEGRAL}}</span>
+            <span>{{ item.MOBILENO }}</span>
+            <span class="pull-right">积分：{{ item.INTEGRAL }}</span>
           </div>
         </div>
       </li>
@@ -25,44 +38,49 @@
       <ul>
         <li>
           <span>姓名:</span>
-          <span>{{memberdetails.NAME}}</span>
+          <span>{{ memberdetails.NAME }}</span>
         </li>
         <li>
           <span>等级:</span>
-          <span>{{memberdetails.LEVELNAME}}</span>
+          <span>{{ memberdetails.LEVELNAME }}</span>
         </li>
         <li>
           <span>余额:</span>
-          <span>{{memberdetails.MONEY}}</span>
+          <span>{{ memberdetails.MONEY }}</span>
         </li>
         <li>
           <span>积分:</span>
-          <span>{{memberdetails.INTEGRAL}}</span>
+          <span>{{ memberdetails.INTEGRAL }}</span>
         </li>
       </ul>
     </div>
     <!-- 选择会员分页 -->
-    <el-dialog :visible.sync="showAddNew" style="max-height:600px;">
-      <el-table :data="tableData" v-loading="loading" style="width: 100%;">
+    <el-dialog :visible.sync="showAddNew" style="max-height: 600px">
+      <el-table :data="tableData" v-loading="loading" style="width: 100%">
         <el-table-column prop="NAME" label="会员名称" width="140" sortable></el-table-column>
         <el-table-column prop="LEVELNAME" label="折扣类型" width="140"></el-table-column>
         <el-table-column prop="MOBILENO" label="手机号码" width="140"></el-table-column>
-        <el-table-column prop="BIRTHDATE" label="生日" width="140" :formatter="formatDateTime"></el-table-column>
+        <el-table-column
+          prop="BIRTHDATE"
+          label="生日"
+          width="140"
+          :formatter="formatDateTime"
+        ></el-table-column>
         <el-table-column label="操作" fixed="right">
           <template slot-scope="scope">
             <span @click="handleEdit(scope.$index, scope.row)" class="sm_color">选择</span>
           </template>
         </el-table-column>
       </el-table>
-      <div class="m-top-sm clearfix elpagination" v-if='pagination.TotalNumber > 20'>
+      <div class="m-top-sm clearfix elpagination" v-if="pagination.TotalNumber > 20">
         <el-pagination
           background
-          @size-change="handlePageChange" 
-          @current-change="handlePageChange" 
-          :current-page.sync="pagination.PN" 
-          :page-size="pagination.PageSize" 
-          layout="total, prev, pager, next, jumper" 
-          :total="pagination.TotalNumber" 
+          @size-change="handlePageChange"
+          @current-change="handlePageChange"
+          :current-page.sync="pagination.PN"
+          :page-size="pagination.PageSize"
+          layout="total, prev, pager, next, jumper"
+          :total="pagination.TotalNumber"
           class="text-center"
         ></el-pagination>
         <!-- <div class="text-center clearfix">
@@ -106,26 +124,26 @@ export default {
   },
   watch: {
     getssmemberdListState(data) {
-      let ip = JSON.parse(sessionStorage.getItem('serverIP'))
-      console.log(ip)
+      let ip = JSON.parse(sessionStorage.getItem("serverIP"));
+      console.log(ip);
       this.loading = false;
       if (data.success) {
         if (this.isshowtatus) {
           this.datalist = [...data.data.PageData.DataArr];
-          for (let i = 0; i < this.datalist.length; i++) { 
-            if(this.datalist[i].IMAGEURL==undefined || this.datalist[i].IMAGEURL=='' ){
-              let VIPIMAGESIMG = ip + "/resources/vipimages/"
-              this.datalist[i].showgoodsimg = VIPIMAGESIMG + this.datalist[i].ID + '.png';
-            }else{
+          for (let i = 0; i < this.datalist.length; i++) {
+            if (this.datalist[i].IMAGEURL == undefined || this.datalist[i].IMAGEURL == "") {
+              let VIPIMAGESIMG = ip + "/resources/vipimages/";
+              this.datalist[i].showgoodsimg = VIPIMAGESIMG + this.datalist[i].ID + ".png";
+            } else {
               this.datalist[i].showgoodsimg = this.datalist[i].IMAGEURL;
             }
-          };
+          }
         } else {
           this.datalist = [];
         }
 
         this.tableData = [...data.data.PageData.DataArr];
-        console.log(this.tableData)
+        console.log(this.tableData);
         this.pagination = {
           TotalNumber: data.data.PageData.TotalNumber,
           PageNumber: data.data.PageData.PageNumber,
@@ -136,11 +154,11 @@ export default {
     },
     details() {
       this.memberdetails = this.details;
-      this.$store.state.dropdown.ssmemberopenID='';
+      this.$store.state.dropdown.ssmemberopenID = "";
     }
   },
   methods: {
-    formatDateTime: function(row, column) {
+    formatDateTime: function (row, column) {
       return row.BIRTHDATE == undefined ? "" : this.filterTimeOut(row.BIRTHDATE);
     },
     search_mb() {
@@ -165,10 +183,10 @@ export default {
       this.datalist = [];
       this.memberdetails = data;
       this.$emit("getmemberID", data.ID);
-      if(data.OPENID==undefined || data.OPENID=='' || data.OPENID=='0'){
-        this.$store.state.dropdown.ssmemberopenID='';
-      }else{
-        this.$store.state.dropdown.ssmemberopenID=data.OPENID;
+      if (data.OPENID == undefined || data.OPENID == "" || data.OPENID == "0") {
+        this.$store.state.dropdown.ssmemberopenID = "";
+      } else {
+        this.$store.state.dropdown.ssmemberopenID = data.OPENID;
       }
     },
     select_member() {
@@ -181,13 +199,13 @@ export default {
       this.memberdetails = rows;
       this.$emit("getmemberID", rows.ID);
       this.showAddNew = false;
-      if(rows.OPENID==undefined || rows.OPENID=='' ||rows.OPENID=='0'){
-        this.$store.state.dropdown.ssmemberopenID='';
-      }else{
-        this.$store.state.dropdown.ssmemberopenID=rows.OPENID;
+      if (rows.OPENID == undefined || rows.OPENID == "" || rows.OPENID == "0") {
+        this.$store.state.dropdown.ssmemberopenID = "";
+      } else {
+        this.$store.state.dropdown.ssmemberopenID = rows.OPENID;
       }
     },
-    handlePageChange: function(currentPage) {
+    handlePageChange: function (currentPage) {
       this.isshowtatus = false;
       this.showAddNew = true;
       this.pageData.PN = currentPage;
@@ -195,7 +213,6 @@ export default {
     }
   }
 };
-
 </script>
 <style lang="scss" scoped>
 .vue-dropdown.default-theme {
@@ -312,5 +329,4 @@ export default {
     }
   }
 }
-
 </style>

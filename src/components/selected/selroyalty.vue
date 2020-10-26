@@ -14,15 +14,20 @@
           placeholder="请选择"
           class="full-width"
         >
-          <el-option v-for="(item,i) in employeeList" :key="item.ID" :label="item.NAME" :value="i"></el-option>
+          <el-option
+            v-for="(item, i) in employeeList"
+            :key="item.ID"
+            :label="item.NAME"
+            :value="i"
+          ></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="提成金额" style="height:130px">
-        <ul class="rounded-xs" :class="{'border':pageList.length>0}">
-          <li v-for="(item,i) in pageList" :key="i" class="bg-light row-flex- paddingLR-sm">
-            <span class="inline-block" style="width:100px">{{item.name}}</span>
-            <span class="inline-block" style="width:100px">{{item.percent}}%</span>
-            <span class="inline-block text-danger">&yen;{{item.money}}</span>
+      <el-form-item label="提成金额" style="height: 130px">
+        <ul class="rounded-xs" :class="{ border: pageList.length > 0 }">
+          <li v-for="(item, i) in pageList" :key="i" class="bg-light row-flex- paddingLR-sm">
+            <span class="inline-block" style="width: 100px">{{ item.name }}</span>
+            <span class="inline-block" style="width: 100px">{{ item.percent }}%</span>
+            <span class="inline-block text-danger">&yen;{{ item.money }}</span>
           </li>
         </ul>
       </el-form-item>
@@ -50,7 +55,7 @@ export default {
   },
   data() {
     return {
-      royaltyMoney:0,
+      royaltyMoney: 0,
       pageList: [],
       selectData: []
     };
@@ -60,16 +65,16 @@ export default {
       employeeList: "employeeList"
     })
   },
-  watch:{
-    pageState(v){
-      if(v){
-        this.royaltyMoney = this.money
+  watch: {
+    pageState(v) {
+      if (v) {
+        this.royaltyMoney = this.money;
       }
     }
   },
   methods: {
-    closeModal(){
-      this.$emit('closeModal')
+    closeModal() {
+      this.$emit("closeModal");
     },
     changeFun(arr) {
       let money = parseFloat(this.royaltyMoney / arr.length).toFixed(2);

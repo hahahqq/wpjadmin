@@ -4,36 +4,61 @@
       <el-row :gutter="10">
         <el-col :xs="24" :sm="12">
           <el-form-item label="员工姓名" prop="Name">
-            <el-input v-model="ruleForm.Name" autocomplete="off" clearable placeholder="请输入员工姓名"></el-input>
+            <el-input
+              v-model="ruleForm.Name"
+              autocomplete="off"
+              clearable
+              placeholder="请输入员工姓名"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="员工工号" prop="Code">
-            <el-input v-model="ruleForm.Code" autocomplete="off" clearable placeholder="请输入员工工号"></el-input>
+            <el-input
+              v-model="ruleForm.Code"
+              autocomplete="off"
+              clearable
+              placeholder="请输入员工工号"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="员工职务">
-            <el-input v-model="ruleForm.Position" autocomplete="off" clearable placeholder="请输入员工职务"></el-input>
+            <el-input
+              v-model="ruleForm.Position"
+              autocomplete="off"
+              clearable
+              placeholder="请输入员工职务"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="所属店铺" prop="ShopID">
             <el-select v-model="ruleForm.ShopID" placeholder="请选择店铺">
               <el-option label="请选择店铺" value=""></el-option>
-              <el-option v-for="item in shopList" :key="item.ID" :label="item.NAME" :value="item.ID">
-              </el-option>
+              <el-option
+                v-for="item in shopList"
+                :key="item.ID"
+                :label="item.NAME"
+                :value="item.ID"
+              ></el-option>
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="联系电话">
-            <el-input v-model="ruleForm.MobileNo"  clearable placeholder="请输入电话"></el-input>
+            <el-input v-model="ruleForm.MobileNo" clearable placeholder="请输入电话"></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="员工生日" class="halfhh">
-            <el-date-picker v-model="ruleForm.BirthDate" type="date" value-format="timestamp" placeholder="选择日期" class="full-width"></el-date-picker>
+            <el-date-picker
+              v-model="ruleForm.BirthDate"
+              type="date"
+              value-format="timestamp"
+              placeholder="选择日期"
+              class="full-width"
+            ></el-date-picker>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
@@ -46,12 +71,23 @@
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="基本工资">
-            <el-input v-model.number="ruleForm.BaseWages" type="number" clearable placeholder="0.00"></el-input>
+            <el-input
+              v-model.number="ruleForm.BaseWages"
+              type="number"
+              clearable
+              placeholder="0.00"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="入职日期" class="halfhh">
-            <el-date-picker v-model="ruleForm.InWorkDate" type="date" value-format="timestamp" placeholder="选择日期" class="full-width"></el-date-picker>
+            <el-date-picker
+              v-model="ruleForm.InWorkDate"
+              type="date"
+              value-format="timestamp"
+              placeholder="选择日期"
+              class="full-width"
+            ></el-date-picker>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
@@ -86,7 +122,7 @@ export default {
   data() {
     return {
       ruleForm: {
-        ID:'',
+        ID: "",
         Code: "",
         Name: "",
         Sex: "1",
@@ -101,21 +137,25 @@ export default {
         BaseWages: "",
         InWorkDate: "",
         Status: 0,
-        IsService: 1,
+        IsService: 1
       },
       status: true,
       isService: false,
       rules: {
-        Name: [{
-          required: true,
-          message: "请输入名称",
-          trigger: "blur"
-        }],
-        Code: [{
-          required: true,
-          message: "请输入员工工号",
-          trigger: "blur"
-        }]
+        Name: [
+          {
+            required: true,
+            message: "请输入名称",
+            trigger: "blur"
+          }
+        ],
+        Code: [
+          {
+            required: true,
+            message: "请输入员工工号",
+            trigger: "blur"
+          }
+        ]
       },
       loading: false
     };
@@ -125,7 +165,7 @@ export default {
       employeeitemState: "employeeitemState",
       dataItem: "selemployee",
       shopList: "shopList",
-      dataList: "employeeList",
+      dataList: "employeeList"
     })
   },
   watch: {
@@ -156,19 +196,21 @@ export default {
       }
     },
     submitForm() {
-      let haveSameCode = []
-      if(Object.keys(this.dataItem).length == 0){
-        haveSameCode = this.dataList.filter( item => item.CODE == this.ruleForm.Code)
-      }else{
-        haveSameCode = this.dataList.filter( item => item.CODE == this.ruleForm.Code && this.dataItem.CODE != this.ruleForm.Code )
+      let haveSameCode = [];
+      if (Object.keys(this.dataItem).length == 0) {
+        haveSameCode = this.dataList.filter((item) => item.CODE == this.ruleForm.Code);
+      } else {
+        haveSameCode = this.dataList.filter(
+          (item) => item.CODE == this.ruleForm.Code && this.dataItem.CODE != this.ruleForm.Code
+        );
       }
 
-      if(haveSameCode.length > 0){
-        this.$message.error('当前员工工号已存在，工号不能重复');
-        return
+      if (haveSameCode.length > 0) {
+        this.$message.error("当前员工工号已存在，工号不能重复");
+        return;
       }
-      
-      this.$refs.ruleForm.validate(valid => {
+
+      this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           this.ruleForm.Status = this.status ? 0 : 1;
           this.ruleForm.IsService = this.isService ? 1 : 0;
@@ -179,7 +221,7 @@ export default {
       });
     },
     defaultData() {
-      console.log(this.dataList , this.dataItem, Object.keys(this.dataItem).length)
+      console.log(this.dataList, this.dataItem, Object.keys(this.dataItem).length);
       if (this.shopList.length == 0) {
         this.$store.dispatch("getShopList");
       }
@@ -195,27 +237,27 @@ export default {
           this.ruleForm.Name = this.dataItem.NAME;
         }
         // this.ruleForm.ShopID = Number(this.ruleForm.ShopID)
-        this.status = this.ruleForm.Status=='' ? true : false; // // 0=启用,1=停用
+        this.status = this.ruleForm.Status == "" ? true : false; // // 0=启用,1=停用
         // this.isService = this.ruleForm.IsService=='' ? false : true; // // 0=启用,1=停用
-        this.ruleForm.Sex= Number(this.ruleForm.Sex) // // 0=启用,1=停用
+        this.ruleForm.Sex = Number(this.ruleForm.Sex); // // 0=启用,1=停用
       } else {
         this.ruleForm = {
-            ID:'',
-            Code: "",
-            Name: "",
-            Sex: "",
-            Position: "",
-            MobileNo: "",
-            ShopID: "",
-            BirthDate: "",
-            IDCardNo: "",
-            Remark: "",
-            MobileNo: "",
-            Category: "",
-            BaseWages: "",
-            InWorkDate: "",
-            Status: 0,
-            IsService: 0
+          ID: "",
+          Code: "",
+          Name: "",
+          Sex: "",
+          Position: "",
+          MobileNo: "",
+          ShopID: "",
+          BirthDate: "",
+          IDCardNo: "",
+          Remark: "",
+          MobileNo: "",
+          Category: "",
+          BaseWages: "",
+          InWorkDate: "",
+          Status: 0,
+          IsService: 0
         };
       }
     }
@@ -224,11 +266,9 @@ export default {
     this.defaultData();
   }
 };
-
 </script>
 <style>
 .editEmployee .halfhh .el-date-editor.el-input {
   width: 100% !important;
 }
-
 </style>

@@ -4,22 +4,41 @@
       <el-row :gutter="10">
         <el-col :xs="24" :sm="12">
           <el-form-item label="店铺名称" prop="ShopName">
-            <el-input v-model="ruleForm.ShopName" autocomplete="off" clearable placeholder="请输入名称"></el-input>
+            <el-input
+              v-model="ruleForm.ShopName"
+              autocomplete="off"
+              clearable
+              placeholder="请输入名称"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="店铺编号">
-            <el-input v-model="ruleForm.ShopCode" autocomplete="off" clearable placeholder="请输入名称"></el-input>
+            <el-input
+              v-model="ruleForm.ShopCode"
+              autocomplete="off"
+              clearable
+              placeholder="请输入名称"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="联系人">
-            <el-input v-model="ruleForm.Manager" clearable placeholder="请输入联系人姓名"></el-input>
+            <el-input
+              v-model="ruleForm.Manager"
+              clearable
+              placeholder="请输入联系人姓名"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="联系电话">
-            <el-input v-model.number="ruleForm.PhoneNo" type="number" clearable placeholder="请输入电话"></el-input>
+            <el-input
+              v-model.number="ruleForm.PhoneNo"
+              type="number"
+              clearable
+              placeholder="请输入电话"
+            ></el-input>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
@@ -30,9 +49,9 @@
         <el-col :xs="24" :sm="12">
           <el-form-item label="省份" prop="ProvinceID">
             <el-select v-model="ruleForm.ProvinceID" placeholder="请选择" @change="addressfun1">
-              <el-option v-if="provinceList.length==0" label="请选择" value="-1"></el-option>
+              <el-option v-if="provinceList.length == 0" label="请选择" value="-1"></el-option>
               <el-option
-                v-for="(item,i) in provinceList"
+                v-for="(item, i) in provinceList"
                 :key="i"
                 :label="item.NAME"
                 :value="item.ID"
@@ -43,17 +62,22 @@
         <el-col :xs="24" :sm="12">
           <el-form-item label="城市" prop="CityID" v-if="ruleForm.ProvinceID">
             <el-select v-model="ruleForm.CityID" placeholder="请选择" @change="addressfun2">
-              <el-option v-if="cityList.length==0" label="请选择" value="-1"></el-option>
-              <el-option v-for="(item,i) in cityList" :key="i" :label="item.NAME" :value="item.ID"></el-option>
+              <el-option v-if="cityList.length == 0" label="请选择" value="-1"></el-option>
+              <el-option
+                v-for="(item, i) in cityList"
+                :key="i"
+                :label="item.NAME"
+                :value="item.ID"
+              ></el-option>
             </el-select>
           </el-form-item>
         </el-col>
         <el-col :xs="24" :sm="12">
           <el-form-item label="区县" prop="DistrictID" v-if="ruleForm.CityID">
             <el-select v-model="ruleForm.DistrictID" placeholder="请选择">
-              <el-option v-if="districtList.length==0" label="请选择" value="-1"></el-option>
+              <el-option v-if="districtList.length == 0" label="请选择" value="-1"></el-option>
               <el-option
-                v-for="(item,i) in districtList"
+                v-for="(item, i) in districtList"
                 :key="i"
                 :label="item.NAME"
                 :value="item.ID"
@@ -123,7 +147,7 @@ export default {
     dataState(data) {
       this.loading = false;
       if (data.success) {
-        this.$message({  message: data.message, type: "success" });
+        this.$message({ message: data.message, type: "success" });
       } else {
         this.$message.error(data.message);
       }
@@ -137,26 +161,26 @@ export default {
         this.$emit("closeModal");
       }
     },
-    addressfun1: function(v) {
+    addressfun1: function (v) {
       this.$store.dispatch("getCity", { Pid: v }).then(() => {
         this.ruleForm.CityID = "";
       });
     },
-    addressfun2: function(v) {
+    addressfun2: function (v) {
       this.$store.dispatch("getDistrict", { Pid: v }).then(() => {
         this.ruleForm.DistrictID = "";
       });
     },
     submitForm() {
-      this.$refs.ruleForm.validate(valid => {
+      this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           this.ruleForm.Status = this.status ? 0 : 1;
           this.$store.dispatch("dealShopItem", this.ruleForm).then(() => {
             this.loading = true;
-            this.$emit('resetList')
-          })
+            this.$emit("resetList");
+          });
         }
-      })
+      });
     },
     defaultData() {
       if (this.$refs.ruleForm) {

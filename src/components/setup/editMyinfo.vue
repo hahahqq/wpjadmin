@@ -2,12 +2,22 @@
   <div>
     <el-form :inline="false" :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px">
       <el-form-item label="商家名称" prop="CompanyName">
-        <el-input v-model="ruleForm.CompanyName" autocomplete="off" clearable placeholder="请输入名称"></el-input>
+        <el-input
+          v-model="ruleForm.CompanyName"
+          autocomplete="off"
+          clearable
+          placeholder="请输入名称"
+        ></el-input>
       </el-form-item>
       <el-form-item label="所属行业" prop="TradeID">
         <el-select v-model="ruleForm.TradeID" placeholder="请选择" class="full-width">
-          <el-option v-if="industryList.length==0" label="请选择" value="-1"></el-option>
-          <el-option v-for="(item,i) in industryList" :key="i" :label="item.NAME" :value="item.ID"></el-option>
+          <el-option v-if="industryList.length == 0" label="请选择" value="-1"></el-option>
+          <el-option
+            v-for="(item, i) in industryList"
+            :key="i"
+            :label="item.NAME"
+            :value="item.ID"
+          ></el-option>
         </el-select>
       </el-form-item>
       <!-- <el-form-item label="营业执照号" prop="LicenseNo">
@@ -54,7 +64,11 @@
       </el-form-item>
 
       <el-form-item label="是否修改签名">
-        <el-switch v-model="ruleForm.isChanageSign" active-color="#13ce66" inactive-color="#ccc"></el-switch>
+        <el-switch
+          v-model="ruleForm.isChanageSign"
+          active-color="#13ce66"
+          inactive-color="#ccc"
+        ></el-switch>
       </el-form-item>
 
       <el-form-item label="业务描述" class="clearfix">
@@ -110,8 +124,9 @@ export default {
     dataState(data) {
       this.loading = false;
       this.$message({
-        message: data.message, type: data.success ? 'success' : 'error'
-      })
+        message: data.message,
+        type: data.success ? "success" : "error"
+      });
     }
   },
   methods: {
@@ -123,25 +138,25 @@ export default {
         this.$emit("closeModal");
       }
     },
-    addressfun1: function(v) {
+    addressfun1: function (v) {
       this.$store.dispatch("getCity", { Pid: v }).then(() => {
         this.ruleForm.CityID = "";
       });
     },
-    addressfun2: function(v) {
+    addressfun2: function (v) {
       this.$store.dispatch("getDistrict", { Pid: v }).then(() => {
         this.ruleForm.DistrictID = "";
       });
     },
     submitForm() {
-      this.$refs.ruleForm.validate(valid => {
+      this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           this.$store.dispatch("editMyInfo", this.ruleForm).then(() => {
-            this.loading = true
-            this.$emit('resetList')
-          })
+            this.loading = true;
+            this.$emit("resetList");
+          });
         }
-      })
+      });
     },
     defaultData() {
       if (this.provinceList.length == 0) {
@@ -150,25 +165,25 @@ export default {
       if (this.industryList.length == 0) {
         this.$store.dispatch("getIndustry");
       }
-      this.ruleForm={
+      this.ruleForm = {
         CompanyName: this.dataInfo.name,
         TradeID: this.dataInfo.tradeid,
-        LicenseNo: '',
+        LicenseNo: "",
         Linker: this.dataInfo.linker,
         PhoneNo: this.dataInfo.phoneno,
         Address: this.dataInfo.address,
-        QQ: '',
-        ProvinceID: '',
-        CityID: '',
-        DistrictID: '',
+        QQ: "",
+        ProvinceID: "",
+        CityID: "",
+        DistrictID: "",
         Remark: this.dataInfo.ProductRemark,
         SmsSign: this.dataInfo.SmsSign,
         isChanageSign: this.dataInfo.IsUseSign
-      }
+      };
     }
   },
   mounted() {
-    this.defaultData()
+    this.defaultData();
   }
 };
 </script>

@@ -10,7 +10,7 @@
         <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12">
           <el-form-item label="编号" prop="Code">
             <el-input
-              v-if="dataType.dealState=='edit'&&ruleForm.Code"
+              v-if="dataType.dealState == 'edit' && ruleForm.Code"
               v-model="ruleForm.Code"
               disabled
             ></el-input>
@@ -41,7 +41,7 @@
               type="date"
               value-format="timestamp"
               placeholder="选择日期"
-              style="width:100%"
+              style="width: 100%"
             ></el-date-picker>
           </el-form-item>
         </el-col>
@@ -93,7 +93,7 @@
               type="date"
               value-format="timestamp"
               placeholder="选择日期"
-              style="width:100%"
+              style="width: 100%"
             ></el-date-picker>
           </el-form-item>
         </el-col>
@@ -105,21 +105,25 @@
 
         <el-col :xs="24" :sm="24" :md="12" :lg="12" :xl="12" v-if="dataItem.VISITLASTTIME">
           <el-form-item label="最近回访">
-            <span>{{new Date(dataItem.VISITLASTTIME) | time}}</span>
+            <span>{{ new Date(dataItem.VISITLASTTIME) | time }}</span>
           </el-form-item>
         </el-col>
       </el-row>
       <el-form-item>
-        <el-button type="primary" v-if="isChange" @click="onSubmitBefore" :loading="loading">保 存</el-button>
+        <el-button type="primary" v-if="isChange" @click="onSubmitBefore" :loading="loading">
+          保 存
+        </el-button>
         <el-button type="primary" v-else @click="onSubmit" :loading="loading">保 存</el-button>
         <el-button @click="closeModal('')">取 消</el-button>
 
         <el-button
           type="primary"
-          v-if="dataType.dealState=='edit'"
-          @click="isShowBecome=true"
+          v-if="dataType.dealState == 'edit'"
+          @click="isShowBecome = true"
           class="pull-right"
-        >转为正式会员</el-button>
+        >
+          转为正式会员
+        </el-button>
       </el-form-item>
     </el-form>
     <!-- 意向客户转正 -->
@@ -127,7 +131,7 @@
       <div>
         <el-form ref="ruleForm2" :model="ruleForm" :rules="rules2" label-width="80px">
           <el-form-item label="客户名称">
-            <span>{{ruleForm.Name}}</span>
+            <span>{{ ruleForm.Name }}</span>
           </el-form-item>
           <el-form-item label="会员编号" prop="VipCode">
             <el-input v-model="ruleForm2.VipCode"></el-input>
@@ -143,7 +147,11 @@
             </el-select>
           </el-form-item>
           <el-form-item label="跟踪顾问" prop="SaleEmpId">
-            <el-select v-model="ruleForm2.SaleEmpId" placeholder="请选择跟踪顾问" class="full-width">
+            <el-select
+              v-model="ruleForm2.SaleEmpId"
+              placeholder="请选择跟踪顾问"
+              class="full-width"
+            >
               <el-option
                 v-for="item in employeeList"
                 :key="item.ID"
@@ -164,7 +172,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="onSubmit2" :loading="loading2">确 定</el-button>
-            <el-button @click="isShowBecome=false">取 消</el-button>
+            <el-button @click="isShowBecome = false">取 消</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -178,7 +186,7 @@ export default {
   props: {
     dataType: {
       type: Object,
-      default: function() {
+      default: function () {
         return { value: 1, dealState: "add" };
       }
     }
@@ -203,9 +211,7 @@ export default {
       rules: {
         Name: [{ required: true, message: "请填写名称", trigger: "blur" }],
         Code: [{ required: true, message: "请填写编号", trigger: "blur" }],
-        PhoneNo: [
-          { required: true, message: "请填写手机号码", trigger: "blur" }
-        ]
+        PhoneNo: [{ required: true, message: "请填写手机号码", trigger: "blur" }]
       },
       ruleForm2: {
         ShopId: "",
@@ -216,21 +222,15 @@ export default {
       },
       rules2: {
         ShopId: [{ required: true, message: "请选择店铺", trigger: "change" }],
-        VipCode: [
-          { required: true, message: "请填写会员编号", trigger: "blur" }
-        ],
-        VipLevelId: [
-          { required: true, message: "请选择会员级别", trigger: "change" }
-        ],
-        SaleEmpId: [
-          { required: true, message: "请选择跟踪顾问", trigger: "change" }
-        ]
+        VipCode: [{ required: true, message: "请填写会员编号", trigger: "blur" }],
+        VipLevelId: [{ required: true, message: "请选择会员级别", trigger: "change" }],
+        SaleEmpId: [{ required: true, message: "请选择跟踪顾问", trigger: "change" }]
       },
       sexState: true,
       loading: false,
       loading2: false,
       isShowBecome: false,
-      isChange:false,
+      isChange: false
     };
   },
   computed: {
@@ -240,7 +240,7 @@ export default {
       shopList: "shopList",
       dataDeal: "sIntentionDeal",
       memberLevelList: "memberLevelList",
-      dataChange:'sIntentionChange'
+      dataChange: "sIntentionChange"
     })
   },
   watch: {
@@ -257,9 +257,9 @@ export default {
         type: data.success ? "success" : "error"
       });
     },
-    dataChange(data){
+    dataChange(data) {
       this.loading2 = false;
-      if(data.success){
+      if (data.success) {
         this.isChange = true;
         this.isShowBecome = false;
       }
@@ -273,18 +273,20 @@ export default {
         this.$emit("closeModal");
       }
     },
-    onSubmitBefore(){
-      this.$confirm('该客户已是正式会员, 是否继续保存?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
+    onSubmitBefore() {
+      this.$confirm("该客户已是正式会员, 是否继续保存?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
           this.onSubmit();
-        }).catch(() => {
+        })
+        .catch(() => {
           this.$message({
-            type: 'info',
-            message: '已取消保存'
-          });          
+            type: "info",
+            message: "已取消保存"
+          });
         });
     },
     onSubmit() {
@@ -294,7 +296,7 @@ export default {
       if (this.dataType.dealState == "edit") {
         sendData.Id = this.dataItem.ID;
       }
-      this.$refs["ruleForm2"].validate(valid => {
+      this.$refs["ruleForm2"].validate((valid) => {
         if (valid) {
           this.$store.dispatch("dealSIntentionItem", sendData).then(() => {
             this.loading = true;
@@ -307,7 +309,7 @@ export default {
     },
     onSubmit2() {
       console.log(this.ruleForm2);
-      this.$refs["ruleForm2"].validate(valid => {
+      this.$refs["ruleForm2"].validate((valid) => {
         if (valid) {
           this.$store.dispatch("changeSIntentionItem", this.ruleForm2).then(() => {
             this.loading2 = true;
@@ -333,8 +335,7 @@ export default {
         this.ruleForm2.SaleEmpId = this.ruleForm.SaleEmpId;
         this.ruleForm2.ShopId = this.ruleForm.ShopId;
       }
-      if (this.employeeList.length == 0)
-        this.$store.dispatch("getEmployeeList", {});
+      if (this.employeeList.length == 0) this.$store.dispatch("getEmployeeList", {});
       if (this.shopList.length == 0) this.$store.dispatch("getShopList", {});
     }
   },

@@ -2,23 +2,37 @@
   <div>
     <el-row :gutter="20">
       <el-col :xs="24" :sm="24" :md="9" :lg="9" :xl="9">
-        <div v-for="(item,i) in VipObj" :key="i" class="font-16 marginTB-sm">
-          <span class="inline-block" style="width:120px;">{{item.label}}：</span>
-          <span class="inline-block" v-if="item.value=='LASTTIME'">{{new Date(dataItem.VipObj.LASTTIME) |time }}</span>
-          <span class="inline-block" v-else>{{dataItem.VipObj[item.value]}}</span>
+        <div v-for="(item, i) in VipObj" :key="i" class="font-16 marginTB-sm">
+          <span class="inline-block" style="width: 120px">{{ item.label }}：</span>
+          <span class="inline-block" v-if="item.value == 'LASTTIME'">
+            {{ new Date(dataItem.VipObj.LASTTIME) | time }}
+          </span>
+          <span class="inline-block" v-else>{{ dataItem.VipObj[item.value] }}</span>
         </div>
       </el-col>
       <el-col :xs="24" :sm="24" :md="15" :lg="15" :xl="15">
-        <div v-for="(item,i) in BillObj" :key="i" class="font-16 marginTB-sm">
-          <div v-if="i==6" class="paddingTB-xs"></div>
-          <div v-if="i==4" class="font-16 marginTB-sm">
-            <span class="inline-block" style="width:120px;">店铺：</span>
-            <span class="inline-block">{{shopName[0].NAME}}</span>
+        <div v-for="(item, i) in BillObj" :key="i" class="font-16 marginTB-sm">
+          <div v-if="i == 6" class="paddingTB-xs"></div>
+          <div v-if="i == 4" class="font-16 marginTB-sm">
+            <span class="inline-block" style="width: 120px">店铺：</span>
+            <span class="inline-block">{{ shopName[0].NAME }}</span>
           </div>
-          <span class="inline-block" style="width:120px;">{{item.label}}：</span>
-          <span class="inline-block" v-if="item.value=='BILLDATE'||item.value=='WRITETIME'||item.value=='CHECKTIME'">{{new Date(dataItem.BillObj[item.value]) |time }}</span>
-          <span class="inline-block" v-else-if="item.value=='ISCHECK'||item.value=='ISCANCEL'">{{dataItem.BillObj[item.value]?'是':'否' }}</span>
-          <span class="inline-block" v-else>{{dataItem.BillObj[item.value]}}</span>
+          <span class="inline-block" style="width: 120px">{{ item.label }}：</span>
+          <span
+            class="inline-block"
+            v-if="
+              item.value == 'BILLDATE' || item.value == 'WRITETIME' || item.value == 'CHECKTIME'
+            "
+          >
+            {{ new Date(dataItem.BillObj[item.value]) | time }}
+          </span>
+          <span
+            class="inline-block"
+            v-else-if="item.value == 'ISCHECK' || item.value == 'ISCANCEL'"
+          >
+            {{ dataItem.BillObj[item.value] ? "是" : "否" }}
+          </span>
+          <span class="inline-block" v-else>{{ dataItem.BillObj[item.value] }}</span>
         </div>
       </el-col>
     </el-row>
@@ -53,18 +67,18 @@ export default {
         { label: "是否已回复", value: "ISCHECK" },
         { label: "回复人", value: "CHECKER" },
         { label: "回复时间", value: "CHECKTIME" },
-        { label: "回复内容", value: "CHECKREMARK" },
+        { label: "回复内容", value: "CHECKREMARK" }
       ]
     };
   },
   computed: {
     ...mapGetters({
       dataItem: "sOpinionItem",
-      shopList:'shopList'
+      shopList: "shopList"
     }),
-    shopName(){
-      return this.shopList.filter(item => item.ID == this.dataItem.BillObj.SHOPID)
-    },
+    shopName() {
+      return this.shopList.filter((item) => item.ID == this.dataItem.BillObj.SHOPID);
+    }
   },
   methods: {
     farDate(date) {

@@ -3,19 +3,34 @@
     <el-button-group class="m-bottom-sm">
       <el-button
         type="default"
-        @click="pageData.IsEmpMoney='-1';getNewData()"
-        :class="{'active':pageData.IsEmpMoney=='-1'}"
-      >全部</el-button>
+        @click="
+          pageData.IsEmpMoney = '-1';
+          getNewData();
+        "
+        :class="{ active: pageData.IsEmpMoney == '-1' }"
+      >
+        全部
+      </el-button>
       <el-button
         type="default"
-        @click="pageData.IsEmpMoney='1';getNewData()"
-        :class="{'active':pageData.IsEmpMoney=='1'}"
-      >已设置</el-button>
+        @click="
+          pageData.IsEmpMoney = '1';
+          getNewData();
+        "
+        :class="{ active: pageData.IsEmpMoney == '1' }"
+      >
+        已设置
+      </el-button>
       <el-button
         type="default"
-        @click="pageData.IsEmpMoney='0';getNewData()"
-        :class="{'active':pageData.IsEmpMoney=='0'}"
-      >未设置</el-button>
+        @click="
+          pageData.IsEmpMoney = '0';
+          getNewData();
+        "
+        :class="{ active: pageData.IsEmpMoney == '0' }"
+      >
+        未设置
+      </el-button>
     </el-button-group>
 
     <!--列表-->
@@ -25,9 +40,14 @@
       v-loading="loading"
       max-height="500"
       header-row-class-name="bg-f1f2f3"
-      style="width: 100%;"
+      style="width: 100%"
     >
-      <el-table-column prop="ISEMPMONEY" label="状态" width="120" :formatter="formatStatus"></el-table-column>
+      <el-table-column
+        prop="ISEMPMONEY"
+        label="状态"
+        width="120"
+        :formatter="formatStatus"
+      ></el-table-column>
       <el-table-column prop="NAME" label="商品"></el-table-column>
       <el-table-column label="提成方式">
         <template slot-scope="scope">
@@ -36,7 +56,7 @@
             <span v-text="scope.row.EMPMODE1==1?scope.row.EMPMONEY1 * 100:scope.row.EMPMONEY1"></span>
             <span v-text="scope.row.EMPMODE1==1?'%':'元'"></span>
           </div>-->
-          <div>{{scope.row.EMPMONEYREMARK}}</div>
+          <div>{{ scope.row.EMPMONEYREMARK }}</div>
         </template>
       </el-table-column>
       <!-- <el-table-column label="提成方式二">
@@ -64,8 +84,9 @@
       </el-table-column>
     </el-table>
     <!-- 分页 -->
-    <div class="m-top-sm clearfix elpagination" v-if='pagination.TotalNumber > 20'>
-      <el-pagination background
+    <div class="m-top-sm clearfix elpagination" v-if="pagination.TotalNumber > 20">
+      <el-pagination
+        background
         @size-change="handlePageChange"
         @current-change="handlePageChange"
         :current-page.sync="pagination.PN"
@@ -82,9 +103,9 @@
     <el-dialog title="商品" :visible.sync="isShowEdit" append-to-body width="400px">
       <div>
         <div class="clearfix m-bottom-md">
-          <img :src="img" class="pull-left m-right-sm" style="width:48px;">
-          <div class="font-16 font-600">{{activeItem.NAME}}</div>
-          <div class="m-top-sm">&yen;{{activeItem.PRICE}}</div>
+          <img :src="img" class="pull-left m-right-sm" style="width: 48px" />
+          <div class="font-16 font-600">{{ activeItem.NAME }}</div>
+          <div class="m-top-sm">&yen;{{ activeItem.PRICE }}</div>
         </div>
         <el-form
           ref="ruleForm"
@@ -93,52 +114,71 @@
           label-position="left"
           label-width="90px"
         >
-          <el-form-item :label="pageMode==1?'员工1':'提成方式'">
+          <el-form-item :label="pageMode == 1 ? '员工1' : '提成方式'">
             <el-input v-model.number="ruleForm.Money1" type="number" min="0">
               <el-select
                 slot="prepend"
                 v-model="ruleForm.Mode1"
                 placeholder="请选择"
-                style="width:120px"
+                style="width: 120px"
               >
                 <el-option label="按消费金额" :value="1"></el-option>
                 <el-option label="按固定金额" :value="0"></el-option>
               </el-select>
-              <span slot="append" class="inline-block" v-text="ruleForm.Mode1==1?'%':'元'"></span>
+              <span
+                slot="append"
+                class="inline-block"
+                v-text="ruleForm.Mode1 == 1 ? '%' : '元'"
+              ></span>
             </el-input>
           </el-form-item>
-          <el-form-item label="员工2" v-if="pageMode==1">
+          <el-form-item label="员工2" v-if="pageMode == 1">
             <el-input v-model.number="ruleForm.Money2" type="number" min="0">
               <el-select
                 slot="prepend"
                 v-model="ruleForm.Mode2"
                 placeholder="请选择"
-                style="width:120px"
+                style="width: 120px"
               >
                 <el-option label="按消费金额" :value="1"></el-option>
                 <el-option label="按固定金额" :value="0"></el-option>
               </el-select>
-              <span slot="append" class="inline-block" v-text="ruleForm.Mode2==1?'%':'元'"></span>
+              <span
+                slot="append"
+                class="inline-block"
+                v-text="ruleForm.Mode2 == 1 ? '%' : '元'"
+              ></span>
             </el-input>
           </el-form-item>
-          <el-form-item label="员工3" v-if="pageMode==1">
+          <el-form-item label="员工3" v-if="pageMode == 1">
             <el-input v-model.number="ruleForm.Money3" type="number" min="0">
               <el-select
                 slot="prepend"
                 v-model="ruleForm.Mode3"
                 placeholder="请选择"
-                style="width:120px"
+                style="width: 120px"
               >
                 <el-option label="按消费金额" :value="1"></el-option>
                 <el-option label="按固定金额" :value="0"></el-option>
               </el-select>
-              <span slot="append" class="inline-block" v-text="ruleForm.Mode3==1?'%':'元'"></span>
+              <span
+                slot="append"
+                class="inline-block"
+                v-text="ruleForm.Mode3 == 1 ? '%' : '元'"
+              ></span>
             </el-input>
           </el-form-item>
 
           <el-form-item>
             <el-button type="primary" @click="onSubmit" :loading="loading">确 定</el-button>
-            <el-button @click="isShowEdit=false;resetForm()">取 消</el-button>
+            <el-button
+              @click="
+                isShowEdit = false;
+                resetForm();
+              "
+            >
+              取 消
+            </el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -240,7 +280,7 @@ export default {
         this.loading = true;
       });
     },
-    handlePageChange: function(currentPage) {
+    handlePageChange: function (currentPage) {
       if (this.pageData.PN == currentPage || this.loading) {
         return;
       }

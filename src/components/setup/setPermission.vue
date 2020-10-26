@@ -1,16 +1,16 @@
 <template>
   <div>
-     666
-    <div v-for="(item,key,i) in pageList" :key="i" class="row-flex">
-      <div class="paddingTB-sm block" style="width:100px">
-        <span>{{item.info.MODULENAME}}</span>
+    666
+    <div v-for="(item, key, i) in pageList" :key="i" class="row-flex">
+      <div class="paddingTB-sm block" style="width: 100px">
+        <span>{{ item.info.MODULENAME }}</span>
       </div>
       <div class="full-width">
         <div
           class="inline-block m-left-sm m-bottom-sm"
           v-for="subItem in item.list"
           :key="subItem.FUNID"
-          :class="{'text-theme':subItem.ISPURVIEW==1}"
+          :class="{ 'text-theme': subItem.ISPURVIEW == 1 }"
         >
           <el-checkbox v-model="subItem.IsPurview" :label="subItem.MODULENAME" border></el-checkbox>
         </div>
@@ -45,8 +45,10 @@
       </div>
     </div> -->
 
-    <el-button @click="setPermission" :loading="loading" type="primary" style="margin-left:100px;">保 存</el-button>
-    <el-button @click='closeModal("closeModal")' type="primary" plain>取消</el-button>
+    <el-button @click="setPermission" :loading="loading" type="primary" style="margin-left: 100px">
+      保 存
+    </el-button>
+    <el-button @click="closeModal('closeModal')" type="primary" plain>取消</el-button>
   </div>
 </template>
 <script>
@@ -66,7 +68,7 @@ export default {
       dataList: "permissionList",
       // dataStore: "permissionStore",
       dataState: "permissionState",
-      dataBrand: 'permissionBrand'
+      dataBrand: "permissionBrand"
     })
   },
   watch: {
@@ -78,7 +80,7 @@ export default {
       });
       if (data.success) {
         this.closeModal("resetList");
-        this.$store.dispatch("getPermissionInfo")
+        this.$store.dispatch("getPermissionInfo");
       }
     }
   },
@@ -91,34 +93,41 @@ export default {
       }
     },
     setPermission() {
-      let sendArr = []
+      let sendArr = [];
       for (let key in this.pageList) {
         let list = this.pageList[key].list;
         for (let i = 0; i < list.length; i++) {
           if (list[i].IsPurview) {
-            sendArr.push(list[i])
+            sendArr.push(list[i]);
           }
         }
       }
 
-      if(this.uid != ''){
+      if (this.uid != "") {
         // for (let i = 0; i < this.pageList2.length; i++) {
         //   if (this.pageList2[i].IsPurview) {
         //     sendArr2.push({ ShopID: this.pageList2[i].SHOPID });
         //   }
         // }
 
-        let param = this.pageList3, BrandList = []
-        for(var j in param){
+        let param = this.pageList3,
+          BrandList = [];
+        for (var j in param) {
           BrandList.push({
             BrandId: param[j].ID,
             Brand: param[j].NAME
-          })
+          });
         }
 
-        this.$store.dispatch("setPermissionList", { uid: this.uid, parr:sendArr, BrandList: JSON.stringify(BrandList) }).then(() => {
-          this.loading = true;
-        })
+        this.$store
+          .dispatch("setPermissionList", {
+            uid: this.uid,
+            parr: sendArr,
+            BrandList: JSON.stringify(BrandList)
+          })
+          .then(() => {
+            this.loading = true;
+          });
       }
     }
   },
@@ -135,17 +144,17 @@ export default {
       //   );
       // }
 
-      let arr1 = []
-      for(let j = 0; j < this.dataBrand.length; j++){
+      let arr1 = [];
+      for (let j = 0; j < this.dataBrand.length; j++) {
         arr1.push(
           Object.assign({}, this.dataBrand[j], {
             IsPurview: this.dataBrand[j].ISPURVIEW == 1 ? true : false
           })
-        )
+        );
       }
 
       // this.pageList2 = [...arr];
-      this.pageList3 = [...arr1]
+      this.pageList3 = [...arr1];
       this.pageList = Object.assign({}, this.dataList);
     }
   }
