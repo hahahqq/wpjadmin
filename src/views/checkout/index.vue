@@ -49,9 +49,4 @@ export default {
     this.$store.dispatch("getmemberQRcodeurlstate", {}).then(() => {});
   }
 };
-
 </script>
-<style>
-
-
-</style>

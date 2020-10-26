@@ -135,8 +135,8 @@
             placeholder="请输入会员名或手机号"
           >
             <el-option v-for="(item, i) in dataMemberList" :key="i" :value="item">
-              <span style="float: left">{{ item.NAME }}</span>
-              <span style="float: right; color: #8492a6; font-size: 13px">{{ item.MOBILENO }}</span>
+              <span class="pull-left">{{ item.NAME }}</span>
+              <span class="pull-right font-13" style="color: #8492a6;">{{ item.MOBILENO }}</span>
             </el-option>
           </el-select>
           <div

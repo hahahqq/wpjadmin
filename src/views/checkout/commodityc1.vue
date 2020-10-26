@@ -63,8 +63,8 @@
         <el-col :span="8" style="padding:16px 16px; position:relative; border-right:2px solid #e4e4e4">
           <el-select v-model='searchText' size="small" filterable remote reserve-keyword :remote-method="remoteMethod" style='width:100%' :loading='loading' @change="handleSelect(searchText)" @focus='defaultMemberData()' placeholder="请输入会员名或手机号">
             <el-option v-for='(item,i) in dataMemberList' :key='i' :value='item' >
-              <span style='float:left'>{{item.NAME}}</span>
-              <span style="float:right; color: #8492a6; font-size:13px">{{item.MOBILENO}}</span>
+              <span class="pull-left">{{item.NAME}}</span>
+              <span class="pull-right font-13" style="color: #8492a6;">{{item.MOBILENO}}</span>
             </el-option>
           </el-select>
           <div class="vip_sock" style="overflow: hidden; border-radius: 8px; color:#666; background: #f5f57fa; border: 1px solid #ddd; height:130px;">
@@ -73,7 +73,7 @@
                 <img :src="vipnews.IMAGEURL" onerror="this.src='static/images/admin.png'" style="width:40px;height:40px; margin-right:5px; border-radius:50%" class="pull-left">
                 <div class="viptop_lc pull-left" v-if="isVip">
                   <p>{{vipnews.NAME}}</p>
-                  <p style="font-size:12px"><span>{{vipnews.MOBILENO}}</span>&nbsp;&nbsp;&nbsp;<span v-if='vipnews.NAME != "散客"'> 折扣 {{vipnews.DISCOUNT *100}} %</span></p>
+                  <p class="font-12"><span>{{vipnews.MOBILENO}}</span>&nbsp;&nbsp;&nbsp;<span v-if='vipnews.NAME != "散客"'> 折扣 {{vipnews.DISCOUNT *100}} %</span></p>
                 </div>
                 <div class='viptop_lc pull-left' style="line-height: 40px" v-else>
                     <p>{{vipnews.NAME}}</p>
