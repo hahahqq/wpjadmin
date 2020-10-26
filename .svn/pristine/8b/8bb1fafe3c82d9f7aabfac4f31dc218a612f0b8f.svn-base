@@ -383,8 +383,14 @@ export default {
 					type: "warning"
 				})
 					.then(() => {
-						this.dataInfo.STATUS = 2;
-						this.handleButton(3);
+						this.dataItem.STATUS = 2;
+						this.$store
+							.dispatch("repayMallRefund", {
+								BillId: this.dataItem.BILLID
+							})
+							.then(() => {
+								this.loading = true;
+							});
 					})
 					.catch(() => {
 						this.$store.dispatch("clearMallOrderList").then(() => {

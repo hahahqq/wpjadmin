@@ -1,131 +1,169 @@
 <template>
   <el-container>
-    <el-header style="height:50px; padding: 0">
-        <headerPage></headerPage>
+    <el-header style="height: 50px; padding: 0">
+      <headerPage></headerPage>
     </el-header>
     <el-container>
-        <el-aside width="100px">
-            <section style="min-width:100px;">
-                <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+      <el-aside width="100px">
+        <section style="min-width: 100px">
+          <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
+        </section>
+      </el-aside>
+      <el-container>
+        <el-main :style="{ height: height + 'px' }">
+          <div class="print row-flex flex-start bg-white">
+            <section class="printEG">
+              <div class="top">
+                <div class="font-16 text-center m-top-sm overflow-hidden" v-if="ddList[0].isShow">
+                  {{ ddList[0].value }}
+                </div>
+                <div class="text-center paddingTB-xs">{{ titleText1 }}&nbsp;{{ titleText2 }}</div>
+                <div class="marginTB-xxs" v-for="(item, i) in ddList1" :key="i" v-show="item.isShow">
+                  <span>{{ item.label }}</span>
+                  <span>{{ item.value }}</span>
+                </div>
+                <div class="line">
+                  <i></i>
+                </div>
+              </div>
+
+              <div class="center">
+                <ul class="tableList">
+                  <li class="row-flex">
+                    <span>商品</span>
+                    <span>折扣</span>
+                    <span>单价</span>
+                    <span>数量</span>
+                    <span>小计</span>
+                  </li>
+                  <li class="row-flex">
+                    <span style="width: 100%; text-align: left; padding-left: 8px">
+                      卫衣(sp0001-白色-S)
+                    </span>
+                  </li>
+                  <li class="row-flex">
+                    <span>￥119</span>
+                    <span>0.9</span>
+                    <span>107.11</span>
+                    <span>1</span>
+                    <span>107.11</span>
+                  </li>
+
+                  <li class="row-flex" style="margin-top: 6px">
+                    <span style="width: 100%; text-align: left; padding-left: 8px">
+                      卫衣(sp0002-白色-M)
+                    </span>
+                  </li>
+                  <li class="row-flex">
+                    <span>￥119</span>
+                    <span>0.9</span>
+                    <span>107.11</span>
+                    <span>1</span>
+                    <span>107.11</span>
+                  </li>
+
+                  <li class="row-flex" style="margin-top: 6px">
+                    <span style="width: 100%; text-align: left; padding-left: 8px">
+                      连衣裙(sp0003-白色-M)
+                    </span>
+                  </li>
+                  <li class="row-flex">
+                    <span>￥200</span>
+                    <span>0.8</span>
+                    <span>160</span>
+                    <span>1</span>
+                    <span>160</span>
+                  </li>
+                </ul>
+                <div class="line">
+                  <i></i>
+                </div>
+                <div
+                  class="marginTB-xxs"
+                  v-for="(item, i) in ddList2"
+                  :key="'2' + i"
+                  v-show="item.isShow"
+                >
+                  <span>{{ item.label }}</span>
+                  <span>{{ item.value }}</span>
+                </div>
+                <div class="line">
+                  <i></i>
+                </div>
+                <div class="marginTB-xxs">
+                  <span>现金支付：</span>
+                  <span>&yen;100</span>
+                </div>
+                <div class="line">
+                  <i></i>
+                </div>
+                <!-- 会员 -->
+                <div
+                  class="marginTB-xxs"
+                  v-for="(item, i) in ddList3"
+                  :key="'3' + i"
+                  v-show="item.isShow"
+                >
+                  <span>{{ item.label }}</span>
+                  <span>{{ item.value }}</span>
+                </div>
+                <div class="line" v-if="ddList3Count > 0">
+                  <i></i>
+                </div>
+                <div
+                  class="marginTB-xxs"
+                  v-for="(item, i) in ddList4"
+                  :key="'4' + i"
+                  v-show="item.isShow"
+                >
+                  <span>{{ item.label }}</span>
+                  <span>{{ item.value }}</span>
+                </div>
+                <div class="text-center">
+                  <div class="marginTB-xxs overflow-hidden" v-if="ddList[1].isShow">
+                    {{ ddList[1].value }}
+                  </div>
+                  <img
+                    :src="ddList[2].value"
+                    :alt="ddList[2].label"
+                    style="width: 100px"
+                    v-if="ddList[2].isShow"
+                  />
+                </div>
+              </div>
+              <div class="bottom"></div>
             </section>
-        </el-aside>
-        <el-container>
-            <el-main :style="{height:height+'px'}">
-              <div class="print row-flex flex-start bg-white">
-                <section class="printEG">
-                  <div class="top">
-                    <div class="font-16 text-center m-top-sm overflow-hidden " v-if="ddList[0].isShow">{{ddList[0].value}}</div>
-                    <div class="text-center paddingTB-xs">{{titleText1}}&nbsp;{{titleText2}}</div>
-                    <div class="marginTB-xxs" v-for="(item,i) in ddList1" :key="i" v-if="item.isShow">
-                      <span>{{item.label}}</span>
-                      <span>{{item.value}}</span>
-                    </div>
-                    <div class="line">
-                      <i></i>
-                    </div>
-                  </div>
-
-                  <div class="center">
-                    <ul class="tableList">
-                      <li class="row-flex">
-                        <span>商品</span>
-                        <span>折扣</span>
-                        <span>单价</span>
-                        <span>数量</span>
-                        <span>小计</span>
-                      </li>
-                      <li class="row-flex">
-                        <span style="width:100%; text-align:left; padding-left:8px">卫衣(sp0001-白色-S)</span>
-                      </li>
-                      <li class="row-flex">
-                        <span>￥119</span>
-                        <span>0.9</span>
-                        <span>107.11</span>
-                        <span>1</span>
-                        <span>107.11</span>
-                      </li>
-
-                      <li class="row-flex" style="margin-top: 6px">
-                        <span style="width:100%; text-align:left; padding-left:8px">卫衣(sp0002-白色-M)</span>
-                      </li>
-                      <li class="row-flex">
-                        <span>￥119</span>
-                        <span>0.9</span>
-                        <span>107.11</span>
-                        <span>1</span>
-                        <span>107.11</span>
-                      </li>
-
-                      <li class="row-flex" style="margin-top: 6px">
-                        <span style="width:100%; text-align:left; padding-left:8px">连衣裙(sp0003-白色-M)</span>
-                      </li>
-                      <li class="row-flex">
-                        <span>￥200</span>
-                        <span>0.8</span>
-                        <span>160</span>
-                        <span>1</span>
-                        <span>160</span>
-                      </li>
-                    </ul>
-                    <div class="line">
-                      <i></i>
-                    </div>
-                    <div class="marginTB-xxs" v-for="(item,i) in ddList2" :key="'2'+i" v-if="item.isShow">
-                      <span>{{item.label}}</span>
-                      <span>{{item.value}}</span>
-                    </div>
-                    <div class="line">
-                      <i></i>
-                    </div>
-                    <div class="marginTB-xxs">
-                      <span>现金支付：</span>
-                      <span>&yen;100</span>
-                    </div>
-                    <div class="line">
-                      <i></i>
-                    </div>
-                    <!-- 会员 -->
-                    <div class="marginTB-xxs" v-for="(item,i) in ddList3" :key="'3'+i" v-if="item.isShow">
-                      <span>{{item.label}}</span>
-                      <span>{{item.value}}</span>
-                    </div>
-                    <div class="line" v-if="ddList3Count>0">
-                      <i></i>
-                    </div>
-                    <div class="marginTB-xxs" v-for="(item,i) in ddList4" :key="'4'+i" v-if="item.isShow">
-                      <span>{{item.label}}</span>
-                      <span>{{item.value}}</span>
-                    </div>
-                    <div class="text-center">
-                      <div class="marginTB-xxs overflow-hidden " v-if="ddList[1].isShow">{{ddList[1].value}}</div>
-                      <img :src="ddList[2].value" :alt="ddList[2].label" style="width:100px;" v-if="ddList[2].isShow">
-                    </div>
-                  </div>
-                  <div class="bottom"></div>
-                </section>
-                <!-- set -->
-                <section class="m-top-lg" style="height:690px;">
-                  <div style="margin-bottom:12px;">
-                    <span>自动打印小票</span>
-                      <el-switch v-model="setupPrintstatus" active-color="#rgb(251, 120, 154)" inactive-color="##9E9E9E" class="pull-right" @change='setupPrint'>
-                      </el-switch>
-                  </div>
-                  <div
-                      class="row-flex flex-between flex-items-center"
-                      style="margin-bottom:12px;"
-                  >
-                      <span>打印小票份数</span>
-                      <el-select
-                          size="mini"
-                          v-model="setupPrintnum.num"
-                          placeholder="请选择"
-                          @change="setupPrint_fun"
-                          style="width:90px"
-                      >
-                          <el-option size="mini" v-for="v in [1,2,3,4,5]" :key="v" :label="v+' 份'" :value="v"></el-option>
-                      </el-select>
-                  </div>
-                  <!-- <div style="line-height:32px; margin-top: 10px">
+            <!-- set -->
+            <section class="m-top-lg" style="height: 690px">
+              <div style="margin-bottom: 12px">
+                <span>自动打印小票</span>
+                <el-switch
+                  v-model="setupPrintstatus"
+                  active-color="#rgb(251, 120, 154)"
+                  inactive-color="##9E9E9E"
+                  class="pull-right"
+                  @change="setupPrint"
+                ></el-switch>
+              </div>
+              <div class="row-flex flex-between flex-items-center" style="margin-bottom: 12px">
+                <span>打印小票份数</span>
+                <el-select
+                  size="mini"
+                  v-model="setupPrintnum.num"
+                  placeholder="请选择"
+                  @change="setupPrint_fun"
+                  style="width: 90px"
+                >
+                  <el-option
+                    size="mini"
+                    v-for="v in [1, 2, 3, 4, 5]"
+                    :key="v"
+                    :label="v + ' 份'"
+                    :value="v"
+                  ></el-option>
+                </el-select>
+              </div>
+              <!-- <div style="line-height:32px; margin-top: 10px">
                     <span>打印小票规格</span>
                     <el-select
                         size='mini'
@@ -138,94 +176,105 @@
                             <el-option label="80mm" :value="1"></el-option>
                       </el-select>
                   </div> -->
-                  <div
-                      class="row-flex flex-between flex-items-center"
-                      style="margin-bottom:12px;"
-                  >
-                      <span>打印小票规格</span>
-                      <el-select
-                          size='mini'
-                              v-model="setupPrintType"
-                              @change="setPrintTypeFun"
-                              placeholder="请选择"
-                              style="width:90px"
-                          >
-                              <el-option label="58mm" :value="0"></el-option>
-                              <el-option label="80mm" :value="1"></el-option>
-                        </el-select>
-                  </div>
-                  <div class="m-bottom-sm">
-                    <span>如需打印小票，请下载打印插件并完成安装。</span>
-                    <el-button type="primary" size="mini"><a href="static/images/CLodop_Setup.exe" title="">点击下载</a></el-button>
-                  </div>
-                  <div class="padding-sm border">
-                    <div class="line2 m-top-xs p-bottom-xs">小票设置</div>
-                    <div class="row-flex">
-                      <el-checkbox
-                        v-model="ddList[0].isShow"
-                        @change="ssListFun1"
-                        class="marginTB-xs" style="width:100px;"
-                      >{{ddList[0].label}}</el-checkbox>
-                      <a class="m-top-xs inline-block border-bottom full-width pointer"
-                      @click="changeLabel(ddList[0])">{{ddList[0].value}}</a>
-                    </div>
-                    <div class="row-flex">
-                      <el-checkbox
-                        v-model="ddList[1].isShow"
-                        @change="ssListFun2"
-                        class="marginTB-xs" style="width:100px;"
-                      >{{ddList[1].label}}</el-checkbox>
-                      <a class="m-top-xs inline-block border-bottom full-width pointer"
-                      @click="changeLabel(ddList[1])">{{ddList[1].value}}</a>
-                    </div>
-
-                    <div v-for="(item,ii) in ssList" :key="ii" class>
-                      <div v-if="ii==0">
-                        <div class="line2 m-top-xs p-bottom-xs">店铺信息（可选打印选项）</div>
-                        <el-checkbox
-                          v-model="ddList[2].isShow"
-                          @change="ssListFun3"
-                          class="marginTB-xs"
-                        >{{ddList[2].label}}</el-checkbox>
-                      </div>
-                      <div v-if="ii==3">
-                        <div class="line2 m-top-xs p-bottom-xs">会员信息（可选打印选项）</div>
-                      </div>
-                      <el-checkbox
-                        v-model="item.checked"
-                        @change="ssListFun(item)"
-                        class="marginTB-xs"
-                      >{{item.name}}</el-checkbox>
-                    </div>
-                  </div>
-                </section>
+              <div class="row-flex flex-between flex-items-center" style="margin-bottom: 12px">
+                <span>打印小票规格</span>
+                <el-select
+                  size="mini"
+                  v-model="setupPrintType"
+                  @change="setPrintTypeFun"
+                  placeholder="请选择"
+                  style="width: 90px"
+                >
+                  <el-option label="58mm" :value="0"></el-option>
+                  <el-option label="80mm" :value="1"></el-option>
+                </el-select>
               </div>
-            </el-main>
-        </el-container>
+              <div class="m-bottom-sm">
+                <span>如需打印小票，请下载打印插件并完成安装。</span>
+                <el-button type="primary" size="mini">
+                  <a href="static/images/CLodop_Setup.exe" title="">点击下载</a>
+                </el-button>
+              </div>
+              <div class="padding-sm border">
+                <div class="line2 m-top-xs p-bottom-xs">小票设置</div>
+                <div class="row-flex">
+                  <el-checkbox
+                    v-model="ddList[0].isShow"
+                    @change="ssListFun1"
+                    class="marginTB-xs"
+                    style="width: 100px"
+                  >
+                    {{ ddList[0].label }}
+                  </el-checkbox>
+                  <a
+                    class="m-top-xs inline-block border-bottom full-width pointer"
+                    @click="changeLabel(ddList[0])"
+                  >
+                    {{ ddList[0].value }}
+                  </a>
+                </div>
+                <div class="row-flex">
+                  <el-checkbox
+                    v-model="ddList[1].isShow"
+                    @change="ssListFun2"
+                    class="marginTB-xs"
+                    style="width: 100px"
+                  >
+                    {{ ddList[1].label }}
+                  </el-checkbox>
+                  <a
+                    class="m-top-xs inline-block border-bottom full-width pointer"
+                    @click="changeLabel(ddList[1])"
+                  >
+                    {{ ddList[1].value }}
+                  </a>
+                </div>
+
+                <div v-for="(item, ii) in ssList" :key="ii" class>
+                  <div v-if="ii == 0">
+                    <div class="line2 m-top-xs p-bottom-xs">店铺信息（可选打印选项）</div>
+                    <el-checkbox
+                      v-model="ddList[2].isShow"
+                      @change="ssListFun3"
+                      class="marginTB-xs"
+                    >
+                      {{ ddList[2].label }}
+                    </el-checkbox>
+                  </div>
+                  <div v-if="ii == 3">
+                    <div class="line2 m-top-xs p-bottom-xs">会员信息（可选打印选项）</div>
+                  </div>
+                  <el-checkbox v-model="item.checked" @change="ssListFun(item)" class="marginTB-xs">
+                    {{ item.name }}
+                  </el-checkbox>
+                </div>
+              </div>
+            </section>
+          </div>
+        </el-main>
+      </el-container>
     </el-container>
   </el-container>
 </template>
 <script>
 import qrcode from "@/assets/qrcode.png";
 import MIXINS_SETUP from "@/mixins/setup";
-import {
-    getPrintData,
-    setPrintData,
-    getOthersData,
-    setOthersData
-} from "@/api/index";
-import dayjs from 'dayjs'
-import { getUserInfo, getHomeData} from '@/api/index'
+import { getPrintData, setPrintData, getOthersData, setOthersData } from "@/api/index";
+import dayjs from "dayjs";
+import { getUserInfo, getHomeData } from "@/api/index";
 export default {
   mixins: [MIXINS_SETUP.SIDERBAR_MENU],
   data() {
     return {
       height: window.innerHeight - 60,
-      setupPrintnum: { status: false, num: 1,type:0 },
-      setupPrintstatus:false,
-      titleText1:'店铺名称',
-      titleText2:'小票打印',
-      setupPrintType: localStorage.getItem('printType') != null ? JSON.parse(localStorage.getItem('printType')) : 0,
+      setupPrintnum: { status: false, num: 1, type: 0 },
+      setupPrintstatus: false,
+      titleText1: "店铺名称",
+      titleText2: "小票打印",
+      setupPrintType:
+        localStorage.getItem("printType") != null
+          ? JSON.parse(localStorage.getItem("printType"))
+          : 0,
       ddList: [
         {
           label: "标题",
@@ -246,18 +295,18 @@ export default {
       goodsList: [
         {
           name: "商品",
-          discount: '折扣',
+          discount: "折扣",
           price: "单价",
           qty: "数量",
-          total: '小计',
-          gPrice: '',
+          total: "小计",
+          gPrice: "",
           isShow: true
         },
         {
           name: "卫衣",
           qty: "1",
           price: "40",
-          discount: '0.8',
+          discount: "0.8",
           isShow: true
         },
         {
@@ -275,7 +324,7 @@ export default {
         },
         {
           label: "结账日期：",
-          value: dayjs(new Date()).format('YYYY-MM-DD HH:mm'),
+          value: dayjs(new Date()).format("YYYY-MM-DD HH:mm"),
           isShow: true
         },
         {
@@ -399,39 +448,39 @@ export default {
   },
   computed: {
     ddList3Count() {
-      return this.ddList3.filter(todo => todo.isShow).length;
+      return this.ddList3.filter((todo) => todo.isShow).length;
     }
   },
   components: {
-      headerPage: () => import("@/components/header")
+    headerPage: () => import("@/components/header")
   },
   methods: {
-    setupPrint_fun: function(v) {
-      console.log("选择多少份",v)
-        setOthersData({
-            isprint: this.setupPrintnum.status,
-            printnum: this.setupPrintnum.num,
-            printtype: this.setupPrintnum.type,
-        });
+    setupPrint_fun: function (v) {
+      console.log("选择多少份", v);
+      setOthersData({
+        isprint: this.setupPrintnum.status,
+        printnum: this.setupPrintnum.num,
+        printtype: this.setupPrintnum.type
+      });
     },
-    setPrintData_fun(){
-        setPrintData({
-            ddList: this.ddList,
-            ddList1: this.ddList1,
-            ddList3: this.ddList3,
-            ddList4: this.ddList4,
-            ssList: this.ssList
-        });
-        console.log(getPrintData())
+    setPrintData_fun() {
+      setPrintData({
+        ddList: this.ddList,
+        ddList1: this.ddList1,
+        ddList3: this.ddList3,
+        ddList4: this.ddList4,
+        ssList: this.ssList
+      });
+      console.log(getPrintData());
     },
-    setPrintTypeFun(){
-      localStorage.setItem('printType', this.setupPrintType)
+    setPrintTypeFun() {
+      localStorage.setItem("printType", this.setupPrintType);
     },
-    setupPrint(){
+    setupPrint() {
       localStorage.setItem("SavesetupPrint", this.setupPrintstatus);
     },
     ssListFun(item) {
-      console.log(item)
+      console.log(item);
       switch (item.list) {
         case 1:
           this.ddList1[item.no].isShow = item.checked;
@@ -446,75 +495,74 @@ export default {
       this.setPrintData_fun();
     },
     ssListFun1(v) {
-      console.log("店铺",v)
-      this.ddList[0].isShow = v;this.setPrintData_fun();
+      console.log("店铺", v);
+      this.ddList[0].isShow = v;
+      this.setPrintData_fun();
     },
     ssListFun2(v) {
-      this.ddList[1].isShow = v;this.setPrintData_fun();
+      this.ddList[1].isShow = v;
+      this.setPrintData_fun();
     },
     ssListFun3(v) {
-      this.ddList[2].isShow = v;this.setPrintData_fun();
+      this.ddList[2].isShow = v;
+      this.setPrintData_fun();
     },
     changeLabel(item) {
-        this.$prompt("请输入" + item.label + "内容", "提示", {
-            confirmButtonText: "确定",
-            cancelButtonText: "取消",
-            inputValue: item.value
-        }).then(({ value }) => {
-            item.value = value;
-            this.setPrintData_fun();
-        }).catch(() => { })
+      this.$prompt("请输入" + item.label + "内容", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputValue: item.value
+      })
+        .then(({ value }) => {
+          item.value = value;
+          this.setPrintData_fun();
+        })
+        .catch(() => {});
     }
   },
-  created(){
-        this.setupPrintnum.num = getOthersData().printnum
-            ? parseInt(getOthersData().printnum)
-            : 1;
-        let pringInfo = getPrintData();
-        if (pringInfo) {
-            let setInfo = Object.assign({}, pringInfo);
-            this.ddList = [...setInfo.ddList];
-            this.ddList1 = [...setInfo.ddList1];
-            this.ddList3 = [...setInfo.ddList3];
-            this.ddList4 = [...setInfo.ddList4];
-            this.ssList = [...setInfo.ssList];
-        }
-        this.setupPrint.status = getOthersData().isprint ? true : false;
-        this.setupPrint.type = getOthersData().printtype
-            ? parseInt(getOthersData().printtype)
-            : 0;
-
-
+  created() {
+    this.setupPrintnum.num = getOthersData().printnum ? parseInt(getOthersData().printnum) : 1;
+    let pringInfo = getPrintData();
+    if (pringInfo) {
+      let setInfo = Object.assign({}, pringInfo);
+      this.ddList = [...setInfo.ddList];
+      this.ddList1 = [...setInfo.ddList1];
+      this.ddList3 = [...setInfo.ddList3];
+      this.ddList4 = [...setInfo.ddList4];
+      this.ssList = [...setInfo.ssList];
+    }
+    this.setupPrint.status = getOthersData().isprint ? true : false;
+    this.setupPrint.type = getOthersData().printtype ? parseInt(getOthersData().printtype) : 0;
   },
-  beforeDestroy(){
+  beforeDestroy() {
     let theInfo = {
-      ddList : this.ddList,
-      ddList1 : this.ddList1,
-      ddList3 : this.ddList3,
-      ddList4 : this.ddList4,
+      ddList: this.ddList,
+      ddList1: this.ddList1,
+      ddList3: this.ddList3,
+      ddList4: this.ddList4,
       ssList: this.ssList
-    }
+    };
     localStorage.setItem("MDBprint", JSON.stringify(theInfo));
   },
   mounted() {
     let getsetupPrint = localStorage.getItem("SavesetupPrint") || "";
-    this.setupPrintstatus=getsetupPrint== "true" ? true:false;
+    this.setupPrintstatus = getsetupPrint == "true" ? true : false;
   }
 };
 </script>
 
 <style scoped>
-.el-header{
+.el-header {
   padding: 0 !important;
 }
 .el-aside {
-  background-color: #D3DCE6;
+  background-color: #d3dce6;
   color: #333;
   text-align: center;
   line-height: 200px;
 }
-.el-main{
-  padding: 10px
+.el-main {
+  padding: 10px;
 }
 
 .printEG .marginTB-xxs {
@@ -540,7 +588,8 @@ export default {
 .print .line2 {
   border-bottom: 2px dashed #ccc;
 }
-.tableList li span{
-  text-align: center; width: 20%
+.tableList li span {
+  text-align: center;
+  width: 20%;
 }
 </style>

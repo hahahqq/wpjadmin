@@ -17,14 +17,14 @@
         </el-table>
 
         <div class="m-top-sm clearfix elpagination" v-if='tableData.length > 0'>
-            <el-pagination 
+            <el-pagination
                 background
                 @size-change="handlePageChange"
                 @current-change="handlePageChange"
                 :current-page.sync="pagination.PN"
-                :page-size="pagination.PageSize" 
-                layout="total,prev,pager,next,jumper" 
-                :total="pagination.TotalNumber" 
+                :page-size="pagination.PageSize"
+                layout="total,prev,pager,next,jumper"
+                :total="pagination.TotalNumber"
                 class="text-center">
             </el-pagination>
         </div>
@@ -68,7 +68,7 @@
 
             <div v-show="!isAll && selmemberArr.length > 0" class='m-top-sm'>
                 <el-collapse>
-                    <el-collapse-item>
+                    <el-collapse-item class="collapseStyle">
                         <template slot="title">
                             <i class="header-icon el-icon-view"></i>
                             查看已选会员 （{{selmemberArr.length}} )
@@ -145,7 +145,7 @@ export default {
             marketingSmStage:"marketingSmStage"
         })
     },
-    watch:{ 
+    watch:{
         detailState(data){
             if(data.success){
                 let obj = data.data.Obj
@@ -259,7 +259,7 @@ export default {
                 });
                 return;
             }
-            if(this.isAll){ 
+            if(this.isAll){
                 if(this.companyInfo.SMSNumber == 0 || this.VipCount > this.companyInfo.SMSNumber){
                     this.$message.error('剩余短信条数不足2 ！')
                     return
@@ -315,3 +315,10 @@ export default {
 }
 
 </script>
+
+
+<style scoped >
+.collapseStyle>>>.el-collapse-item__header{
+  display: -webkit-box;
+}
+</style>

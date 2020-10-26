@@ -209,7 +209,7 @@
           <el-button type='primary' @click='twoDisConfirm()' plain="">确认 (Enter)</el-button>
         </div>
 
-        <el-collapse :accordion='true'>
+        <el-collapse :accordion='true' class="collapseStyle">
           <el-collapse-item>
             <template slot="title"><span style='font-size:16px; color:red'>显示库存</span> </template>
             <table class='tableStock' border='0' cellspacing='0' cellpadding='0' width='100%' >
@@ -969,7 +969,10 @@ export default {
   color:#333; cursor: pointer;
 }
 
-
-
 </style>
 
+<style scoped >
+.collapseStyle>>>.el-collapse-item__header{
+  display: -webkit-box;
+}
+</style>

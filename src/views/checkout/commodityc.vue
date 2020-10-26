@@ -379,15 +379,15 @@ export default {
         this.$store.dispatch("getrqueryItem", pageData)
         let qresurl = this.$store.state.commodityc.saveQRcodeIMG;
 
+         this.$refs.okSubmit.isShowLoading()
+
         if(localStorage.getItem("SavesetupPrint") == "true"){
           getDayindate('91020303',data.data.OutBillId, 1, qresurl)
         }
 
-        this.$refs.okSubmit.isShowLoading()
-
       }else{
         this.$message.error(data.message)
-        this.$refs.okSubmit.isShowLoading()
+        this.$refs.okSubmit.loadingFalse()
       }
     },
    goodsListIncludeSingleState(data){

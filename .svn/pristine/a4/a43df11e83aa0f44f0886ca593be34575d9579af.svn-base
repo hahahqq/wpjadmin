@@ -552,7 +552,7 @@ export default {
       }
       this.rechargeListList = param;
       this.rechargeListChose = param;
-      this.curtab = 0;
+      this.curtab = 0
       this.payName = data[0].NAME;
       this.PaytypeId = data[0].ID;
     },
@@ -1066,13 +1066,14 @@ export default {
       this.couponcodemoney = 0;
       this.couponcode = "";
       this.discountMoney = "";
-      this.saleDate = new Date().getTime();
-    },
-    loadingFalse() {
-      this.loading = false;
+      console.log("clear integral ");
     },
     CashPayok() {
-      localStorage.setItem("SavesetupPrint", this.checkedreceipt ? true : false);
+      if (this.checkedreceipt) {
+        localStorage.setItem("SavesetupPrint", true);
+      } else {
+        localStorage.setItem("SavesetupPrint", false);
+      }
 
       let rechargeListList = this.rechargeListList,
         newParam = [],
@@ -1165,8 +1166,8 @@ export default {
       this.$emit("CashRecharge", comdata);
 
       this.integralToGoods = 0;
-      // this.couponcode = "";
-      // this.couponcodemoney = 0;
+      this.couponcode = "";
+      this.couponcodemoney = 0;
     },
     barcodePaycomback(data) {
       this.barcodepaystatus = 1;

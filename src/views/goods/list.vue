@@ -1,30 +1,42 @@
 <template>
-<el-container>
-  <el-header style="height:50px;">
-    <headerPage></headerPage>
-  </el-header>
-
   <el-container>
-    <el-aside width="100px">
-        <section style="min-width:100px;">
+    <el-header style="height: 50px">
+      <headerPage></headerPage>
+    </el-header>
+
+    <el-container>
+      <el-aside width="100px">
+        <section style="min-width: 100px">
           <memberMenu :activePath="activePath" :routesList="routesList" :width="100"></memberMenu>
         </section>
-    </el-aside>
-    <el-container>
-      <div class="content-new-fex" style="margin-bottom: 0">
-        <div class="content-eightys bg-white">
-          <div class="content-center pull-left" style="padding: 10px 0">
-            <el-row :gutter="10">
-              <el-col :span="24">
-                <el-button type="primary" icon="el-icon-plus" size="small" @click="showAddNew=true;dealType='add'">添加商品</el-button>
+      </el-aside>
+      <el-container>
+        <div class="content-new-fex" style="margin-bottom: 0">
+          <div class="content-eightys bg-white">
+            <div class="content-center pull-left" style="padding: 10px 0">
+              <el-row :gutter="10">
+                <el-col :span="24">
+                  <el-button
+                    type="primary"
+                    icon="el-icon-plus"
+                    size="small"
+                    @click="
+                      showAddNew = true;
+                      dealType = 'add';
+                    "
+                  >
+                    添加商品
+                  </el-button>
 
-                <el-button type="default" size="small" icon='el-icon-edit' @click="groupEditFun">批量编辑</el-button>
+                  <el-button type="default" size="small" icon="el-icon-edit" @click="groupEditFun">
+                    批量编辑
+                  </el-button>
 
-                <el-button type="default" size="small" icon='el-icon-download'>
-                  <a href="static/images/商品导入模板.xlsx">下载模板</a>
-                </el-button>
+                  <el-button type="default" size="small" icon="el-icon-download">
+                    <a href="static/images/商品导入模板.xlsx">下载模板</a>
+                  </el-button>
 
-                <!-- <el-button size="small"
+                  <!-- <el-button size="small"
                   type="default"
                   icon="el-icon-upload2"
                   for="input"
@@ -32,204 +44,358 @@
                   @click='uploadGoods()'
                 >商品导入</el-button> -->
 
-                <el-button size="small"
-                  type="default"
-                  icon="el-icon-upload2"
-                  for="input"
-                  :loading="importLoading"
-                  @click='uploadGoodsSize()'
-                >商品导入</el-button>
+                  <el-button
+                    size="small"
+                    type="default"
+                    icon="el-icon-upload2"
+                    for="input"
+                    :loading="importLoading"
+                    @click="uploadGoodsSize()"
+                  >
+                    商品导入
+                  </el-button>
 
-                <input type="file" ref="upload" accept=".xls, .xlsx" class="outputlist_upload hide">
+                  <input
+                    type="file"
+                    ref="upload"
+                    accept=".xls, .xlsx"
+                    class="outputlist_upload hide"
+                  />
 
-                <el-button size="small"
-                  type="default"
-                  icon="el-icon-download"
-                  @click='ExportGoodsData'
-                >批量导出</el-button>
+                  <el-button
+                    size="small"
+                    type="default"
+                    icon="el-icon-download"
+                    @click="ExportGoodsData"
+                  >
+                    批量导出
+                  </el-button>
 
-                <!-- search -->
-                <el-input type="default" size="small" v-model="searchText" placeholder="商品货号/名称" class="pull-right" style="width: 250px;">
-                  <el-button slot="append" type="default" icon="el-icon-search" @click="searchfun2(1)"></el-button>
-                </el-input>
-              </el-col>
-            </el-row>
+                  <!-- search -->
+                  <el-input
+                    type="default"
+                    size="small"
+                    v-model="searchText"
+                    placeholder="商品货号/名称"
+                    class="pull-right"
+                    style="width: 250px"
+                  >
+                    <el-button
+                      slot="append"
+                      type="default"
+                      icon="el-icon-search"
+                      @click="searchfun2(1)"
+                    ></el-button>
+                  </el-input>
+                </el-col>
+              </el-row>
 
-            <ul class="m-top-sm pull-left selectList">
-              <li>
-                <span>品牌:</span>
-                <el-select v-model="BrandList" size='small' clearable collapse-tags multiple @change="selectFilter" placeholder="请选择品牌" style="width:150px">
-                  <el-option v-for="(item,i) in brandList" :key="i" :label="item.NAME" :value="item.NAME"></el-option>
-                </el-select>
-              </li>
+              <ul class="m-top-sm pull-left selectList">
+                <li>
+                  <span>品牌:</span>
+                  <el-select
+                    v-model="BrandList"
+                    size="small"
+                    clearable
+                    collapse-tags
+                    multiple
+                    @change="selectFilter"
+                    placeholder="请选择品牌"
+                    style="width: 150px"
+                  >
+                    <el-option
+                      v-for="(item, i) in brandList"
+                      :key="i"
+                      :label="item.NAME"
+                      :value="item.NAME"
+                    ></el-option>
+                  </el-select>
+                </li>
 
-              <li>
-                <span>类别:</span>
-                <el-select size="small" v-model="categoryList1" clearable collapse-tags multiple @change="selectFilter" placeholder="请选择类别" style="width:150px">
-                  <el-option v-for="item in categoryList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
-                </el-select>
-              </li>
+                <li>
+                  <span>类别:</span>
+                  <el-select
+                    size="small"
+                    v-model="categoryList1"
+                    clearable
+                    collapse-tags
+                    multiple
+                    @change="selectFilter"
+                    placeholder="请选择类别"
+                    style="width: 150px"
+                  >
+                    <el-option
+                      v-for="item in categoryList"
+                      :key="item.ID"
+                      :label="item.NAME"
+                      :value="item.ID"
+                    ></el-option>
+                  </el-select>
+                </li>
 
-              <li>
-                <span>年份:</span>
-                <el-date-picker
-                  style="width:150px"
-                  v-model="pageData.Pyear"
-                  @change="selectFilter"
-                  type="year"
-                  size='small'
-                  placeholder="选择年份">
-                </el-date-picker>
-              </li>
+                <li>
+                  <span>年份:</span>
+                  <el-date-picker
+                    style="width: 150px"
+                    v-model="pageData.Pyear"
+                    @change="selectFilter"
+                    type="year"
+                    size="small"
+                    placeholder="选择年份"
+                  ></el-date-picker>
+                </li>
 
-              <li>
-                <span>季节:</span>
-                <el-select size='small' v-model="SeasonList" clearable collapse-tags multiple @change="selectFilter" placeholder="请选择季节" style="width:150px">
-                  <el-option v-for="(item,i) in Season" :key="i" :label="item.name" :value="item.name"></el-option>
-                </el-select>
-              </li>
+                <li>
+                  <span>季节:</span>
+                  <el-select
+                    size="small"
+                    v-model="SeasonList"
+                    clearable
+                    collapse-tags
+                    multiple
+                    @change="selectFilter"
+                    placeholder="请选择季节"
+                    style="width: 150px"
+                  >
+                    <el-option
+                      v-for="(item, i) in Season"
+                      :key="i"
+                      :label="item.name"
+                      :value="item.name"
+                    ></el-option>
+                  </el-select>
+                </li>
 
-              <li>
-                <span>状态:</span>
-                <el-select size="small" v-model="pageData.Status" clearable @change="selectFilter" placeholder="请选择状态" style="width:150px">
-                  <el-option label="启用" value="1"></el-option>
-                  <el-option label="停用" value="0"></el-option>
-                </el-select>
-              </li>
-            </ul>
+                <li>
+                  <span>状态:</span>
+                  <el-select
+                    size="small"
+                    v-model="pageData.Status"
+                    clearable
+                    @change="selectFilter"
+                    placeholder="请选择状态"
+                    style="width: 150px"
+                  >
+                    <el-option label="启用" value="1"></el-option>
+                    <el-option label="停用" value="0"></el-option>
+                  </el-select>
+                </li>
+              </ul>
 
-            <div class="m-top-sm pull-left full-width">
-              <el-checkbox-group v-model="checkList" @change='checkGroup'>
-                <el-checkbox label="price">缺少零售价</el-checkbox>
-                <el-checkbox label="purprice">缺少采购价</el-checkbox>
-                <el-checkbox label="vipprice">缺少会员价</el-checkbox>
-              </el-checkbox-group>
+              <div class="m-top-sm pull-left full-width">
+                <el-checkbox-group v-model="checkList" @change="checkGroup">
+                  <el-checkbox label="price">缺少零售价</el-checkbox>
+                  <el-checkbox label="purprice">缺少采购价</el-checkbox>
+                  <el-checkbox label="vipprice">缺少会员价</el-checkbox>
+                </el-checkbox-group>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!--列表-->
-        <div class="content-table m-top-sm pull-left p-bottom-sm full-width">
-          <div class="content-table-center" style=" background:#fff; width:100%; padding-top: 0; margin-left:0; margin-right:0">
-            <el-table
-              size='small'
-              :data="pagelist"
-              v-loading="loading"
-              ref="Table"
-              @selection-change="handleSelectionChange"
-              element-loading-text="数据加载中..."
-              :height="clientHeight"
-              header-row-class-name="bg-f1f2f3"
-              style="width: 100%;"
+          <!--列表-->
+          <div class="content-table m-top-sm pull-left p-bottom-sm full-width">
+            <div
+              class="content-table-center"
+              style="background: #fff; width: 100%; padding-top: 0; margin-left: 0; margin-right: 0"
             >
-              <el-table-column type="selection" width="50" fixed="left"></el-table-column>
-              <el-table-column label="商品" fixed='left' width="160">
-                <template slot-scope="scope">
-                  <el-tooltip placement="right-start">
-                     <div slot="content">
-                        <img :src="scope.row.IMGURL != undefined ? scope.row.IMGURL : defaultImg" onerror="this.src='static/images/shopmore.png'" alt="" style="width:150px; height:150px; ">
-                     </div>
-                     <img :src="scope.row.IMGURL != undefined ? scope.row.IMGURL : defaultImg" onerror="this.src='static/images/shopmore.png'" style="float:left; border-radius:3px; width:40px; height:40px; margin-right:8px">
-                  </el-tooltip>
+              <el-table
+                size="small"
+                :data="pagelist"
+                v-loading="loading"
+                ref="Table"
+                @selection-change="handleSelectionChange"
+                element-loading-text="数据加载中..."
+                :height="clientHeight"
+                header-row-class-name="bg-f1f2f3"
+                style="width: 100%"
+              >
+                <el-table-column type="selection" width="50" fixed="left"></el-table-column>
+                <el-table-column label="商品" fixed="left" width="160">
+                  <template slot-scope="scope">
+                    <el-tooltip placement="right-start">
+                      <div slot="content">
+                        <img
+                          :src="scope.row.IMGURL != undefined ? scope.row.IMGURL : defaultImg"
+                          onerror="this.src='static/images/shopmore.png'"
+                          alt=""
+                          style="width: 150px; height: 150px"
+                        />
+                      </div>
+                      <img
+                        :src="scope.row.IMGURL != undefined ? scope.row.IMGURL : defaultImg"
+                        onerror="this.src='static/images/shopmore.png'"
+                        style="
+                          float: left;
+                          border-radius: 3px;
+                          width: 40px;
+                          height: 40px;
+                          margin-right: 8px;
+                        "
+                      />
+                    </el-tooltip>
 
-                  <span style='height:40px; width:102px'>
-                      <i class="text-3399ff pull-left inline-block" style="width:92px;overflow: hidden; text-overflow:ellipsis;white-space: nowrap;">{{scope.row.NAME ? scope.row.NAME : ' '}}  </i>
-                      {{scope.row.CODE}}
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="BRAND" align='center' label="品牌"></el-table-column>
-              <el-table-column prop="TYPENAME" align="center" label="分类"></el-table-column>
-              <el-table-column prop='PYEAR' align="center" label="年份" width="50"></el-table-column>
-              <el-table-column prop="SEASON" align="center" label="季节" width="60"></el-table-column>
-              <el-table-column prop="UNITNAME" align="center" label="单位" width="50"></el-table-column>
-              <el-table-column prop='LONGCOLORNAME' align='center' label="颜色" show-overflow-tooltip min-width="110"></el-table-column>
-              <el-table-column prop='LONGSIZENAME' align='center' label='尺码' show-overflow-tooltip min-width="110"></el-table-column>
-              <el-table-column prop='PRICE' align='center' label="零售价" width="70"></el-table-column>
-              <el-table-column prop='PURPRICE' align='center' label="采购价" width="70">
-                <template slot-scope='scope'>
-                  {{isPurViewFun(91040112) ? scope.row.PURPRICE : '****'}}
-                </template>
-              </el-table-column>
-              <!-- <el-table-column prop='STOCKQTY' align='center' label="库存" width="70"></el-table-column> -->
-              <el-table-column label="操作" width="90" fixed="right">
-                <template slot-scope="scope">
-                  <el-button size="small" type='text' @click="handleEdit(scope.$index, scope.row)" icon="el-icon-edit">编辑</el-button>
-                  <!-- <el-button size='small' type='text' @click='handleDel(scope.$index, scope.row)' icon="el-icon-delete">删除</el-button> -->
-                </template>
-              </el-table-column>
-            </el-table>
+                    <span style="height: 40px; width: 102px">
+                      <i
+                        class="text-3399ff pull-left inline-block"
+                        style="
+                          width: 92px;
+                          overflow: hidden;
+                          text-overflow: ellipsis;
+                          white-space: nowrap;
+                        "
+                      >
+                        {{ scope.row.NAME ? scope.row.NAME : " " }}
+                      </i>
+                      {{ scope.row.CODE }}
+                    </span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="BRAND" align="center" label="品牌"></el-table-column>
+                <el-table-column prop="TYPENAME" align="center" label="分类"></el-table-column>
+                <el-table-column
+                  prop="PYEAR"
+                  align="center"
+                  label="年份"
+                  width="50"
+                ></el-table-column>
+                <el-table-column
+                  prop="SEASON"
+                  align="center"
+                  label="季节"
+                  width="60"
+                ></el-table-column>
+                <el-table-column
+                  prop="UNITNAME"
+                  align="center"
+                  label="单位"
+                  width="50"
+                ></el-table-column>
+                <el-table-column
+                  prop="LONGCOLORNAME"
+                  align="center"
+                  label="颜色"
+                  show-overflow-tooltip
+                  min-width="110"
+                ></el-table-column>
+                <el-table-column
+                  prop="LONGSIZENAME"
+                  align="center"
+                  label="尺码"
+                  show-overflow-tooltip
+                  min-width="110"
+                ></el-table-column>
+                <el-table-column
+                  prop="PRICE"
+                  align="center"
+                  label="零售价"
+                  width="70"
+                ></el-table-column>
+                <el-table-column prop="PURPRICE" align="center" label="采购价" width="70">
+                  <template slot-scope="scope">
+                    {{ isPurViewFun(91040112) ? scope.row.PURPRICE : "****" }}
+                  </template>
+                </el-table-column>
+                <!-- <el-table-column prop='STOCKQTY' align='center' label="库存" width="70"></el-table-column> -->
+                <el-table-column label="操作" width="90" fixed="right">
+                  <template slot-scope="scope">
+                    <el-button
+                      size="small"
+                      type="text"
+                      @click="handleEdit(scope.$index, scope.row)"
+                      icon="el-icon-edit"
+                    >
+                      编辑
+                    </el-button>
+                    <!-- <el-button size='small' type='text' @click='handleDel(scope.$index, scope.row)' icon="el-icon-delete">删除</el-button> -->
+                  </template>
+                </el-table-column>
+              </el-table>
 
-            <!-- 分页 -->
-            <div class="m-top-sm clearfix elpagination" style="padding: 0 10px 10px" v-if='pagelist.length != 0'>
-              <div>
+              <!-- 分页 -->
+              <div
+                class="m-top-sm clearfix elpagination"
+                style="padding: 0 10px 10px"
+                v-if="pagelist.length != 0"
+              >
+                <div>
                   <el-row>
                     <el-col :span="12">
                       <el-button size="small" @click="handleDel">删除商品</el-button>
                     </el-col>
                     <el-col :span="12">
                       <el-pagination
-                          @size-change="handlePageChange"
-                          @current-change="handlePageChange"
-                          :current-page.sync="pagination.PN"
-                          :page-size="pagination.PageSize"
-                          layout="total, prev, pager, next, jumper"
-                          :total="pagination.TotalNumber"
-                          class="text-right"
+                        @size-change="handlePageChange"
+                        @current-change="handlePageChange"
+                        :current-page.sync="pagination.PN"
+                        :page-size="pagination.PageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.TotalNumber"
+                        class="text-right"
                       ></el-pagination>
                     </el-col>
                   </el-row>
                 </div>
+              </div>
             </div>
-
           </div>
+
+          <!-- add -->
+          <el-dialog
+            v-if="showAddNew && dealType == 'add'"
+            title="新增商品"
+            :visible.sync="showAddNew"
+            width="60%"
+          >
+            <add-new-goods
+              @closeModal="showAddNew = false"
+              @resetList="
+                showAddNew = false;
+                getNewData();
+              "
+              v-on:childByData="childByData"
+              :dataType="{ value: 1, dealState: 'add' }"
+            ></add-new-goods>
+          </el-dialog>
+
+          <!-- 商品详情 -->
+          <el-dialog
+            title="商品详情"
+            v-if="dealType == 'edit'"
+            :visible.sync="showItem"
+            width="70%"
+            style="max-width: 100%"
+          >
+            <add-new-goods
+              v-if="showItem"
+              @closeModal="showItem = false"
+              @resetList="
+                showItem = false;
+                getNewData();
+              "
+              :dataType="{ value: parseInt(this.goodsMode) + 1, dealState: 'edit' }"
+              :goodsItem="dataItem"
+            ></add-new-goods>
+          </el-dialog>
+
+          <!-- 批量编辑 -->
+          <el-dialog title="批量编辑" width="85%" :visible.sync="showEditGroup">
+            <edit-group></edit-group>
+          </el-dialog>
         </div>
-
-        <!-- add -->
-        <el-dialog v-if="showAddNew&&dealType=='add'" title="新增商品" :visible.sync="showAddNew" width='60%'>
-          <add-new-goods
-            @closeModal="showAddNew=false"
-            @resetList="showAddNew=false;getNewData()"
-            v-on:childByData='childByData'
-            :dataType="{value:1,dealState:'add'}"
-          ></add-new-goods>
-        </el-dialog>
-
-        <!-- 商品详情 -->
-        <el-dialog title="商品详情" v-if='dealType =="edit"' :visible.sync="showItem" width="70%" style="max-width:100%;">
-          <add-new-goods
-            v-if="showItem"
-            @closeModal="showItem=false"
-            @resetList="showItem=false;getNewData();"
-            :dataType="{value:parseInt(this.goodsMode)+1, dealState:'edit'}"
-            :goodsItem='dataItem'
-          ></add-new-goods>
-        </el-dialog>
-
-        <!-- 批量编辑 -->
-        <el-dialog title="批量编辑" width="85%" :visible.sync="showEditGroup" >
-          <edit-group></edit-group>
-        </el-dialog>
-
-      </div>
-
+      </el-container>
+    </el-container>
   </el-container>
-  </el-container>
-</el-container>
-
-
 </template>
 <script>
-
 import { mapState, mapGetters } from "vuex";
-import { getUserInfo, getHomeData} from '@/api/index'
+import { getUserInfo, getHomeData } from "@/api/index";
 import MIXNINS_EXPORT from "@/mixins/exportData.js";
 import MIXINS_GOOD from "@/mixins/good.js";
 let _ = require("lodash");
-import dayjs from 'dayjs'
+import dayjs from "dayjs";
 
 export default {
-  mixins: [MIXINS_GOOD.GOOD_MENU,MIXNINS_EXPORT.TOEXCEL, MIXNINS_EXPORT.TODATA],
+  mixins: [MIXINS_GOOD.GOOD_MENU, MIXNINS_EXPORT.TOEXCEL, MIXNINS_EXPORT.TODATA],
   data() {
     return {
       pagelist: [],
@@ -240,8 +406,8 @@ export default {
         PageSize: 20,
         PN: 0
       },
-      checkList:[],
-      Season:[ { name:'春' },{ name:'夏' },{ name:'秋' },{ name:'冬' } ],
+      checkList: [],
+      Season: [{ name: "春" }, { name: "夏" }, { name: "秋" }, { name: "冬" }],
       clientHeight: document.body.clientHeight - 250,
       searchText: "",
       isFilter: false,
@@ -253,16 +419,16 @@ export default {
         Mode: -1,
         TypeID: "", //商品类别ID
         DescType: 0,
-        Brand: '',
-        Pyear: '',
-        PriceType: '',
-        TypeList: '',
-        SeasonList:'',
-        CategoryList:''
+        Brand: "",
+        Pyear: "",
+        PriceType: "",
+        TypeList: "",
+        SeasonList: "",
+        CategoryList: ""
       },
-      categoryList1:[],
-      BrandList:[],
-      SeasonList:[],
+      categoryList1: [],
+      BrandList: [],
+      SeasonList: [],
       multipleSelection: [],
       showAddNew: false,
       showItem: false,
@@ -270,9 +436,9 @@ export default {
       dealType: "add",
       goodsMode: 0,
       uploadType: 1,
-      PriceType:'',
-      itemID: '',
-      defaultImg: 'static/images/shopmore.png'
+      PriceType: "",
+      itemID: "",
+      defaultImg: "static/images/shopmore.png"
     };
   },
   computed: {
@@ -282,45 +448,45 @@ export default {
       dataState: "goodsState",
       exportGoodsState: "exportGoodsState",
       dataItem: "goodsItem",
-      datasupplierList:"goodssupplierList",
+      datasupplierList: "goodssupplierList",
       categoryList: "categoryList",
-      brandList:"goodsbrandList",
+      brandList: "goodsbrandList",
       importState: "importGoodsState",
-      delGoods:'delGoods',
-      sizeGroupList: 'sizeGroupList'
+      delGoods: "delGoods",
+      sizeGroupList: "sizeGroupList"
     })
   },
   watch: {
-    delGoods(data){
-      this.multipleSelection = []
+    delGoods(data) {
+      this.multipleSelection = [];
       this.$message({
-        type: data.success ? 'success' : 'error',
+        type: data.success ? "success" : "error",
         message: data.message
-      })
-      if(data.success){
-        this.getNewData()
+      });
+      if (data.success) {
+        this.getNewData();
       }
     },
     dataListState(data) {
       this.loading = false;
       this.isFilter = false;
-      this.pagelist = [...this.dataList]
+      this.pagelist = [...this.dataList];
       if (data.success) {
         this.pagination = {
           TotalNumber: data.paying.TotalNumber,
           PageNumber: data.paying.PageNumber,
           PageSize: data.paying.PageSize,
           PN: data.paying.PN
-        }
+        };
       }
     },
     searchText() {
-      this.searchfun()
+      this.searchfun();
     },
     exportGoodsState(data) {
       this.exportLoading = false;
       if (data.success) {
-        this.exportExcel(data.data.List)
+        this.exportExcel(data.data.List);
       }
     },
     dataState(data) {
@@ -329,171 +495,176 @@ export default {
         this.showItem = true;
       }
 
-      if(data.success && this.dealType == 'del'){
-         if(data.data.obj.STOCKQTY != 0){
-            this.$message({
-               message:'库存数不为0, 不能删除',
-               duration: 1000,
-               type:'warning'
+      if (data.success && this.dealType == "del") {
+        if (data.data.obj.STOCKQTY != 0) {
+          this.$message({
+            message: "库存数不为0, 不能删除",
+            duration: 1000,
+            type: "warning"
+          });
+        } else {
+          this.$confirm("确定删除商品" + "【 " + data.data.obj.NAME + " 】", "提示", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning"
+          })
+            .then(() => {
+              this.$store.dispatch("delGoods", { ID: data.data.obj.ID }).then(() => {
+                this.getNewData();
+              });
             })
-         }else{
-            this.$confirm("确定删除商品"+ "【 " + data.data.obj.NAME +" 】", "提示", {
-               confirmButtonText: "确定",
-               cancelButtonText: "取消",
-               type: "warning"
-            }).then(() => {
-               this.$store.dispatch("delGoods", { ID: data.data.obj.ID }).then(()=>{
-                  this.getNewData()
-               })
-            }).catch(()=>{})
-         }
+            .catch(() => {});
+        }
       }
     },
     outputsState(data) {
       // 导入 mixins
       if (data.state) {
-        if(this.uploadType == 1){
+        if (this.uploadType == 1) {
           this.importExcel(this.outputs);
-        }else{
-          this.importExcelSize(this.outputs)
+        } else {
+          this.importExcelSize(this.outputs);
         }
       } else {
-        this.$message({ showClose: true, message: "数据为空", type: "error"});
+        this.$message({ showClose: true, message: "数据为空", type: "error" });
       }
     },
     importState(data) {
       if (data.success) {
         this.$message("导入成功");
         this.$store.dispatch("getGoodsList", {
-          Status: -1, Mode: -1, Filter: "", PN: 1
-        })
+          Status: -1,
+          Mode: -1,
+          Filter: "",
+          PN: 1
+        });
       } else {
         this.$message(data.message);
       }
-    },
+    }
   },
   methods: {
-    selectFilter(){
+    selectFilter() {
       // 季节
-      let SeasonList = ''
-      for(var i in this.SeasonList){
-        SeasonList += "'"+this.SeasonList[i]+"',"
+      let SeasonList = "";
+      for (var i in this.SeasonList) {
+        SeasonList += "'" + this.SeasonList[i] + "',";
       }
-      SeasonList = SeasonList.substring(0,SeasonList.length-1)
-      this.pageData.SeasonList = SeasonList
+      SeasonList = SeasonList.substring(0, SeasonList.length - 1);
+      this.pageData.SeasonList = SeasonList;
 
       // 品牌
-      let BrandList = ''
-      for(var i in this.BrandList){
-        BrandList += "'"+this.BrandList[i]+"',"
+      let BrandList = "";
+      for (var i in this.BrandList) {
+        BrandList += "'" + this.BrandList[i] + "',";
       }
-      BrandList = BrandList.substring(0,BrandList.length-1)
-      this.pageData.BrandList = BrandList
+      BrandList = BrandList.substring(0, BrandList.length - 1);
+      this.pageData.BrandList = BrandList;
 
       // 类别
-      let categoryList = ''
-      for(var i in this.categoryList1){
-        categoryList += "'"+this.categoryList1[i]+"',"
+      let categoryList = "";
+      for (var i in this.categoryList1) {
+        categoryList += "'" + this.categoryList1[i] + "',";
       }
-      categoryList = categoryList.substring(0,categoryList.length-1)
-      this.pageData.TypeList = categoryList
+      categoryList = categoryList.substring(0, categoryList.length - 1);
+      this.pageData.TypeList = categoryList;
 
       // 年份
-      if(this.pageData.Pyear != null && this.pageData.Pyear != ''){
-        this.pageData.YearList = `'${dayjs(this.pageData.Pyear).year()}'`
-      }else{
-        this.pageData.YearList = ''
+      if (this.pageData.Pyear != null && this.pageData.Pyear != "") {
+        this.pageData.YearList = `'${dayjs(this.pageData.Pyear).year()}'`;
+      } else {
+        this.pageData.YearList = "";
       }
 
-      this.getNewData()
+      this.getNewData();
     },
-    checkGroup(e){
-      let PriceType=''
-      for(var i in e){
-        PriceType += "'"+e[i]+"',"
+    checkGroup(e) {
+      let PriceType = "";
+      for (var i in e) {
+        PriceType += "'" + e[i] + "',";
       }
-      PriceType = PriceType.substring(0,PriceType.length-1)
-      this.pageData.PriceType = PriceType
-      this.getNewData()
+      PriceType = PriceType.substring(0, PriceType.length - 1);
+      this.pageData.PriceType = PriceType;
+      this.getNewData();
     },
-    groupEditFun(){
-      if(localStorage.getItem("isExperience") == 'true' ){
+    groupEditFun() {
+      if (localStorage.getItem("isExperience") == "true") {
         const h = this.$createElement;
         this.$msgbox({
-          title: '提示',
-          message: h('p', null, [
-            h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！'),
-            h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+          title: "提示",
+          message: h("p", null, [
+            h("span", null, "此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！"),
+            h("p", null, "如需协助请联系客服 18054282628 , 随时为您服务！")
           ]),
           showCancelButton: false,
-          confirmButtonText: '我知道了',
-          confirmButtonClass: 'btnFalses'
-        })
-        return
+          confirmButtonText: "我知道了",
+          confirmButtonClass: "btnFalses"
+        });
+        return;
       }
 
-      this.showEditGroup = true
+      this.showEditGroup = true;
     },
-    uploadGoods(){
-      if(localStorage.getItem("isExperience") == 'true' ){
+    uploadGoods() {
+      if (localStorage.getItem("isExperience") == "true") {
         const h = this.$createElement;
         this.$msgbox({
-          title: '提示',
-          message: h('p', null, [
-            h('span', null, '此账号为公用演示账号，不可导入商品，请完成注册之后免费试用！'),
-            h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+          title: "提示",
+          message: h("p", null, [
+            h("span", null, "此账号为公用演示账号，不可导入商品，请完成注册之后免费试用！"),
+            h("p", null, "如需协助请联系客服 18054282628 , 随时为您服务！")
           ]),
           showCancelButton: false,
-          confirmButtonText: '我知道了',
-          confirmButtonClass: 'btnFalses'
-        })
-        return
+          confirmButtonText: "我知道了",
+          confirmButtonClass: "btnFalses"
+        });
+        return;
       }
 
-      this.uploadType = 1
-      this.$refs.upload.click()
+      this.uploadType = 1;
+      this.$refs.upload.click();
     },
-    uploadGoodsSize(){
-       console.log(localStorage.getItem("isExperience"))
-      if(localStorage.getItem("isExperience") == 'true' ){
+    uploadGoodsSize() {
+      console.log(localStorage.getItem("isExperience"));
+      if (localStorage.getItem("isExperience") == "true") {
         const h = this.$createElement;
         this.$msgbox({
-          title: '提示',
-          message: h('p', null, [
-            h('span', null, '此账号为公用演示账号，不可导入商品，请完成注册之后免费试用！'),
-            h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+          title: "提示",
+          message: h("p", null, [
+            h("span", null, "此账号为公用演示账号，不可导入商品，请完成注册之后免费试用！"),
+            h("p", null, "如需协助请联系客服 18054282628 , 随时为您服务！")
           ]),
           showCancelButton: false,
-          confirmButtonText: '我知道了',
-          confirmButtonClass: 'btnFalses'
-        })
-        return
+          confirmButtonText: "我知道了",
+          confirmButtonClass: "btnFalses"
+        });
+        return;
       }
 
-      this.uploadType = 2
-      this.$refs.upload.click()
+      this.uploadType = 2;
+      this.$refs.upload.click();
     },
-    childByData(childByData){
-      this.pagelist = childByData
+    childByData(childByData) {
+      this.pagelist = childByData;
     },
-    formatMode: function(row, column) {
+    formatMode: function (row, column) {
       return row.GOODSMODE == 0 ? "商品" : "服务项目";
     },
     getNewData() {
       this.$store.dispatch("getGoodsList", this.pageData).then(() => {
-        this.loading = true
-      })
+        this.loading = true;
+      });
     },
     handleSelectionChange(val) {
       if (val.length > 1) {
-          this.$refs.Table.clearSelection()
-          this.$refs.Table.toggleRowSelection(val.pop())
-      } else if(val.length == 1){
-          this.multipleSelection = val;
+        this.$refs.Table.clearSelection();
+        this.$refs.Table.toggleRowSelection(val.pop());
+      } else if (val.length == 1) {
+        this.multipleSelection = val;
       }
     },
     handleEdit(idx, item) {
-      this.loading = true
+      this.loading = true;
       if (this.dataItem.ID == item.ID) {
         this.goodsMode = parseInt(item.GOODSMODE);
         this.showItem = true;
@@ -501,40 +672,40 @@ export default {
       }
       this.$store.dispatch("getGoodsItem", item).then(() => {
         this.dealType = "edit";
-      })
+      });
     },
-    handleDel(){
-      if(localStorage.getItem("isExperience") == 'true' ){
+    handleDel() {
+      if (localStorage.getItem("isExperience") == "true") {
         const h = this.$createElement;
         this.$msgbox({
-          title: '提示',
-          message: h('p', null, [
-            h('span', null, '此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ '),
-            h('p', null, '如需协助请联系客服 18054282628 , 随时为您服务！')
+          title: "提示",
+          message: h("p", null, [
+            h("span", null, "此账号为公用演示账号，数据不可更改，请完成注册之后免费试用！ "),
+            h("p", null, "如需协助请联系客服 18054282628 , 随时为您服务！")
           ]),
           showCancelButton: false,
-          confirmButtonText: '我知道了',
-          confirmButtonClass: 'btnFalses'
-        })
-        return
-      }
-
-      if(this.multipleSelection.length==0){
-        this.$message({ message: "请选择商品", type: 'warning'});
+          confirmButtonText: "我知道了",
+          confirmButtonClass: "btnFalses"
+        });
         return;
       }
 
-      let item = {}
-      if(this.multipleSelection.length>0){
-        item = this.multipleSelection[0]
+      if (this.multipleSelection.length == 0) {
+        this.$message({ message: "请选择商品", type: "warning" });
+        return;
       }
 
-      console.log(item.ID)
-      this.itemID = item.ID
+      let item = {};
+      if (this.multipleSelection.length > 0) {
+        item = this.multipleSelection[0];
+      }
 
-      this.$store.dispatch('getGoodsItem', { ID: item.ID }).then(() =>{
-         this.dealType = 'del'
-      })
+      console.log(item.ID);
+      this.itemID = item.ID;
+
+      this.$store.dispatch("getGoodsItem", { ID: item.ID }).then(() => {
+        this.dealType = "del";
+      });
 
       // if(item.STOCKQTY != 0){
       //   this.$message({
@@ -554,23 +725,23 @@ export default {
       //   }).catch(()=>{})
       // }
     },
-    handlePageChange: function(currentPage) {
+    handlePageChange: function (currentPage) {
       if (this.pageData.PN == currentPage || this.loading) {
         return;
       }
       this.pageData.PN = parseInt(currentPage);
       this.getNewData();
     },
-    searchfun: _.debounce(function() {
+    searchfun: _.debounce(function () {
       this.searchfun2(0);
     }, 1000),
     searchfun2(type) {
       if (type == 1 && !this.searchText) {
-        this.$message.error('请输入查询内容')
+        this.$message.error("请输入查询内容");
         return;
       }
       this.pageData.Filter = this.searchText;
-      this.pageData.PN = 1
+      this.pageData.PN = 1;
       this.getNewData();
     },
     ExportGoodsData() {
@@ -579,13 +750,15 @@ export default {
         this.exportExcel(this.multipleSelection);
         return;
       }
-      this.$store.dispatch("getExportGoodsData", {
-        FilterStr: this.searchText,
-        TypeID: this.pageData.TypeID,
-        Status: this.pageData.Status
-      }).then(() => {
-        this.exportLoading = true
-      })
+      this.$store
+        .dispatch("getExportGoodsData", {
+          FilterStr: this.searchText,
+          TypeID: this.pageData.TypeID,
+          Status: this.pageData.Status
+        })
+        .then(() => {
+          this.exportLoading = true;
+        });
     },
     exportExcel(arr) {
       // 导出到excel
@@ -595,12 +768,52 @@ export default {
       }
 
       // GOODSMODE=> 0=商品   1=服务项目
-      var head = ["商品名称","商品货号","商品条码","商品分类","颜色","尺码","商品品牌","供应商","年份","商品价格","商品成本","库存", "单位","季节","材质","风格","产地","安全类别","执行标准"];
-      var val =  ["NAME","CODE","BARCODE","TYPENAME","LONGCOLORNAME", "LONGSIZENAME","BRAND","SUPPLIERNAME","PYEAR","PRICE","PURPRICE","STOCKQTY","UNITNAME","SEASON","MATERIAL","STYLE","PROVENANCE","SAFETYCATEGORY","STANDARD"];
+      var head = [
+        "商品名称",
+        "商品货号",
+        "商品条码",
+        "商品分类",
+        "颜色",
+        "尺码",
+        "商品品牌",
+        "供应商",
+        "年份",
+        "商品价格",
+        "商品成本",
+        "库存",
+        "单位",
+        "季节",
+        "材质",
+        "风格",
+        "产地",
+        "安全类别",
+        "执行标准"
+      ];
+      var val = [
+        "NAME",
+        "CODE",
+        "BARCODE",
+        "TYPENAME",
+        "LONGCOLORNAME",
+        "LONGSIZENAME",
+        "BRAND",
+        "SUPPLIERNAME",
+        "PYEAR",
+        "PRICE",
+        "PURPRICE",
+        "STOCKQTY",
+        "UNITNAME",
+        "SEASON",
+        "MATERIAL",
+        "STYLE",
+        "PROVENANCE",
+        "SAFETYCATEGORY",
+        "STANDARD"
+      ];
       var title = "商品导出" + this.getNowDateTime();
       this.export2Excel(head, val, list, title);
     },
-    importExcelSize(arr){
+    importExcelSize(arr) {
       let newData = [];
       for (let i = 1; i < arr.length; i++) {
         let strCode;
@@ -611,21 +824,21 @@ export default {
           }
         }
 
-        if(arr[i].__EMPTY_1 == undefined){
-          this.$message.info('表格中 颜色 不能为空,请核对后重新上传!')
-          this.importLoading = false
-          return
+        if (arr[i].__EMPTY_1 == undefined) {
+          this.$message.info("表格中 颜色 不能为空,请核对后重新上传!");
+          this.importLoading = false;
+          return;
         }
 
-        if(arr[i].__EMPTY == undefined){
-          this.$message.info('表格中 商品名称 不能为空,请核对后重新上传!')
-          this.importLoading = false
-          return
+        if (arr[i].__EMPTY == undefined) {
+          this.$message.info("表格中 商品名称 不能为空,请核对后重新上传!");
+          this.importLoading = false;
+          return;
         }
 
-        console.log(arr[0].__EMPTY_5)
+        console.log(arr[0].__EMPTY_5);
 
-        if(arr[0].__EMPTY_5 == '会员价'){
+        if (arr[0].__EMPTY_5 == "会员价") {
           newData.push({
             Code: strCode,
             Name: arr[i].__EMPTY,
@@ -635,7 +848,7 @@ export default {
             PurPrice: arr[i].__EMPTY_4 == undefined ? 0 : arr[i].__EMPTY_4,
             VipPrice: arr[i].__EMPTY_5 == undefined ? 0 : arr[i].__EMPTY_5,
             TypeName: arr[i].__EMPTY_6,
-            SupplierName: arr[i].__EMPTY_7 == undefined ? '' : arr[i].__EMPTY_7,
+            SupplierName: arr[i].__EMPTY_7 == undefined ? "" : arr[i].__EMPTY_7,
             BarCode: arr[i].__EMPTY_8,
             Sex: arr[i].__EMPTY_9,
             Brand: arr[i].__EMPTY_10,
@@ -648,9 +861,9 @@ export default {
             Provenance: arr[i].__EMPTY_17,
             SafetyCategory: arr[i].__EMPTY_18,
             Standard: arr[i].__EMPTY_19,
-            SizeName: ''
-          })
-        }else{
+            SizeName: ""
+          });
+        } else {
           newData.push({
             Code: strCode,
             Name: arr[i].__EMPTY,
@@ -659,7 +872,7 @@ export default {
             Price: arr[i].__EMPTY_3 == undefined ? 0 : arr[i].__EMPTY_3,
             PurPrice: arr[i].__EMPTY_4 == undefined ? 0 : arr[i].__EMPTY_4,
             TypeName: arr[i].__EMPTY_5,
-            SupplierName: arr[i].__EMPTY_6 == undefined ? '' : arr[i].__EMPTY_6,
+            SupplierName: arr[i].__EMPTY_6 == undefined ? "" : arr[i].__EMPTY_6,
             BarCode: arr[i].__EMPTY_7,
             Sex: arr[i].__EMPTY_8,
             Brand: arr[i].__EMPTY_9,
@@ -673,44 +886,43 @@ export default {
             KuanShi: arr[i].__EMPTY_17,
             Provenance: arr[i].__EMPTY_18,
             SafetyCategory: arr[i].__EMPTY_19,
-            Standard:arr[i].__EMPTY_20,
-            SizeName: ''
-          })
+            Standard: arr[i].__EMPTY_20,
+            SizeName: ""
+          });
         }
       }
 
-      this.$store.dispatch("getImportGoodsData", { arr: newData, type: 'goods1' })
-
+      this.$store.dispatch("getImportGoodsData", { arr: newData, type: "goods1" });
     },
     importExcel(arr) {
-      let supplierList = this.datasupplierList.map(item=> item.NAME)
+      let supplierList = this.datasupplierList.map((item) => item.NAME);
 
-      let importSuppllierList = arr.slice(0, 0).concat(arr.slice(1, arr.length))
-      let tableS = [], supplierList1 = []
-      if(arr[0].__EMPTY_5 == '会员价'){
-        supplierList1 = importSuppllierList.filter(item => item.__EMPTY_7 != undefined)
-        tableS = [...supplierList1].map(item => item.__EMPTY_7)
-      }else{
-        supplierList1 = importSuppllierList.filter(item => item.__EMPTY_6 != undefined)
-        tableS = [...supplierList1].map(item => item.__EMPTY_6)
+      let importSuppllierList = arr.slice(0, 0).concat(arr.slice(1, arr.length));
+      let tableS = [],
+        supplierList1 = [];
+      if (arr[0].__EMPTY_5 == "会员价") {
+        supplierList1 = importSuppllierList.filter((item) => item.__EMPTY_7 != undefined);
+        tableS = [...supplierList1].map((item) => item.__EMPTY_7);
+      } else {
+        supplierList1 = importSuppllierList.filter((item) => item.__EMPTY_6 != undefined);
+        tableS = [...supplierList1].map((item) => item.__EMPTY_6);
       }
 
-      function unique1(arr){
-        var hash=[];
+      function unique1(arr) {
+        var hash = [];
         for (var i = 0; i < arr.length; i++) {
-          if(hash.indexOf(arr[i]) == -1){
+          if (hash.indexOf(arr[i]) == -1) {
             hash.push(arr[i].toString());
           }
         }
         return hash;
       }
 
-      let mix = supplierList.filter(function(item){
-          return tableHaveS.indexOf(item) != -1
-      })
+      let mix = supplierList.filter(function (item) {
+        return tableHaveS.indexOf(item) != -1;
+      });
 
-      let tableHaveS = unique1(tableS)
-
+      let tableHaveS = unique1(tableS);
 
       // if(tableHaveS.length != mix.length){
       //   this.$message.info('表格中存在新的供应商,请先去添加相应供应商!')
@@ -728,19 +940,19 @@ export default {
           }
         }
 
-        if(arr[i].__EMPTY_1 == undefined){
-          this.$message.info('表格中 颜色 不能为空,请核对后重新上传!')
-          this.importLoading = false
-          return
+        if (arr[i].__EMPTY_1 == undefined) {
+          this.$message.info("表格中 颜色 不能为空,请核对后重新上传!");
+          this.importLoading = false;
+          return;
         }
 
-        if(arr[i].__EMPTY == undefined){
-          this.$message.info('表格中 商品名称 不能为空,请核对后重新上传!')
-          this.importLoading = false
-          return
+        if (arr[i].__EMPTY == undefined) {
+          this.$message.info("表格中 商品名称 不能为空,请核对后重新上传!");
+          this.importLoading = false;
+          return;
         }
 
-        if(arr[0].__EMPTY_5 == '会员价'){
+        if (arr[0].__EMPTY_5 == "会员价") {
           newData.push({
             Code: strCode,
             Name: arr[i].__EMPTY,
@@ -750,7 +962,7 @@ export default {
             PurPrice: arr[i].__EMPTY_4 == undefined ? 0 : arr[i].__EMPTY_4,
             VipPrice: arr[i].__EMPTY_5 == undefined ? 0 : arr[i].__EMPTY_5,
             TypeName: arr[i].__EMPTY_6,
-            SupplierName: arr[i].__EMPTY_7 == undefined ? '' : arr[i].__EMPTY_7,
+            SupplierName: arr[i].__EMPTY_7 == undefined ? "" : arr[i].__EMPTY_7,
             BarCode: arr[i].__EMPTY_8,
             Sex: arr[i].__EMPTY_9,
             Brand: arr[i].__EMPTY_10,
@@ -763,9 +975,9 @@ export default {
             Provenance: arr[i].__EMPTY_17,
             SafetyCategory: arr[i].__EMPTY_18,
             Standard: arr[i].__EMPTY_19,
-            SizeName: ''
-          })
-        }else{
+            SizeName: ""
+          });
+        } else {
           newData.push({
             Code: strCode,
             Name: arr[i].__EMPTY,
@@ -774,7 +986,7 @@ export default {
             Price: arr[i].__EMPTY_3 == undefined ? 0 : arr[i].__EMPTY_3,
             PurPrice: arr[i].__EMPTY_4 == undefined ? 0 : arr[i].__EMPTY_4,
             TypeName: arr[i].__EMPTY_5,
-            SupplierName: arr[i].__EMPTY_6 == undefined ? '' : arr[i].__EMPTY_6,
+            SupplierName: arr[i].__EMPTY_6 == undefined ? "" : arr[i].__EMPTY_6,
             BarCode: arr[i].__EMPTY_7,
             Sex: arr[i].__EMPTY_8,
             Brand: arr[i].__EMPTY_9,
@@ -788,13 +1000,13 @@ export default {
             KuanShi: arr[i].__EMPTY_17,
             Provenance: arr[i].__EMPTY_18,
             SafetyCategory: arr[i].__EMPTY_19,
-            Standard:arr[i].__EMPTY_20,
-            SizeName: ''
-          })
+            Standard: arr[i].__EMPTY_20,
+            SizeName: ""
+          });
         }
       }
 
-      this.$store.dispatch("getImportGoodsData", { arr: newData, type: 'goods1' })
+      this.$store.dispatch("getImportGoodsData", { arr: newData, type: "goods1" });
     }
   },
   mounted() {
@@ -804,75 +1016,77 @@ export default {
       PageSize: this.dataListState.paying.PageSize,
       PN: this.dataListState.paying.PN
     };
-    this.pagelist = [...this.dataList]
-    this.$store.dispatch("getGoodsList", { Status: -1, Mode: -1, Filter: ""}).then(()=>{
-      this.loading = true
-    })
+    this.pagelist = [...this.dataList];
+    this.$store.dispatch("getGoodsList", { Status: -1, Mode: -1, Filter: "" }).then(() => {
+      this.loading = true;
+    });
   },
   components: {
     addNewGoods: () => import("@/components/goods/add.vue"),
     itemPage: () => import("./item"),
-    editGroup: () => import('./editGroup.vue'),
+    editGroup: () => import("./editGroup.vue"),
     headerPage: () => import("@/components/header")
   },
   beforeCreate() {
     let list = this.$store.state.goods.goodsList;
     let arr = this.$store.state.category.categoryList;
     let list2 = this.$store.state.goods.goodssupplierList;
-    let sizeGroupList = this.$store.state.size.sizeGroupList
+    let sizeGroupList = this.$store.state.size.sizeGroupList;
     if (arr.length == 0) {
-      this.$store.dispatch("getCategoryList",{});
+      this.$store.dispatch("getCategoryList", {});
     }
     if (sizeGroupList.length == 0) {
-      this.$store.dispatch("getsizeGroupList",{});
+      this.$store.dispatch("getsizeGroupList", {});
     }
     if (list2.length >= 0) {
-      this.$store.dispatch("getGoodssupplierList",{})
+      this.$store.dispatch("getGoodssupplierList", {});
     }
-    this.$store.dispatch("getGoodsbrandList",{})
+    this.$store.dispatch("getGoodsbrandList", {});
   }
 };
 </script>
 
 <style>
-  .btnFalses{
-    background-color: white !important;
-    color: #409eff !important;
-    border: 0
-  }
+.btnFalses {
+  background-color: white !important;
+  color: #409eff !important;
+  border: 0;
+}
 </style>
 
 <style scoped>
-.editGroup li{ float:left}
+.editGroup li {
+  float: left;
+}
 
-.member-header{
+.member-header {
   display: flex;
   align-items: center;
   height: 50px;
 }
-.center-title{
+.center-title {
   width: 100px;
   text-align: center;
   height: 50px;
   line-height: 50px;
   border: solid 1px #d7d7d7;
 }
-.center-cont{
+.center-cont {
   width: 100px;
   text-align: center;
   height: 50px;
   line-height: 50px;
 }
-.el-header{
+.el-header {
   padding: 0 !important;
 }
-.shop{
+.shop {
   display: flex;
   align-items: center;
   height: 50px;
   position: relative;
 }
-.shop .name{
+.shop .name {
   position: absolute;
   right: 50px;
   height: 50px;
@@ -882,26 +1096,30 @@ export default {
   top: 0;
   /* background: rebeccapurple; */
 }
-  .el-header, .el-footer {
-    background-color: #fff;
-    color: #333;
-  }
+.el-header,
+.el-footer {
+  background-color: #fff;
+  color: #333;
+}
 
-  .el-aside {
-    background-color: #D3DCE6;
-    color: #333;
-    text-align: center;
-    line-height: 200px;
-  }
+.el-aside {
+  background-color: #d3dce6;
+  color: #333;
+  text-align: center;
+  line-height: 200px;
+}
 
-  .content-eightys{
-      /* display: flex;
+.content-eightys {
+  /* display: flex;
       align-items: center; */
-      width: 100%;
-      /* height: 80px; */
-      background: #fff;
-      float:left;
-  }
-  .selectList li{ float:left; width: 20%; padding-right: 30px; }
-
+  width: 100%;
+  /* height: 80px; */
+  background: #fff;
+  float: left;
+}
+.selectList li {
+  float: left;
+  width: 20%;
+  padding-right: 30px;
+}
 </style>
