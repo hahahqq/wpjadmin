@@ -1,13 +1,23 @@
 <template>
   <div>
     <div>
-      <el-select v-model="pageData.ShopId"  placeholder="请选择店铺" class style="width:180px;">
+      <el-select v-model="pageData.ShopId" placeholder="请选择店铺" class style="width: 180px">
         <el-option label="请选择店铺" value></el-option>
-        <el-option v-for="item in shopList" :key="item.ID" :label="item.NAME" :value="item.ID"></el-option>
+        <el-option
+          v-for="item in shopList"
+          :key="item.ID"
+          :label="item.NAME"
+          :value="item.ID"
+        ></el-option>
       </el-select>
-      <el-select v-model="pageData.PayTypeId" placeholder="请选择帐户" class style="width:180px;">
+      <el-select v-model="pageData.PayTypeId" placeholder="请选择帐户" class style="width: 180px">
         <el-option label="请选择帐户" value></el-option>
-        <el-option v-for="item in payWayList" :key="item.PAYTYPEID" :label="item.PAYTYPENAME" :value="item.PAYTYPEID"></el-option>
+        <el-option
+          v-for="item in payWayList"
+          :key="item.PAYTYPEID"
+          :label="item.PAYTYPENAME"
+          :value="item.PAYTYPEID"
+        ></el-option>
       </el-select>
       <el-date-picker
         v-model="dateBE"
@@ -16,7 +26,7 @@
         range-separator="至"
         start-placeholder="开始日期"
         end-placeholder="结束日期"
-        style="width:290px"
+        style="width: 290px"
       ></el-date-picker>
       <div class="clesrfix m-top-sm"></div>
       <el-button
@@ -25,19 +35,25 @@
         size="small"
         class="pull-right"
         :loading="loading"
-      >查 询</el-button>
+      >
+        查 询
+      </el-button>
       <div>
-        <span class="inline-block paddingTB-sm m-right-sm">合计单数:
-          <span class="text-red">{{count.BillCount}}</span>
+        <span class="inline-block paddingTB-sm m-right-sm">
+          合计单数:
+          <span class="text-red">{{ count.BillCount }}</span>
         </span>
-        <span class="inline-block paddingTB-sm m-right-sm">收入金额合计:
-          <span class="text-red">{{count.CMoney}}</span>
+        <span class="inline-block paddingTB-sm m-right-sm">
+          收入金额合计:
+          <span class="text-red">{{ count.CMoney }}</span>
         </span>
-        <span class="inline-block paddingTB-sm m-right-sm">支出金额合计:
-          <span class="text-red">{{count.DMoney}}</span>
+        <span class="inline-block paddingTB-sm m-right-sm">
+          支出金额合计:
+          <span class="text-red">{{ count.DMoney }}</span>
         </span>
-        <span class="inline-block paddingTB-sm m-right-sm">账户余额:
-          <span class="text-red">{{count.PayTypeAmount}}</span>
+        <span class="inline-block paddingTB-sm m-right-sm">
+          账户余额:
+          <span class="text-red">{{ count.PayTypeAmount }}</span>
         </span>
       </div>
     </div>
@@ -52,14 +68,24 @@
       <el-table-column prop="BILLTYPENAME" label="名称" width="100" sortable></el-table-column>
       <el-table-column prop="DMONEY" label="期初金额" width="80" align="center"></el-table-column>
       <el-table-column prop="MONEY" label="金额" width="80" align="center"></el-table-column>
-      <el-table-column prop="CMONEY" label="收入金额合计" width="110" align="center"></el-table-column>
-      <el-table-column prop="PAYTYPENAME" label="支付方式" width="80" align="center"></el-table-column>
+      <el-table-column
+        prop="CMONEY"
+        label="收入金额合计"
+        width="110"
+        align="center"
+      ></el-table-column>
+      <el-table-column
+        prop="PAYTYPENAME"
+        label="支付方式"
+        width="80"
+        align="center"
+      ></el-table-column>
       <el-table-column prop="DATESTR" label="时间"></el-table-column>
       <el-table-column prop="SM" label="说明"></el-table-column>
       <el-table-column prop="REMARK" label="备注" show-overflow-tooltip></el-table-column>
     </el-table>
     <!-- 分页 -->
-    <div class="m-top-sm clearfix elpagination" v-if='pagination.TotalNumber > 20'>
+    <div class="m-top-sm clearfix elpagination" v-if="pagination.TotalNumber > 20">
       <el-pagination
         background
         @size-change="handlePageChange"
@@ -75,7 +101,7 @@
 </template>
 <script>
 import { mapState, mapGetters } from "vuex";
-import dayjs from 'dayjs'
+import dayjs from "dayjs";
 export default {
   data() {
     return {
@@ -109,13 +135,11 @@ export default {
       shopList: "shopList",
       paymentList: "paymentList",
       payWayList: "accountList",
-      payWayState: "accountListState",
+      payWayState: "accountListState"
     })
   },
   watch: {
-    payWayState(data){
-
-    },
+    payWayState(data) {},
     dataListState(data) {
       this.loading = false;
       if (data.success) {
@@ -139,9 +163,9 @@ export default {
   methods: {
     getNewData(type) {
       let sendData = Object.assign({}, this.pageData);
-      sendData.BeginDate = dayjs(this.dateBE[0]).format('YYYY-MM-DD')
-      sendData.EndDate = dayjs(this.dateBE[1]).format('YYYY-MM-DD')
-    
+      sendData.BeginDate = dayjs(this.dateBE[0]).format("YYYY-MM-DD");
+      sendData.EndDate = dayjs(this.dateBE[1]).format("YYYY-MM-DD");
+
       if (type == 1) {
         sendData.PN = 1;
       } else {
@@ -151,7 +175,7 @@ export default {
         this.loading = true;
       });
     },
-    handlePageChange: function(currentPage) {
+    handlePageChange: function (currentPage) {
       if (this.pageData.PN == currentPage || this.loading) {
         return;
       }
@@ -162,7 +186,7 @@ export default {
       if (this.shopList.length == 0) {
         this.$store.dispatch("getShopList");
       }
-      this.$store.dispatch('getAccountList', {})
+      this.$store.dispatch("getAccountList", {});
     }
   },
   mounted() {

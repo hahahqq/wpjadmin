@@ -23,7 +23,7 @@ import listPage from "./list.vue";
 import setmealmPage from "./setmealm.vue";
 import goodBarCode from "./goodBarCode.vue";
 import categoryPage from "../selected/category.vue";
-import UnitPage from "../selected/Unit.vue";
+import UnitPage from "../selected/unit.vue";
 export default {
   data() {
     return {

@@ -1,9 +1,9 @@
 <template>
-  <el-tabs v-model="activeName" @tab-click="handleClick" :before-leave='tabClick'>
+  <el-tabs v-model="activeName" @tab-click="handleClick" :before-leave="tabClick">
     <el-tab-pane label="支出明细" name="first">
       <defrayPage></defrayPage>
     </el-tab-pane>
-    
+
     <el-tab-pane label="支出项目" name="second">
       <paymentPage></paymentPage>
     </el-tab-pane>
@@ -28,27 +28,27 @@ export default {
     };
   },
   components: {
-    defrayPage,paymentPage,accountPage,reportPage
+    defrayPage,
+    paymentPage,
+    accountPage,
+    reportPage
   },
   methods: {
-    handleClick(tab, event) {
-
-    },
-    tabClick(activeName, oldActiveName){
-      if(activeName == 'third'){
-        if(!this.isPurViewFun(91040106)){
-          this.$message.warning('没有此功能权限，请联系管理员授权')
-          return false
+    handleClick(tab, event) {},
+    tabClick(activeName, oldActiveName) {
+      if (activeName == "third") {
+        if (!this.isPurViewFun(91040106)) {
+          this.$message.warning("没有此功能权限，请联系管理员授权");
+          return false;
         }
-      }else if(activeName == 'second' || activeName == 'fourth' || activeName == 'first'){
-        if(!this.isPurViewFun(91040113)){
-          this.$message.warning('没有此功能权限，请联系管理员授权')
-          return false
+      } else if (activeName == "second" || activeName == "fourth" || activeName == "first") {
+        if (!this.isPurViewFun(91040113)) {
+          this.$message.warning("没有此功能权限，请联系管理员授权");
+          return false;
         }
       }
     }
-  },
-  
+  }
 };
 </script>
 
